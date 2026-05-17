@@ -29,6 +29,16 @@ import emailRoutes from './email.js';
 
 const router = Router();
 
+// Health check - no auth required
+router.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'HospitalCRM API',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
+});
+
 router.use('/auth', authRoutes);
 router.use('/patients', patientRoutes);
 router.use('/queue', queueRoutes);
