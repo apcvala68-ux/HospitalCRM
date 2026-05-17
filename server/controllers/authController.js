@@ -95,6 +95,37 @@ export const getMe = async (req, res) => {
   res.json({ user: req.user });
 };
 
+export const updateProfile = async (req, res, next) => {
+  try {
+    const { name, phone } = req.body;
+    const user = await User.findById(req.user._id);
+    if (name) user.name = name;
+    if (phone !== undefined) user.phone = phone;
+    await user.save();
+    res.json({ user, message: 'Profile updated successfully' });
+  } catch (error) { next(error); }
+};
+
+export const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current password and new password are required' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters' });
+    }
+    const user = await User.findById(req.user._id);
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+    user.password = newPassword;
+    await user.save();
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) { next(error); }
+};
+
 export const getGoogleAuthUrl = (req, res) => {
   const url = googleClient.generateAuthUrl({
     access_type: 'offline',

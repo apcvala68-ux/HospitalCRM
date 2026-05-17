@@ -36,6 +36,7 @@ import { AllergyPage } from './pages/allergy/AllergyPage';
 import { TriagePage } from './pages/triage/TriagePage';
 import { PrescriptionPrint } from './pages/prescription/PrescriptionPrint';
 import { EmailPage } from './pages/email/EmailPage';
+import { SettingsPage } from './pages/settings/SettingsPage';
 import { NetworkDiagnosticPage } from './pages/NetworkDiagnosticPage';
 
 function ProtectedRoute({ children }) {
@@ -104,6 +105,7 @@ function AppRoutes() {
         <Route path="triage" element={<TriagePage />} />
         <Route path="prescription/:id/print" element={<PrescriptionPrint />} />
         <Route path="email" element={<EmailPage />} />
+        <Route path="settings" element={<SettingsPage />} />
         <Route path="network-diagnostic" element={<NetworkDiagnosticPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

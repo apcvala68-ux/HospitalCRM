@@ -5,7 +5,7 @@ import {
   Pill, BedDouble, ClipboardList, LogOut, BarChart3, Clock,
   FlaskConical, Droplets, Siren, Scissors, ShoppingCart, Brush,
   CalendarDays, Shield, Cross, MessageSquare, AlertTriangle, Syringe, Activity,
-  Mail, Wifi,
+  Mail, Wifi, Settings,
 } from 'lucide-react';
 
 const roleMenus = {
@@ -17,6 +17,7 @@ const roleMenus = {
     { to: '/ot-surgery', label: 'OT / Surgery', icon: Scissors },
     { to: '/lab', label: 'Laboratory', icon: FlaskConical },
     { to: '/email', label: 'Email', icon: Mail },
+    { to: '/settings', label: 'Settings', icon: Settings },
   ],
   receptionist: [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -27,6 +28,7 @@ const roleMenus = {
     { to: '/ambulance', label: 'Ambulance', icon: Siren },
     { to: '/feedback', label: 'Feedback', icon: MessageSquare },
     { to: '/email', label: 'Email', icon: Mail },
+    { to: '/settings', label: 'Settings', icon: Settings },
   ],
   admin: [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -55,6 +57,7 @@ const roleMenus = {
     { to: '/reports/eod', label: 'EOD Report', icon: ClipboardList },
     { to: '/email', label: 'Email', icon: Mail },
     { to: '/network-diagnostic', label: 'Network Diagnostic', icon: Wifi },
+    { to: '/settings', label: 'Settings', icon: Settings },
   ],
   cashier: [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -62,6 +65,7 @@ const roleMenus = {
     { to: '/insurance', label: 'Insurance', icon: Shield },
     { to: '/reports/eod', label: 'EOD Report', icon: ClipboardList },
     { to: '/email', label: 'Email', icon: Mail },
+    { to: '/settings', label: 'Settings', icon: Settings },
   ],
   pharmacist: [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -69,6 +73,7 @@ const roleMenus = {
     { to: '/purchase-orders', label: 'Purchase Orders', icon: ShoppingCart },
     { to: '/blood-bank', label: 'Blood Bank', icon: Droplets },
     { to: '/email', label: 'Email', icon: Mail },
+    { to: '/settings', label: 'Settings', icon: Settings },
   ],
   nurse: [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -79,6 +84,7 @@ const roleMenus = {
     { to: '/lab', label: 'Laboratory', icon: FlaskConical },
     { to: '/allergies', label: 'Allergies', icon: AlertTriangle },
     { to: '/email', label: 'Email', icon: Mail },
+    { to: '/settings', label: 'Settings', icon: Settings },
   ],
 };
 
