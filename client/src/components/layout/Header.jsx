@@ -83,7 +83,7 @@ export function Header() {
                   My Attendance
                 </button>
                 <button
-                  onClick={() => { setMenuOpen(false); }}
+                  onClick={() => { navigate('/settings'); setMenuOpen(false); }}
                   className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors cursor-pointer"
                 >
                   <Settings className="h-4 w-4" />

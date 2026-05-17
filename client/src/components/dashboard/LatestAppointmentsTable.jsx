@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { ExternalLink } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLatestAppointments } from '../../hooks/useDashboard';
 
@@ -32,44 +32,50 @@ export function LatestAppointmentsTable() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">Latest Appointments</CardTitle>
-        <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate('/appointments')}>
-          View More <ExternalLink className="h-3 w-3 ml-1" />
-        </Button>
       </CardHeader>
       <CardContent>
         {appointments.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">No appointments yet</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="pb-2 text-left font-medium text-muted-foreground">Patient ID</th>
-                  <th className="pb-2 text-left font-medium text-muted-foreground">Patient Name</th>
-                  <th className="pb-2 text-left font-medium text-muted-foreground">Session Type</th>
-                  <th className="pb-2 text-left font-medium text-muted-foreground">Doctor Name</th>
-                  <th className="pb-2 text-left font-medium text-muted-foreground">Date & Time</th>
-                  <th className="pb-2 text-right font-medium text-muted-foreground">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {displayAppointments.map((apt) => (
-                  <tr key={apt._id} className="border-b last:border-0">
-                    <td className="py-2.5 font-mono text-xs">{apt.patientId}</td>
-                    <td className="py-2.5 font-medium">{apt.patientName}</td>
-                    <td className="py-2.5 text-muted-foreground">{apt.sessionType}</td>
-                    <td className="py-2.5 text-muted-foreground">{apt.doctorName}</td>
-                    <td className="py-2.5 text-muted-foreground">{apt.dateTime}</td>
-                    <td className="py-2.5 text-right">
-                      <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[apt.status] || statusColors.scheduled}`}>
-                        {apt.status}
-                      </span>
-                    </td>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="pb-2 text-left font-medium text-muted-foreground">Patient ID</th>
+                    <th className="pb-2 text-left font-medium text-muted-foreground">Patient Name</th>
+                    <th className="pb-2 text-left font-medium text-muted-foreground">Session Type</th>
+                    <th className="pb-2 text-left font-medium text-muted-foreground">Doctor Name</th>
+                    <th className="pb-2 text-left font-medium text-muted-foreground">Date & Time</th>
+                    <th className="pb-2 text-right font-medium text-muted-foreground">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {displayAppointments.map((apt) => (
+                    <tr key={apt._id} className="border-b last:border-0">
+                      <td className="py-2.5 font-mono text-xs">{apt.patientId}</td>
+                      <td className="py-2.5 font-medium">{apt.patientName}</td>
+                      <td className="py-2.5 text-muted-foreground">{apt.sessionType}</td>
+                      <td className="py-2.5 text-muted-foreground">{apt.doctorName}</td>
+                      <td className="py-2.5 text-muted-foreground">{apt.dateTime}</td>
+                      <td className="py-2.5 text-right">
+                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[apt.status] || statusColors.scheduled}`}>
+                          {apt.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Button
+              onClick={() => navigate('/appointments')}
+              className="w-full mt-3 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-medium shadow-md hover:shadow-lg transition-all"
+            >
+              View All Appointments
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </>
         )}
       </CardContent>
     </Card>

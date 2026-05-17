@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { ExternalLink } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePatientRecords } from '../../hooks/useDashboard';
 
@@ -34,40 +34,46 @@ export function PatientRecordsTable() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">Patient Record</CardTitle>
-        <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate('/patients')}>
-          View More <ExternalLink className="h-3 w-3 ml-1" />
-        </Button>
       </CardHeader>
       <CardContent>
         {records.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">No patient records yet</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="pb-2 text-left font-medium text-muted-foreground">Patient Name</th>
-                  <th className="pb-2 text-left font-medium text-muted-foreground">Diagnosis</th>
-                  <th className="pb-2 text-left font-medium text-muted-foreground">Department</th>
-                  <th className="pb-2 text-right font-medium text-muted-foreground">Last Visit</th>
-                </tr>
-              </thead>
-              <tbody>
-                {displayRecords.map((r) => (
-                  <tr key={r._id} className="border-b last:border-0">
-                    <td className="py-2.5 font-medium">{r.patientName}</td>
-                    <td className="py-2.5 text-muted-foreground">{r.diagnosis}</td>
-                    <td className="py-2.5">
-                      <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${deptColors[r.department] || deptColors.General}`}>
-                        {r.department}
-                      </span>
-                    </td>
-                    <td className="py-2.5 text-right text-muted-foreground">{r.lastVisit}</td>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="pb-2 text-left font-medium text-muted-foreground">Patient Name</th>
+                    <th className="pb-2 text-left font-medium text-muted-foreground">Diagnosis</th>
+                    <th className="pb-2 text-left font-medium text-muted-foreground">Department</th>
+                    <th className="pb-2 text-right font-medium text-muted-foreground">Last Visit</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {displayRecords.map((r) => (
+                    <tr key={r._id} className="border-b last:border-0">
+                      <td className="py-2.5 font-medium">{r.patientName}</td>
+                      <td className="py-2.5 text-muted-foreground">{r.diagnosis}</td>
+                      <td className="py-2.5">
+                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${deptColors[r.department] || deptColors.General}`}>
+                          {r.department}
+                        </span>
+                      </td>
+                      <td className="py-2.5 text-right text-muted-foreground">{r.lastVisit}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Button
+              onClick={() => navigate('/patients')}
+              className="w-full mt-3 bg-gradient-to-r from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700 text-white font-medium shadow-md hover:shadow-lg transition-all"
+            >
+              View All Patients
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </>
         )}
       </CardContent>
     </Card>
