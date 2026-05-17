@@ -5,7 +5,7 @@ import {
   Pill, BedDouble, ClipboardList, LogOut, BarChart3, Clock,
   FlaskConical, Droplets, Siren, Scissors, ShoppingCart, Brush,
   CalendarDays, Shield, Cross, MessageSquare, AlertTriangle, Syringe, Activity,
-  Mail,
+  Mail, Wifi,
 } from 'lucide-react';
 
 const roleMenus = {
@@ -54,6 +54,7 @@ const roleMenus = {
     { to: '/analytics', label: 'Analytics', icon: BarChart3 },
     { to: '/reports/eod', label: 'EOD Report', icon: ClipboardList },
     { to: '/email', label: 'Email', icon: Mail },
+    { to: '/network-diagnostic', label: 'Network Diagnostic', icon: Wifi },
   ],
   cashier: [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
