@@ -431,11 +431,17 @@ async function seed() {
     for (let i = 0; i < 30; i++) {
       const firstName = firstNames[i % firstNames.length];
       const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+      // Distribute the 30 patients across the last 7 days
+      const daysAgo = i % 7;
+      const createdDate = new Date();
+      createdDate.setDate(createdDate.getDate() - daysAgo);
+      
       genericPatients.push({
         uhid: `HOSP-${new Date().getFullYear()}${String(new Date().getMonth()+1).padStart(2,'0')}-${String(patients.length + i + 1).padStart(5,'0')}`,
         firstName,
         lastName,
         dob: new Date(1960 + Math.floor(Math.random() * 50), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1),
+        createdAt: createdDate,
         gender: i % 2 === 0 ? 'male' : 'female',
         phone: `9876${String(54030 + i).slice(0, 5)}`,
         email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}@email.com`,
@@ -463,7 +469,10 @@ async function seed() {
       // Create vitals (1-3 visits per patient)
       const numVisits = randomInt(1, 3);
       for (let v = 0; v < numVisits; v++) {
-        const visitDate = randomDate(90);
+        // Distribute visits over the last 7 days for the dashboard graphs
+        const daysAgo = (i + v) % 7;
+        const visitDate = new Date();
+        visitDate.setDate(visitDate.getDate() - daysAgo);
         const bpSys = randomInt(100, 180);
         const bpDia = randomInt(60, 110);
         const pulse = randomInt(60, 110);
@@ -636,11 +645,14 @@ async function seed() {
 
     // Create upcoming appointments
     const today = new Date();
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 30; i++) {
       const patient = pickRandom(allPatients);
       const doctor = pickRandom(doctors);
       const dept = departments[doctors.indexOf(doctor)];
-      const apptDate = new Date(today.getTime() + randomInt(1, 14) * 24 * 60 * 60 * 1000);
+      // Spread appointments over the last 7 days and next 7 days
+      const daysOffset = (i % 15) - 7; 
+      const apptDate = new Date(today);
+      apptDate.setDate(today.getDate() + daysOffset);
       const hour = randomInt(9, 16);
       const minute = pickRandom([0, 15, 30, 45]);
       const startTime = `${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import {
@@ -5,7 +6,7 @@ import {
   Pill, BedDouble, ClipboardList, LogOut, BarChart3, Clock,
   FlaskConical, Droplets, Siren, Scissors, ShoppingCart, Brush,
   CalendarDays, Shield, Cross, MessageSquare, AlertTriangle, Syringe, Activity,
-  Mail, Wifi, Settings,
+  Mail, Wifi, Settings, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 
 const roleMenus = {
@@ -89,31 +90,48 @@ const roleMenus = {
 };
 
 export function Sidebar({ user }) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const menuItems = roleMenus[user?.role] || roleMenus.admin;
 
   return (
-    <aside className="flex h-full w-64 flex-col border-r bg-card">
-      <div className="flex h-14 items-center border-b px-6">
-        <Building2 className="h-6 w-6 text-primary" />
-        <span className="ml-2 text-lg font-semibold">Royale Hospital</span>
+    <aside className={cn(
+      "flex h-full flex-col border-r bg-card transition-all duration-300 ease-in-out relative",
+      isCollapsed ? "w-20" : "w-64"
+    )}>
+      <div className={cn(
+        "flex h-14 items-center border-b transition-all duration-300",
+        isCollapsed ? "justify-center px-0" : "px-6"
+      )}>
+        <Building2 className="h-6 w-6 text-primary shrink-0" />
+        {!isCollapsed && <span className="ml-2 text-lg font-semibold whitespace-nowrap">Royale Hospital</span>}
       </div>
-      <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
+
+      {/* Premium floating collapse button */}
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="absolute -right-3 top-20 z-50 flex h-6 w-6 items-center justify-center rounded-full border bg-background shadow-sm hover:shadow hover:bg-accent transition-all hover:text-accent-foreground"
+      >
+        {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+      </button>
+      <nav className="flex-1 space-y-1 p-3 overflow-y-auto overflow-x-hidden">
         {menuItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             end={item.to === '/'}
+            title={isCollapsed ? item.label : undefined}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                'flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-all duration-300',
+                isCollapsed ? 'justify-center px-0' : 'px-3',
                 isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  ? 'bg-primary/10 text-primary shadow-sm'
+                  : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
               )
             }
           >
-            <item.icon className="h-4 w-4" />
-            {item.label}
+            <item.icon className={cn("shrink-0", isCollapsed ? "h-5 w-5" : "h-4 w-4")} />
+            {!isCollapsed && <span className="whitespace-nowrap overflow-hidden transition-all duration-300">{item.label}</span>}
           </NavLink>
         ))}
       </nav>

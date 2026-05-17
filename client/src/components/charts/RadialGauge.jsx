@@ -11,7 +11,7 @@ export function RadialGauge({ percentage = 0, size = 160, color = '#3b82f6', lab
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="hsl(var(--muted))"
+          stroke="var(--color-muted)"
           strokeWidth="12"
         />
         <circle

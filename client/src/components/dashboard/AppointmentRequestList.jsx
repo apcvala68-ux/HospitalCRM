@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { Clock, MapPin, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTodayAppointments } from '../../hooks/useDashboard';
+import { cn } from '../../lib/utils';
 
 const statusColors = {
   scheduled: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
@@ -21,52 +22,43 @@ export function AppointmentRequestList() {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader><CardTitle className="text-lg">Appointment Request</CardTitle></CardHeader>
-        <CardContent><p className="text-sm text-muted-foreground text-center py-8">Loading...</p></CardContent>
+      <Card className="border-border/40 shadow-none h-full flex flex-col">
+        <CardContent className="p-4 flex-1 flex items-center justify-center">
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg">Appointment Request</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Card className="border-border/40 shadow-none h-full flex flex-col">
+      <CardContent className="p-4 flex-1">
         {appointments.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">No appointments today</p>
+          <div className="flex h-full items-center justify-center">
+            <p className="text-xs text-muted-foreground">No appointments today</p>
+          </div>
         ) : (
-          <>
-            <div className="space-y-3">
-              {displayAppointments.map((apt) => (
-                <div key={apt._id} className="flex items-center justify-between rounded-lg border p-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                      {apt.patientName?.charAt(0) || '?'}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{apt.patientName}</p>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{apt.time}</span>
-                        <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{apt.department}</span>
-                      </div>
+          <div className="space-y-3">
+            {displayAppointments.map((apt) => (
+              <div key={apt._id} className="flex items-center justify-between rounded-lg border border-border/40 bg-muted/20 p-3 hover:bg-muted/40 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                    {apt.patientName?.charAt(0) || '?'}
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold text-foreground">{apt.patientName}</p>
+                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-0.5">
+                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{apt.time}</span>
+                      <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{apt.department}</span>
                     </div>
                   </div>
-                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[apt.status] || statusColors.scheduled}`}>
-                    {apt.status}
-                  </span>
                 </div>
-              ))}
-            </div>
-            <Button
-              onClick={() => navigate('/appointments')}
-              className="w-full mt-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-medium shadow-md hover:shadow-lg transition-all"
-            >
-              View All Appointments
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </>
+                <span className={cn('inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold', statusColors[apt.status] || statusColors.scheduled)}>
+                  {apt.status}
+                </span>
+              </div>
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>
