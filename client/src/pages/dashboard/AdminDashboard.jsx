@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Badge } from '../../components/ui/badge';
 import {
   Users, Stethoscope, CalendarCheck, DollarSign,
-  ArrowUpRight, ArrowDownRight,
+  TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight,
   Users2, Building2, FlaskConical, FileText, BedDouble, ClipboardList,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -104,8 +104,8 @@ export function AdminDashboard() {
 
       {/* Row 2: Appointment Request + Patient Statistics */}
       <div className="grid gap-4 md:grid-cols-2">
-        <AppointmentRequestList className="h-full" />
-        <Card className="h-full">
+        <AppointmentRequestList />
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Patients Statistics</CardTitle>
             <div className="flex items-center gap-4 text-xs">
@@ -113,11 +113,11 @@ export function AdminDashboard() {
               <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-300" />Old Patients</span>
             </div>
           </CardHeader>
-          <CardContent className="flex-1" style={{ minHeight: 240 }}>
+          <CardContent className="h-64">
             {patientStats.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">No data yet</p>
             ) : (
-              <ResponsiveContainer width="100%" height={240}>
+              <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={patientStats}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" fontSize={12} />
@@ -149,16 +149,16 @@ export function AdminDashboard() {
         ))}
       </div>
 
-      {/* Row 4: Patient Reports + Patient Visits Gauge + Doctors - equal height cards */}
+      {/* Row 4: Patient Reports + Patient Visits Gauge + Doctors */}
       <div className="grid gap-4 md:grid-cols-3">
-        <PatientReportsList className="h-full" />
-        <Card className="h-full flex flex-col">
+        <PatientReportsList />
+        <Card>
           <CardHeader><CardTitle className="text-lg">Patient Visits</CardTitle></CardHeader>
-          <CardContent className="flex-1 flex flex-col items-center justify-center py-6">
+          <CardContent className="flex flex-col items-center">
             <div className="relative flex items-center justify-center">
-              <RadialGauge percentage={Math.min(gauge.total, 100)} size={160} color="#3b82f6" label="Total Patients" />
+              <RadialGauge percentage={Math.min(gauge.total, 100)} size={140} color="#3b82f6" label="Total Patients" />
             </div>
-            <div className="mt-6 w-full max-w-[200px] space-y-3">
+            <div className="mt-4 w-full space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full bg-blue-500" />
@@ -176,72 +176,21 @@ export function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
-        <DoctorsAvailabilityList className="h-full" />
+        <DoctorsAvailabilityList />
       </div>
 
-      {/* Row 5: Latest Appointments - full width */}
-      <LatestAppointmentsTable className="h-full" />
-
-      {/* Row 6: Bed Occupancy + Revenue Summary + Queue Status */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="h-full flex flex-col">
-          <CardHeader><CardTitle className="text-lg">Bed Occupancy</CardTitle></CardHeader>
-          <CardContent className="flex-1 flex flex-col items-center justify-center py-4">
-            <RadialGauge percentage={bedData?.occupancyRate || 0} size={130} color="#10b981" />
-            <div className="grid grid-cols-4 gap-3 text-center text-xs mt-4 w-full">
-              <div><p className="text-lg font-bold text-green-600">{bedData?.available || 0}</p><p className="text-muted-foreground">Available</p></div>
-              <div><p className="text-lg font-bold text-blue-600">{bedData?.occupied || 0}</p><p className="text-muted-foreground">Occupied</p></div>
-              <div><p className="text-lg font-bold text-yellow-600">{bedData?.dirty || 0}</p><p className="text-muted-foreground">Dirty</p></div>
-              <div><p className="text-lg font-bold text-red-600">{bedData?.maintenance || 0}</p><p className="text-muted-foreground">Maint.</p></div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="h-full flex flex-col">
-          <CardHeader><CardTitle className="text-lg">Today's Revenue</CardTitle></CardHeader>
-          <CardContent className="flex-1 flex flex-col justify-center py-4">
-            <p className="text-4xl font-bold text-green-600">{(s.todayRevenue || 0).toLocaleString('en-IN')}</p>
-            <p className="text-sm text-muted-foreground mt-1">Billed: ₹{(s.todayBilled || 0).toLocaleString('en-IN')}</p>
-            <div className="mt-3 h-2 w-full rounded-full bg-muted overflow-hidden">
-              <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${s.todayBilled ? Math.min((s.todayRevenue / s.todayBilled) * 100, 100) : 0}%` }} />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Collection rate: {s.todayBilled ? Math.round((s.todayRevenue / s.todayBilled) * 100) : 0}%</p>
-          </CardContent>
-        </Card>
-        <Card className="h-full flex flex-col">
-          <CardHeader><CardTitle className="text-lg">Queue Status</CardTitle></CardHeader>
-          <CardContent className="flex-1 flex flex-col justify-center py-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Waiting</span>
-              <Badge variant="warning">{s.waitingInQueue || 0}</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">In Triage</span>
-              <Badge variant="info">-</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">With Doctor</span>
-              <Badge variant="default">-</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Completed Today</span>
-              <Badge variant="success">{s.todayAppointments || 0}</Badge>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Row 7: Top Departments + Patient Records */}
+      {/* Row 5: Top Departments + Patient Records */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="h-full flex flex-col">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Top Departments</CardTitle>
             <Badge variant="outline">Revenue</Badge>
           </CardHeader>
-          <CardContent className="flex-1 flex items-center justify-center py-4">
+          <CardContent>
             {deptRevenue.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center">No data yet</p>
+              <p className="text-sm text-muted-foreground text-center py-8">No data yet</p>
             ) : (
-              <div className="flex items-center gap-6 w-full">
+              <div className="flex items-center gap-6">
                 <div className="h-40 w-40 shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -272,7 +221,62 @@ export function AdminDashboard() {
             )}
           </CardContent>
         </Card>
-        <PatientRecordsTable className="h-full" />
+        <PatientRecordsTable />
+      </div>
+
+      {/* Row 6: Latest Appointments Table */}
+      <LatestAppointmentsTable />
+
+      {/* Row 7: Bed Occupancy + Revenue Summary */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader><CardTitle className="text-lg">Bed Occupancy</CardTitle></CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center py-2">
+              <div className="relative flex items-center justify-center">
+                <RadialGauge percentage={bedData?.occupancyRate || 0} size={120} color="#10b981" />
+              </div>
+            </div>
+            <div className="grid grid-cols-4 gap-2 text-center text-xs mt-2">
+              <div><p className="text-lg font-bold text-green-600">{bedData?.available || 0}</p><p className="text-muted-foreground">Available</p></div>
+              <div><p className="text-lg font-bold text-blue-600">{bedData?.occupied || 0}</p><p className="text-muted-foreground">Occupied</p></div>
+              <div><p className="text-lg font-bold text-yellow-600">{bedData?.dirty || 0}</p><p className="text-muted-foreground">Dirty</p></div>
+              <div><p className="text-lg font-bold text-red-600">{bedData?.maintenance || 0}</p><p className="text-muted-foreground">Maint.</p></div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle className="text-lg">Today's Revenue</CardTitle></CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold text-green-600">{(s.todayRevenue || 0).toLocaleString('en-IN')}</p>
+            <p className="text-sm text-muted-foreground mt-1">Billed: ₹{(s.todayBilled || 0).toLocaleString('en-IN')}</p>
+            <div className="mt-3 h-2 w-full rounded-full bg-muted overflow-hidden">
+              <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${s.todayBilled ? Math.min((s.todayRevenue / s.todayBilled) * 100, 100) : 0}%` }} />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Collection rate: {s.todayBilled ? Math.round((s.todayRevenue / s.todayBilled) * 100) : 0}%</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle className="text-lg">Queue Status</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Waiting</span>
+              <Badge variant="warning">{s.waitingInQueue || 0}</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">In Triage</span>
+              <Badge variant="info">-</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">With Doctor</span>
+              <Badge variant="default">-</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Completed Today</span>
+              <Badge variant="success">{s.todayAppointments || 0}</Badge>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

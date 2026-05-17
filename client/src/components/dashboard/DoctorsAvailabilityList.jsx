@@ -1,15 +1,22 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
-import { Stethoscope } from 'lucide-react';
+import { Button } from '../ui/button';
+import { Stethoscope, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useDoctorsAvailability } from '../../hooks/useDashboard';
 
-export function DoctorsAvailabilityList({ className }) {
+export function DoctorsAvailabilityList() {
+  const navigate = useNavigate();
   const { data, isLoading } = useDoctorsAvailability();
   const doctors = data?.doctors || [];
+  const [showMore, setShowMore] = useState(false);
+
+  const displayDoctors = showMore ? doctors : doctors.slice(0, 5);
 
   if (isLoading) {
     return (
-      <Card className={className}>
+      <Card>
         <CardHeader><CardTitle className="text-lg">Doctors</CardTitle></CardHeader>
         <CardContent><p className="text-sm text-muted-foreground text-center py-8">Loading...</p></CardContent>
       </Card>
@@ -17,7 +24,7 @@ export function DoctorsAvailabilityList({ className }) {
   }
 
   return (
-    <Card className={className}>
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">Doctors</CardTitle>
         <Badge variant="outline">{doctors.length} total</Badge>
@@ -27,7 +34,7 @@ export function DoctorsAvailabilityList({ className }) {
           <p className="text-sm text-muted-foreground text-center py-8">No doctors found</p>
         ) : (
           <div className="space-y-2">
-            {doctors.slice(0, 5).map((doc) => (
+            {displayDoctors.map((doc) => (
               <div key={doc._id} className="flex items-center justify-between rounded-lg border p-2.5">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
@@ -43,6 +50,12 @@ export function DoctorsAvailabilityList({ className }) {
                 </Badge>
               </div>
             ))}
+            {doctors.length > 5 && !showMore && (
+              <Button variant="ghost" className="w-full mt-2" onClick={() => navigate('/doctors')}>
+                View More ({doctors.length - 5} more)
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            )}
           </div>
         )}
       </CardContent>

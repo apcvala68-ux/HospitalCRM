@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
-import { Clock, MapPin } from 'lucide-react';
+import { Button } from '../ui/button';
+import { Clock, MapPin, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useTodayAppointments } from '../../hooks/useDashboard';
 
 const statusColors = {
@@ -12,13 +15,17 @@ const statusColors = {
   'no-show': 'destructive',
 };
 
-export function AppointmentRequestList({ className }) {
+export function AppointmentRequestList() {
+  const navigate = useNavigate();
   const { data, isLoading } = useTodayAppointments();
   const appointments = data?.appointments || [];
+  const [showMore, setShowMore] = useState(false);
+
+  const displayAppointments = showMore ? appointments : appointments.slice(0, 5);
 
   if (isLoading) {
     return (
-      <Card className={className}>
+      <Card>
         <CardHeader><CardTitle className="text-lg">Appointment Request</CardTitle></CardHeader>
         <CardContent><p className="text-sm text-muted-foreground text-center py-8">Loading...</p></CardContent>
       </Card>
@@ -26,7 +33,7 @@ export function AppointmentRequestList({ className }) {
   }
 
   return (
-    <Card className={className}>
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">Appointment Request</CardTitle>
         <Badge variant="outline">{appointments.length} today</Badge>
@@ -36,7 +43,7 @@ export function AppointmentRequestList({ className }) {
           <p className="text-sm text-muted-foreground text-center py-8">No appointments today</p>
         ) : (
           <div className="space-y-3">
-            {appointments.slice(0, 5).map((apt) => (
+            {displayAppointments.map((apt) => (
               <div key={apt._id} className="flex items-center justify-between rounded-lg border p-3">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
@@ -55,6 +62,12 @@ export function AppointmentRequestList({ className }) {
                 </Badge>
               </div>
             ))}
+            {appointments.length > 5 && !showMore && (
+              <Button variant="ghost" className="w-full mt-2" onClick={() => navigate('/appointments')}>
+                View More ({appointments.length - 5} more)
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            )}
           </div>
         )}
       </CardContent>
