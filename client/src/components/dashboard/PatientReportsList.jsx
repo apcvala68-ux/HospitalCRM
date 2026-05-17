@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { Download, ChevronRight } from 'lucide-react';
+import { Download, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useRecentLabResults } from '../../hooks/useDashboard';
 
@@ -11,7 +9,7 @@ const categoryIcons = {
   biochemistry: '🧪',
   microbiology: '🦠',
   serology: '🔬',
-  urinalysis: '',
+  urinalysis: '💧',
   radiology: '📷',
   pathology: '',
   other: '',
@@ -29,9 +27,7 @@ export function PatientReportsList() {
   const navigate = useNavigate();
   const { data, isLoading } = useRecentLabResults();
   const results = data?.labResults || [];
-  const [showMore, setShowMore] = useState(false);
-
-  const displayResults = showMore ? results : results.slice(0, 5);
+  const displayResults = results.slice(0, 5);
 
   if (isLoading) {
     return (
@@ -46,7 +42,9 @@ export function PatientReportsList() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">Patient Reports</CardTitle>
-        <Badge variant="outline">{results.length} results</Badge>
+        <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate('/lab')}>
+          View More <ExternalLink className="h-3 w-3 ml-1" />
+        </Button>
       </CardHeader>
       <CardContent>
         {results.length === 0 ? (
@@ -63,9 +61,13 @@ export function PatientReportsList() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant={statusColors[r.status] || 'outline'} className="text-xs">
+                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                    r.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
+                    r.status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' :
+                    'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                  }`}>
                     {r.status}
-                  </Badge>
+                  </span>
                   {r.status === 'completed' && (
                     <button className="rounded p-1 hover:bg-muted">
                       <Download className="h-3.5 w-3.5 text-muted-foreground" />
@@ -74,12 +76,6 @@ export function PatientReportsList() {
                 </div>
               </div>
             ))}
-            {results.length > 5 && !showMore && (
-              <Button variant="ghost" className="w-full mt-2" onClick={() => navigate('/lab')}>
-                View More ({results.length - 5} more)
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            )}
           </div>
         )}
       </CardContent>

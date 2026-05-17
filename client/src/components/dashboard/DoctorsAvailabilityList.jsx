@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { Stethoscope, ChevronRight } from 'lucide-react';
+import { Stethoscope, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDoctorsAvailability } from '../../hooks/useDashboard';
 
@@ -10,9 +8,7 @@ export function DoctorsAvailabilityList() {
   const navigate = useNavigate();
   const { data, isLoading } = useDoctorsAvailability();
   const doctors = data?.doctors || [];
-  const [showMore, setShowMore] = useState(false);
-
-  const displayDoctors = showMore ? doctors : doctors.slice(0, 5);
+  const displayDoctors = doctors.slice(0, 5);
 
   if (isLoading) {
     return (
@@ -27,7 +23,9 @@ export function DoctorsAvailabilityList() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">Doctors</CardTitle>
-        <Badge variant="outline">{doctors.length} total</Badge>
+        <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate('/doctors')}>
+          View More <ExternalLink className="h-3 w-3 ml-1" />
+        </Button>
       </CardHeader>
       <CardContent>
         {doctors.length === 0 ? (
@@ -45,17 +43,15 @@ export function DoctorsAvailabilityList() {
                     <p className="text-xs text-muted-foreground">{doc.specialization}</p>
                   </div>
                 </div>
-                <Badge variant={doc.isAvailable ? 'success' : 'destructive'} className="text-xs">
+                <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                  doc.isAvailable
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                    : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                }`}>
                   {doc.isAvailable ? 'Available' : 'Unavailable'}
-                </Badge>
+                </span>
               </div>
             ))}
-            {doctors.length > 5 && !showMore && (
-              <Button variant="ghost" className="w-full mt-2" onClick={() => navigate('/doctors')}>
-                View More ({doctors.length - 5} more)
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            )}
           </div>
         )}
       </CardContent>
