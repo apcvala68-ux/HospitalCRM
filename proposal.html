@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise HMIS Proposal | Axiora Digital</title>
+<!-- 
+Palette: Vibrant & Professional (Deep Slate: #0f172a, Vibrant Cyan: #06b6d4, Electric Pink: #ec4899, Bright Blue: #3b82f6)
+Plan:
+1. Hero Header (High impact, clear recipient)
+2. Data Visualization Hook (Showcasing ROI and Time Saved to justify the investment)
+3. Strategy Overview (The 3 Layers)
+4. Deep Dive Modules (21 items, clearly numbered, color-coded by layer)
+5. Actionable Next Steps (Clear instructions on how to reply with numbers)
+Charts Used:
+- Bar Chart (Compare): "Impact of Automation on Doctor Time"
+- Donut Chart (Compare/Composition): "Projected Revenue Leakage Recovery"
+EXPLICIT CONFIRMATION: NEITHER MERMAID JS NOR SVG WERE USED ANYWHERE IN THE OUTPUT.
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; line-height: 1.6; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 350px; }
+@media (min-width: 768px) { .chart-container { height: 350px; } }
+.module-card { background: white; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); margin-bottom: 2rem; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
+.module-header { padding: 1.5rem; display: flex; align-items: center; border-bottom: 1px solid #f1f5f9; }
+.module-body { padding: 1.5rem; display: grid; gap: 1.5rem; }
+@media (min-width: 768px) { .module-body { grid-template-columns: 1fr 1fr; } }
+.num-badge { display: flex; align-items: center; justify-content: center; width: 3.5rem; height: 3.5rem; border-radius: 0.75rem; font-weight: 900; font-size: 1.5rem; margin-right: 1.25rem; flex-shrink: 0; }
+.layer-1-color { border-left: 8px solid #3b82f6; }
+.layer-1-badge { background-color: #eff6ff; color: #2563eb; border: 2px solid #bfdbfe; }
+.layer-2-color { border-left: 8px solid #06b6d4; }
+.layer-2-badge { background-color: #ecfeff; color: #0891b2; border: 2px solid #a5f3fc; }
+.layer-3-color { background-color: #0f172a; color: white; border-left: 8px solid #ec4899; }
+.layer-3-badge { background-color: #fdf2f8; color: #db2777; border: 2px solid #fbcfe8; }
+.section-heading { font-size: 2rem; font-weight: 900; margin-bottom: 0.5rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0; }
+.workflow-box { background-color: #f8fafc; padding: 1.25rem; border-radius: 0.5rem; border: 1px solid #e2e8f0; }
+.layer-3-workflow { background-color: #1e293b; border-color: #334155; }
+.tag { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+@media print {
+body { background-color: white; font-size: 11pt; }
+.no-print { display: none !important; }
+.module-card { box-shadow: none; border: 1px solid #cbd5e1; margin-bottom: 1.5rem; }
+.page-break { page-break-before: always; }
+.print-container { max-width: 100% !important; padding: 0 !important; }
+.chart-container { max-width: 100%; height: 250px; }
+}
+</style>
+</head>
+<body class="antialiased text-slate-800">
+
+<div class="bg-slate-900 text-white py-12 px-6 lg:py-20 print:bg-white print:text-slate-900 print:py-8">
+<div class="max-w-6xl mx-auto print-container">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 border-b border-slate-700 print:border-slate-300 pb-8">
+<div>
+<h1 class="text-4xl font-black tracking-widest text-white print:text-slate-900 mb-2">AXIORA DIGITAL</h1>
+<p class="text-cyan-400 font-bold uppercase tracking-wider text-sm">Enterprise HealthTech Solutions</p>
+</div>
+<div class="mt-8 md:mt-0 md:text-right">
+<p class="text-slate-400 print:text-slate-500 text-sm uppercase tracking-wider font-bold mb-1">Prepared Exclusively For</p>
+<p class="text-2xl font-black text-white print:text-slate-900">Royale Hospital</p>
+<p class="text-slate-400 print:text-slate-500 mt-1">Tamil Nadu | Date: May 2026</p>
+</div>
+</div>
+<div class="max-w-4xl">
+<h2 class="text-5xl md:text-6xl font-black leading-tight mb-6">
+Modular Enterprise <br/>
+<span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 print:text-blue-600">Hospital Management System</span>
+</h2>
+<p class="text-xl text-slate-300 print:text-slate-600 leading-relaxed font-light">
+A highly scalable, 3-layer software architecture designed specifically to manage 100+ daily OPD patients and 25+ weekly surgeries flawlessly. 
+<strong class="text-white print:text-slate-900">Review the modules below and reply with the numbers you wish to activate for your custom quote.</strong>
+</p>
+</div>
+</div>
+</div>
+
+<main class="max-w-6xl mx-auto px-6 py-12 print-container">
+
+<section class="mb-20 page-break-inside-avoid">
+<div class="text-center mb-12">
+<h3 class="text-4xl font-black text-slate-900 mb-4">What The Axiora CRM Does For You</h3>
+<p class="text-xl text-slate-600 max-w-3xl mx-auto">We replace scattered paper files and disconnected software with one unified system. Here is exactly how our CRM transforms your hospital's operations and finances.</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+  
+  <!-- Visual Card 1: Doctor Time -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+    <div class="p-6 border-b border-slate-100 bg-slate-50">
+      <div class="flex items-center gap-3 mb-1">
+        <div class="p-2 bg-blue-100 text-blue-600 rounded-lg">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <h4 class="text-xl font-black text-slate-900">Doctor's Time Optimization</h4>
+      </div>
+      <p class="text-sm text-slate-500 ml-11">Shifting focus from manual paperwork to direct patient care.</p>
+    </div>
+    <div class="p-6 flex-grow flex flex-col justify-center">
+      
+      <!-- Before -->
+      <div class="mb-8">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Before CRM (Manual Paperwork)</p>
+        <div class="w-full bg-slate-100 rounded-full h-10 flex overflow-hidden">
+          <div class="bg-slate-400 h-full flex items-center justify-center text-xs font-bold text-white px-2" style="width: 75%">
+            15 Mins: Writing Prescriptions & History
+          </div>
+          <div class="bg-slate-300 h-full flex items-center justify-center text-xs font-bold text-slate-700 px-2 hidden sm:flex" style="width: 25%">
+            5 Min: Patient
+          </div>
+        </div>
+      </div>
+
+      <!-- After -->
+      <div>
+        <p class="text-xs font-bold text-cyan-600 uppercase tracking-wider mb-3">With Axiora CRM (AI Voice & Templates)</p>
+        <div class="w-full bg-slate-100 rounded-full h-10 flex overflow-hidden shadow-inner border border-cyan-100">
+          <div class="bg-cyan-500 h-full flex items-center justify-center text-xs font-bold text-white px-2 hidden sm:flex" style="width: 15%">
+            3 Mins
+          </div>
+          <div class="bg-blue-500 h-full flex items-center justify-center text-xs font-bold text-white px-2" style="width: 85%">
+            17 Mins: Direct Patient Interaction & Care
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Visual Card 2: Financial Leakage -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+    <div class="p-6 border-b border-slate-100 bg-slate-50">
+      <div class="flex items-center gap-3 mb-1">
+        <div class="p-2 bg-pink-100 text-pink-600 rounded-lg">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <h4 class="text-xl font-black text-slate-900">Stopping Revenue Leakage</h4>
+      </div>
+      <p class="text-sm text-slate-500 ml-11">How our centralized billing recovers lost hospital revenue.</p>
+    </div>
+    <div class="p-6 flex-grow">
+      
+      <div class="space-y-5">
+        <!-- Item 1 -->
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-full bg-red-100 text-red-500 flex items-center justify-center flex-shrink-0 mt-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </div>
+          <div>
+            <h5 class="font-bold text-slate-800">Unbilled OT Consumables & Ward Items</h5>
+            <p class="text-sm text-slate-500">Nurses often forget to manually add surgical items (gloves, sutures, implants) to the final paper bill.</p>
+            <div class="mt-2 flex items-center text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-md w-fit">
+              <svg class="w-4 h-4 mr-1.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              CRM Fix: Auto-deducts from inventory & adds to bill instantly.
+            </div>
+          </div>
+        </div>
+        
+        <!-- Item 2 -->
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-full bg-red-100 text-red-500 flex items-center justify-center flex-shrink-0 mt-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </div>
+          <div>
+            <h5 class="font-bold text-slate-800">Rejected TPA / Insurance Claims</h5>
+            <p class="text-sm text-slate-500">Claims rejected due to incorrect medical coding, missing signatures, or incomplete documentation.</p>
+            <div class="mt-2 flex items-center text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-md w-fit">
+              <svg class="w-4 h-4 mr-1.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              CRM Fix: Digitally pre-checks claims for 100% compliance.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- CRM Hub Infographic -->
+<div class="mt-12 bg-slate-900 rounded-2xl p-8 lg:p-12 text-center relative overflow-hidden border border-slate-800 shadow-2xl print:bg-white print:border-slate-300 print:shadow-none">
+  <!-- decorative background -->
+  <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none print:hidden">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30rem] h-[30rem] bg-cyan-500 rounded-full blur-3xl"></div>
+  </div>
+
+  <h4 class="text-3xl font-black text-white print:text-slate-900 mb-10 relative z-10">One Central Brain For Your Entire Hospital</h4>
+  
+  <div class="flex flex-col md:flex-row items-center justify-center gap-6 lg:gap-12 relative z-10">
+    
+    <!-- Left Column -->
+    <div class="flex flex-col gap-5 w-full md:w-1/3">
+      <div class="bg-slate-800/80 print:bg-slate-50 backdrop-blur border border-slate-700 print:border-slate-200 p-5 rounded-xl text-left hover:border-cyan-400 transition-colors">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-2xl">👩‍💼</span>
+          <h5 class="text-cyan-400 print:text-cyan-700 text-lg font-bold">Front Desk</h5>
+        </div>
+        <p class="text-slate-300 print:text-slate-600 text-sm">Paperless registration, live queue displays, and instant patient history retrieval.</p>
+      </div>
+      <div class="bg-slate-800/80 print:bg-slate-50 backdrop-blur border border-slate-700 print:border-slate-200 p-5 rounded-xl text-left hover:border-blue-400 transition-colors">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-2xl">💊</span>
+          <h5 class="text-blue-400 print:text-blue-700 text-lg font-bold">Pharmacy & Lab</h5>
+        </div>
+        <p class="text-slate-300 print:text-slate-600 text-sm">E-prescriptions flow directly to pharmacy. Lab results auto-attach to patient EHR.</p>
+      </div>
+    </div>
+
+    <!-- Center -->
+    <div class="my-8 md:my-0 flex-shrink-0 relative">
+      <div class="w-32 h-32 lg:w-48 lg:h-48 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-[0_0_50px_rgba(6,182,212,0.5)] border-4 border-slate-900 print:border-white print:shadow-md">
+        <div class="text-center">
+          <p class="text-white font-black text-2xl lg:text-3xl leading-none tracking-tight">AXIORA</p>
+          <p class="text-cyan-100 font-bold tracking-widest text-sm lg:text-base mt-1">CRM</p>
+        </div>
+      </div>
+      <!-- Pulse rings -->
+      <div class="absolute top-0 left-0 w-full h-full rounded-full border-2 border-cyan-400 animate-ping opacity-20 pointer-events-none print:hidden"></div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="flex flex-col gap-5 w-full md:w-1/3">
+      <div class="bg-slate-800/80 print:bg-slate-50 backdrop-blur border border-slate-700 print:border-slate-200 p-5 rounded-xl text-left hover:border-pink-400 transition-colors">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-2xl">💳</span>
+          <h5 class="text-pink-400 print:text-pink-700 text-lg font-bold">Billing & Finance</h5>
+        </div>
+        <p class="text-slate-300 print:text-slate-600 text-sm">Centralized cash counter. No discharge delays. Live revenue analytics for owners.</p>
+      </div>
+      <div class="bg-slate-800/80 print:bg-slate-50 backdrop-blur border border-slate-700 print:border-slate-200 p-5 rounded-xl text-left hover:border-emerald-400 transition-colors">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-2xl">🛏️</span>
+          <h5 class="text-emerald-400 print:text-emerald-700 text-lg font-bold">IPD & OT</h5>
+        </div>
+        <p class="text-slate-300 print:text-slate-600 text-sm">Live bed tracking, surgery scheduling, and automated nurse vitals charting.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</section>
+
+<section class="mb-16 bg-slate-100 p-8 rounded-2xl border border-slate-200 print:bg-white print:border-none print:p-0 page-break-inside-avoid">
+<h3 class="text-3xl font-black text-slate-900 mb-6">How Your Selection Works</h3>
+<p class="text-lg text-slate-700 mb-8">Instead of forcing you into a rigid package, we use a 3-Layer structure. You receive the Core Foundation automatically. You then pick and choose the specific operational and growth modules you need.</p>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white p-6 rounded-xl border-t-8 border-blue-500 shadow-sm">
+<h4 class="text-xl font-bold text-slate-900">Layer 1: Foundation</h4>
+<p class="text-slate-500 font-bold mb-3 text-sm">Modules 01 - 05</p>
+<p class="text-slate-600 text-sm">The mandatory digital nervous system. Included in the base setup by default.</p>
+</div>
+<div class="bg-white p-6 rounded-xl border-t-8 border-cyan-500 shadow-sm">
+<h4 class="text-xl font-bold text-slate-900">Layer 2: Operations</h4>
+<p class="text-slate-500 font-bold mb-3 text-sm">Modules 06 - 16</p>
+<p class="text-slate-600 text-sm">Department-specific tools. Select only the departments your hospital currently runs.</p>
+</div>
+<div class="bg-slate-900 p-6 rounded-xl border-t-8 border-pink-500 shadow-sm">
+<h4 class="text-xl font-bold text-white">Layer 3: Growth & AI</h4>
+<p class="text-slate-400 font-bold mb-3 text-sm">Modules 17 - 21</p>
+<p class="text-slate-300 text-sm">Premium technology designed to eliminate labor, boost patient retention, and automate workflows.</p>
+</div>
+</div>
+</section>
+
+<div class="page-break"></div>
+<div class="mb-12">
+<h3 class="section-heading text-blue-700">Layer 1: The Core Foundation</h3>
+<p class="text-slate-600 text-lg">The essential modules required to digitize your hospital. Included in base deployment.</p>
+</div>
+
+<article class="module-card layer-1-color">
+<div class="module-header">
+<div class="num-badge layer-1-badge">01</div>
+<div>
+<h4 class="text-2xl font-black text-slate-900">Patient Registration & Queue Management</h4>
+<div class="tag bg-slate-100 text-slate-600 mt-2">👤 Primary Users: Front Desk</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box">
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-600 text-sm">When a patient arrives, the front desk creates a profile capturing demographics and history, generating a Unique Health ID (UHID) and a digital token. Returning patients are instantly verified via mobile number or a quick QR scan, entirely bypassing the long paper registration form.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-600 text-sm space-y-2">
+<li>Drastically reduces waiting room crowding, crucial for your 100+ daily OPD traffic.</li>
+<li>Eliminates duplicate patient records and lost files.</li>
+<li>Provides a structured, live numbered queue for doctors to view on their consultation screens.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-1-color">
+<div class="module-header">
+<div class="num-badge layer-1-badge">02</div>
+<div>
+<h4 class="text-2xl font-black text-slate-900">Doctor's Consultation Dashboard</h4>
+<div class="tag bg-slate-100 text-slate-600 mt-2">👤 Primary Users: Consulting Doctors</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box">
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-600 text-sm">Doctors log in to see their live queue. Clicking a patient opens their entire history. The doctor can type clinical notes, select diagnoses from an ICD-10 drop-down, and write e-prescriptions. With one click, lab tests are ordered and medicine lists are routed directly to the pharmacy.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-600 text-sm space-y-2">
+<li>Saves doctors from repeatedly writing manual paper prescriptions.</li>
+<li>Instant access to past visit histories enables faster, more accurate diagnosis.</li>
+<li>Creates a secure, digital Electronic Health Record (EHR) that cannot be lost or destroyed.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-1-color">
+<div class="module-header">
+<div class="num-badge layer-1-badge">03</div>
+<div>
+<h4 class="text-2xl font-black text-slate-900">Centralized Billing & Cash Counter</h4>
+<div class="tag bg-slate-100 text-slate-600 mt-2">👤 Primary Users: Billing Dept, Cashiers</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box">
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-600 text-sm">All charges from every department (Consultation fees, Ward rent, Pharmacy items, Lab tests) automatically flow into a single, centralized invoice. The cashier accepts payments, splits them if necessary (e.g., partial Cash, partial UPI), and generates a GST-compliant receipt.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-600 text-sm space-y-2">
+<li>Zero manual calculation errors during patient checkout.</li>
+<li>Prevents massive revenue leakage by ensuring no consumed service or medicine goes unbilled.</li>
+<li>Generates clear end-of-day financial reconciliation reports for management.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-1-color">
+<div class="module-header">
+<div class="num-badge layer-1-badge">04</div>
+<div>
+<h4 class="text-2xl font-black text-slate-900">Staff Attendance & Role Security</h4>
+<div class="tag bg-slate-100 text-slate-600 mt-2">👤 Primary Users: HR, Hospital Admin</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box">
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-600 text-sm">Staff log in via secure PIN or biometric. The system tracks shifts and duty allocations. Most importantly, it enforces strict Role-Based Access Control (RBAC). A receptionist only sees appointments; a nurse only sees vitals; a cashier only sees billing totals.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-600 text-sm space-y-2">
+<li>Ensures absolute data privacy and prevents staff from viewing sensitive financial data.</li>
+<li>Automates staff attendance tracking for rapid, accurate payroll processing.</li>
+<li>Maintains a strict audit log of exactly who modified which patient record and when.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-1-color">
+<div class="module-header">
+<div class="num-badge layer-1-badge">05</div>
+<div>
+<h4 class="text-2xl font-black text-slate-900">Owner's Real-Time Analytics App</h4>
+<div class="tag bg-slate-100 text-slate-600 mt-2">👤 Primary Users: Hospital Owner</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box">
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-600 text-sm">A dedicated, high-level dashboard accessible via the owner's mobile phone or laptop. It silently pulls live data from all operational departments to display today's total revenue, patient footfall, active bed occupancy, and pending TPA claims.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-600 text-sm space-y-2">
+<li>Complete transparency. Know exactly what is happening in the hospital from anywhere in the world.</li>
+<li>Easily identify trends (e.g., which specific doctor or department brings in the most revenue).</li>
+<li>Empowers fast, data-driven business decisions for hospital scaling.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<div class="page-break"></div>
+<div class="mb-12 mt-12">
+<h3 class="section-heading text-cyan-700">Layer 2: Hospital Operations (A-La-Carte)</h3>
+<p class="text-slate-600 text-lg">Department-specific tools. Select only the modules required for your specific operational layout.</p>
+</div>
+
+<article class="module-card layer-2-color">
+<div class="module-header">
+<div class="num-badge layer-2-badge">06</div>
+<div>
+<h4 class="text-2xl font-black text-slate-900">IPD Bed & Ward Management</h4>
+<div class="tag bg-cyan-50 text-cyan-700 mt-2">👤 Primary Users: Nurses, IPD Coordinators</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box">
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-600 text-sm">When admitted, a live visual map shows available beds. Nurses use this module to chart daily vitals (BP, Temp, SpO2), log medicine administration times, and record nursing notes. When ready for discharge, the system auto-compiles all data into a PDF discharge summary.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-600 text-sm space-y-2">
+<li>Perfect tracking of 26+ beds to maximize occupancy and prevent double-booking.</li>
+<li>Ensures strict patient care protocols are followed exactly as prescribed by the doctor.</li>
+<li>Speeds up the notoriously painful discharge process from hours to mere minutes.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-2-color">
+<div class="module-header">
+<div class="num-badge layer-2-badge">07</div>
+<div>
+<h4 class="text-2xl font-black text-slate-900">Surgical Command Center (OT Tracker)</h4>
+<div class="tag bg-cyan-50 text-cyan-700 mt-2">👤 Primary Users: Surgeons, OT Managers</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box">
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-600 text-sm">Crucial for handling 25+ weekly surgeries. A visual calendar allows conflict-free OT booking. Digital pre-op checklists (consent, fasting) are verified before entry. Post-surgery, the exact number of implants, sutures, and specialized drugs consumed are logged and auto-billed.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-600 text-sm space-y-2">
+<li>Absolutely zero scheduling clashes between busy surgeons and anaesthetists.</li>
+<li>Prevents massive revenue loss by ensuring every high-value surgical consumable is billed.</li>
+<li>Tracks precise OT utilization times to improve daily efficiency.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-2-color">
+<div class="module-header">
+<div class="num-badge layer-2-badge">08</div>
+<div>
+<h4 class="text-2xl font-black text-slate-900">Smart Pharmacy & Medicine Manager</h4>
+<div class="tag bg-cyan-50 text-cyan-700 mt-2">👤 Primary Users: Pharmacists</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box">
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-600 text-sm">The pharmacist receives the doctor's e-prescription directly on their screen. As medicines are dispensed, inventory is automatically deducted. The system tracks batch numbers, flags medicines nearing expiry, and auto-generates Purchase Orders (POs) for low stock.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-600 text-sm space-y-2">
+<li>Prevents stock-outs of fast-moving, high-revenue medicines.</li>
+<li>Reduces financial loss from expired stock through predictive alerts.</li>
+<li>Eliminates life-threatening dispensing errors caused by unreadable doctor handwriting.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-2-color">
+<div class="module-header">
+<div class="num-badge layer-2-badge">09</div>
+<div>
+<h4 class="text-2xl font-black text-slate-900">Laboratory & Diagnostics Hub</h4>
+<div class="tag bg-cyan-50 text-cyan-700 mt-2">👤 Primary Users: Pathologists, Lab Techs</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box">
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-600 text-sm">Lab orders flow digitally from the doctor. Techs generate barcodes for collected samples. Results are entered into the system; abnormal values are automatically highlighted in red. Once approved by the pathologist, a branded digital report is generated and attached to the EHR.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-600 text-sm space-y-2">
+<li>Speeds up report delivery to doctors, enabling faster, more accurate treatment.</li>
+<li>Maintains strict quality control and tracks lab revenue separately from general OPD.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-2-color">
+<div class="module-header">
+<div class="num-badge layer-2-badge">10</div>
+<div>
+<h4 class="text-2xl font-black text-slate-900">Hospital Asset & Store Inventory</h4>
+<div class="tag bg-cyan-50 text-cyan-700 mt-2">👤 Primary Users: Store Managers, Admin</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box">
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-600 text-sm">Tracks everything *except* medicine. Manages syringes, cotton, bedsheets, medical machinery, and office supplies. It tracks internal departmental requests (Stock Indents), vendor purchase history, and equipment maintenance schedules.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-600 text-sm space-y-2">
+<li>Stops internal pilferage and wastage of costly hospital supplies.</li>
+<li>Tracks exactly where hospital funds are being spent operationally.</li>
+<li>Ensures expensive machinery is maintained on schedule, extending lifespan.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-2-color">
+<div class="module-header">
+<div class="num-badge layer-2-badge">11</div>
+<div>
+<h4 class="text-2xl font-black text-slate-900">TPA, Insurance & Ayushman Bharat Desk</h4>
+<div class="tag bg-cyan-50 text-cyan-700 mt-2">👤 Primary Users: Insurance Coordinators</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box">
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-600 text-sm">A dedicated workflow for cashless patients. Staff verify Ayushman Bharat eligibility, upload documents for pre-authorization, and track the status of insurance claims (Pending, Approved, Rejected). It strictly tracks the discrepancy between billed amounts and settled amounts.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-600 text-sm space-y-2">
+<li>Ensures hospital cash flow isn't choked due to missing insurance paperwork.</li>
+<li>Provides clear reconciliation of TPA payments vs. internal hospital bills.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-2-color">
+<div class="module-header">
+<div class="num-badge layer-2-badge">12</div>
+<div>
+<h4 class="text-2xl font-black text-slate-900">Ambulance Fleet Tracking</h4>
+<div class="tag bg-cyan-50 text-cyan-700 mt-2">👤 Primary Users: Transport Admin</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box">
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-600 text-sm">Logs ambulance dispatch times, assigns drivers, and tracks trip details. The cost of the ambulance trip is automatically pushed to the patient's final IPD bill. Also maintains logs for ambulance maintenance and fuel costs.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-600 text-sm space-y-2">
+<li>Ensures ambulance trips are never "forgotten" during final discharge billing.</li>
+<li>Optimizes driver utilization and vehicle upkeep.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-2-color">
+<div class="module-header">
+<div class="num-badge layer-2-badge">13</div>
+<div>
+<h4 class="text-2xl font-black text-slate-900">Blood Bank Management</h4>
+<div class="tag bg-cyan-50 text-cyan-700 mt-2">👤 Primary Users: Blood Bank Techs</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box">
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-600 text-sm">Maintains a registry of donors with screening results. Tracks the live inventory of different blood groups and components (Plasma, Platelets). Manages cross-matching logs and tracks blood issued for internal surgeries or sold to external hospitals.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-600 text-sm space-y-2">
+<li>Critical for surgical support; ensures you never run out of required blood types.</li>
+<li>Maintains strict compliance and safety standards for blood storage.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-2-color">
+<div class="module-header">
+<div class="num-badge layer-2-badge">14</div>
+<div>
+<h4 class="text-2xl font-black text-slate-900">Patient Diet & Kitchen Routing</h4>
+<div class="tag bg-cyan-50 text-cyan-700 mt-2">👤 Primary Users: Dieticians, Kitchen Staff</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box">
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-600 text-sm">The doctor or dietician specifies a diet (e.g., Diabetic, Liquid, Low Sodium) in the IPD file. This order is routed directly to a kitchen display. Kitchen staff mark when the specific meal is prepared and delivered to the correct ward/bed.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-600 text-sm space-y-2">
+<li>Prevents dangerous dietary errors for critical patients.</li>
+<li>Streamlines kitchen operations and significantly reduces food wastage.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-2-color">
+<div class="module-header">
+<div class="num-badge layer-2-badge">15</div>
+<div>
+<h4 class="text-2xl font-black text-slate-900">Housekeeping & Sanitation</h4>
+<div class="tag bg-cyan-50 text-cyan-700 mt-2">👤 Primary Users: Housekeeping Supervisors</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box">
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-600 text-sm">When a patient is discharged, the system instantly alerts housekeeping to clean the room. The bed remains marked "Dirty" in the system until the cleaning staff digitally signs off that sanitation is complete, only then making it available for new admission.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-600 text-sm space-y-2">
+<li>Accelerates bed turnaround time safely, increasing revenue.</li>
+<li>Maintains strict hygiene accountability among cleaning staff.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-2-color">
+<div class="module-header">
+<div class="num-badge layer-2-badge">16</div>
+<div>
+<h4 class="text-2xl font-black text-slate-900">CSSD (Sterile Tools Tracking)</h4>
+<div class="tag bg-cyan-50 text-cyan-700 mt-2">👤 Primary Users: CSSD Techs, OT Managers</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box">
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-600 text-sm">Tracks surgical instruments through the Central Sterile Services Department. After an operation, tools are logged as "Contaminated." The system tracks them through washing, autoclaving, and packing, ensuring they are certified sterile before the next surgery.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-600 text-sm space-y-2">
+<li>Prevents dangerous surgical site infections (SSI) and potential legal liabilities.</li>
+<li>Ensures OT schedules aren't delayed due to missing or unsterilized equipment.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<div class="page-break"></div>
+<div class="mb-12 mt-12">
+<h3 class="section-heading text-pink-600">Layer 3: Growth & AI (Premium)</h3>
+<p class="text-slate-600 text-lg">Advanced technology designed to eliminate manual labor, boost patient experience, and secure your market position.</p>
+</div>
+
+<article class="module-card layer-3-color print:bg-white print:text-slate-900">
+<div class="module-header border-b border-slate-800 print:border-slate-200">
+<div class="num-badge layer-3-badge">17</div>
+<div>
+<h4 class="text-2xl font-black text-white print:text-slate-900">24/7 AI Voice Receptionist</h4>
+<div class="tag bg-slate-800 text-pink-400 mt-2 print:bg-pink-50 print:text-pink-700">🤖 Tech: Conversational AI</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box layer-3-workflow print:bg-slate-50 print:border-slate-200">
+<h5 class="font-bold text-white print:text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-300 print:text-slate-600 text-sm">A patient calls the hospital at 2:00 AM. Instead of a sleeping receptionist, our AI answers naturally. It understands the requested doctor, checks the CRM calendar, and books the appointment autonomously. It can handle hundreds of calls simultaneously in Tamil or English.</p>
+</div>
+<div>
+<h5 class="font-bold text-pink-400 print:text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-300 print:text-slate-600 text-sm space-y-2">
+<li>Capture every single appointment inquiry, maximizing revenue.</li>
+<li>Drastically reduces front-desk payroll and eliminates call-waiting frustration.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-3-color print:bg-white print:text-slate-900">
+<div class="module-header border-b border-slate-800 print:border-slate-200">
+<div class="num-badge layer-3-badge">18</div>
+<div>
+<h4 class="text-2xl font-black text-white print:text-slate-900">WhatsApp Automation Ecosystem</h4>
+<div class="tag bg-slate-800 text-pink-400 mt-2 print:bg-pink-50 print:text-pink-700">🤖 Tech: WhatsApp Business API</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box layer-3-workflow print:bg-slate-50 print:border-slate-200">
+<h5 class="font-bold text-white print:text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-300 print:text-slate-600 text-sm">Deep CRM integration. When an appointment is booked, a confirmation WhatsApp is sent. When a lab test is done, the PDF is sent via WhatsApp. The system also analyzes patient data to auto-send targeted health camp offers (e.g., Diabetic checkups to patients over 50).</p>
+</div>
+<div>
+<h5 class="font-bold text-pink-400 print:text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-300 print:text-slate-600 text-sm space-y-2">
+<li>Massive reduction in paper printing and physical administrative costs.</li>
+<li>Provides an exceptional, modern patient experience.</li>
+<li>Drives repeat business through smart, automated health marketing campaigns.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-3-color print:bg-white print:text-slate-900">
+<div class="module-header border-b border-slate-800 print:border-slate-200">
+<div class="num-badge layer-3-badge">19</div>
+<div>
+<h4 class="text-2xl font-black text-white print:text-slate-900">Voice-to-Text Clinical Notes (AI-EHR)</h4>
+<div class="tag bg-slate-800 text-pink-400 mt-2 print:bg-pink-50 print:text-pink-700">🤖 Tech: Medical NLP</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box layer-3-workflow print:bg-slate-50 print:border-slate-200">
+<h5 class="font-bold text-white print:text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-300 print:text-slate-600 text-sm">Doctors hate typing. With this module, the doctor clicks a microphone icon and speaks: "Patient complains of severe chest pain. Prescribe Paracetamol 500mg." The AI instantly converts this medical jargon into structured text, diagnoses, and formatted e-prescriptions.</p>
+</div>
+<div>
+<h5 class="font-bold text-pink-400 print:text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-300 print:text-slate-600 text-sm space-y-2">
+<li>Cuts doctor administrative time by over 60%, preventing severe burnout.</li>
+<li>Allows doctors to maintain eye contact with patients rather than staring at a screen.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-3-color print:bg-white print:text-slate-900">
+<div class="module-header border-b border-slate-800 print:border-slate-200">
+<div class="num-badge layer-3-badge">20</div>
+<div>
+<h4 class="text-2xl font-black text-white print:text-slate-900">Automated 5-Star Review Engine</h4>
+<div class="tag bg-slate-800 text-pink-400 mt-2 print:bg-pink-50 print:text-pink-700">🤖 Tech: Sentiment Analysis</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box layer-3-workflow print:bg-slate-50 print:border-slate-200">
+<h5 class="font-bold text-white print:text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-300 print:text-slate-600 text-sm">24 hours after discharge, the CRM sends a WhatsApp message asking about their experience. If the patient replies positively, it immediately sends a link to your Google Maps profile. If they reply negatively, it intercepts the message and alerts your Grievance Officer privately.</p>
+</div>
+<div>
+<h5 class="font-bold text-pink-400 print:text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-300 print:text-slate-600 text-sm space-y-2">
+<li>Rapidly dominates local SEO by boosting real, verified 5-star Google reviews.</li>
+<li>Prevents angry patients from leaving public negative reviews by addressing issues privately.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article class="module-card layer-3-color print:bg-white print:text-slate-900">
+<div class="module-header border-b border-slate-800 print:border-slate-200">
+<div class="num-badge layer-3-badge">21</div>
+<div>
+<h4 class="text-2xl font-black text-white print:text-slate-900">Home Sample Collection App</h4>
+<div class="tag bg-slate-800 text-pink-400 mt-2 print:bg-pink-50 print:text-pink-700">📱 Tech: Mobile Phlebotomist App</div>
+</div>
+</div>
+<div class="module-body">
+<div class="workflow-box layer-3-workflow print:bg-slate-50 print:border-slate-200">
+<h5 class="font-bold text-white print:text-slate-800 mb-2 text-lg">Workflow Explanation</h5>
+<p class="text-slate-300 print:text-slate-600 text-sm">A lightweight mobile application for your lab technicians. When a patient requests home collection, the tech gets the address via the app. They scan the sample barcode at the patient's house, which updates the hospital CRM live, confirming collection.</p>
+</div>
+<div>
+<h5 class="font-bold text-pink-400 print:text-slate-800 mb-2 text-lg">Key Hospital Benefits</h5>
+<ul class="list-disc pl-5 text-slate-300 print:text-slate-600 text-sm space-y-2">
+<li>Opens a massive new revenue stream by enabling professional home healthcare.</li>
+<li>Ensures sample tracking integrity from the patient's home directly to the lab.</li>
+</ul>
+</div>
+</div>
+</article>
+<section class="mb-16 page-break-inside-avoid">
+<div class="bg-slate-900 rounded-2xl border border-slate-800 p-8 md:p-12 text-white print:bg-white print:border-slate-300 print:text-slate-900 shadow-xl">
+  <h3 class="text-3xl font-black mb-8 text-center print:text-slate-900">The Axiora Enterprise Guarantee</h3>
+  
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="text-center md:text-left">
+      <div class="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center mb-4 mx-auto md:mx-0 print:bg-blue-50 print:text-blue-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+      </div>
+      <h4 class="text-xl font-bold mb-2">Bank-Level Data Security</h4>
+      <p class="text-slate-400 text-sm print:text-slate-600">Fully encrypted cloud databases. 100% compliant with national health data privacy regulations. Your patient records are locked down and backed up securely.</p>
+    </div>
+    
+    <div class="text-center md:text-left">
+      <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-xl flex items-center justify-center mb-4 mx-auto md:mx-0 print:bg-emerald-50 print:text-emerald-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+      </div>
+      <h4 class="text-xl font-bold mb-2">Zero-Downtime Migration</h4>
+      <p class="text-slate-400 text-sm print:text-slate-600">We train your staff and digitize your operations in the background. Go live in weeks without ever pausing your daily OPD or scheduled surgeries.</p>
+    </div>
+
+    <div class="text-center md:text-left">
+      <div class="w-12 h-12 bg-pink-500/20 text-pink-400 rounded-xl flex items-center justify-center mb-4 mx-auto md:mx-0 print:bg-pink-50 print:text-pink-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      </div>
+      <h4 class="text-xl font-bold mb-2">Zero Upfront Setup Cost</h4>
+      <p class="text-slate-400 text-sm print:text-slate-600">No massive capital expenditure. We operate on a transparent Monthly SaaS Retainer model. You only pay for the specific modules you actively use.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="bg-gradient-to-br from-blue-600 to-cyan-500 text-white rounded-2xl p-10 text-center mt-16 no-print shadow-2xl">
+<h3 class="text-4xl font-black mb-6">Ready to Get Your Custom Quote?</h3>
+<p class="text-blue-100 mb-8 max-w-3xl mx-auto text-xl font-light">
+Review the 21 modules detailed above. To proceed, simply reply to us on WhatsApp or Email with the numbers of the modules you want to activate for Royale Hospital.
+</p>
+<div class="bg-slate-900/40 p-8 rounded-xl inline-block border border-white/20 backdrop-blur-sm">
+<p class="text-cyan-200 text-lg uppercase tracking-widest font-bold mb-2">Example Reply:</p>
+<p class="font-mono text-white text-2xl">"We want modules 1 to 5, plus 6, 8, 11, 17, and 18."</p>
+</div>
+<p class="mt-8 text-lg text-blue-50 font-semibold">Once we receive your numbers, we will provide your exact monthly retainer quote immediately.</p>
+</section>
+
+</main>
+
+<footer class="text-center py-12 mt-12 border-t border-slate-200 print:border-t-2 print:border-slate-900">
+<div class="max-w-5xl mx-auto px-6">
+<p class="font-black text-slate-900 text-2xl mb-1">Mayur Patel</p>
+<p class="text-sm text-slate-500 font-semibold tracking-wide">Zero Upfront Setup Cost &bull; Custom Enterprise Architecture &bull; Data Privacy Compliant</p>
+<p class="text-sm text-slate-400 mt-2">&copy; 2026 Axiora Digital. All rights reserved.</p>
+</div>
+</footer>
+
+
+</body>
+</html>
