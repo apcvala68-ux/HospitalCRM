@@ -247,3 +247,237 @@ export const bedOccupancy = async (req, res, next) => {
     res.json({ total, occupied, available, dirty, maintenance, occupancyRate: Math.round((occupied / total) * 100) });
   } catch (error) { next(error); }
 };
+
+export const todayAppointments = async (req, res, next) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const appointments = await Appointment.find({ date: { $gte: today, $lt: tomorrow } })
+      .populate('patient', 'firstName lastName')
+      .populate('doctor')
+      .populate({ path: 'doctor', populate: { path: 'department', select: 'name' } })
+      .sort({ 'timeSlot.start': 1 })
+      .lean();
+
+    const result = appointments.map(a => ({
+      _id: a._id,
+      patientName: `${a.patient?.firstName || ''} ${a.patient?.lastName || ''}`,
+      time: a.timeSlot?.start || '',
+      department: a.doctor?.department?.name || 'General',
+      status: a.status,
+      type: a.type,
+    }));
+
+    res.json({ appointments: result });
+  } catch (error) { next(error); }
+};
+
+export const patientStats = async (req, res, next) => {
+  try {
+    const days = 7;
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(start.getDate() - days + 1);
+    start.setHours(0, 0, 0, 0);
+
+    const patients = await Patient.aggregate([
+      { $match: { createdAt: { $gte: start } } },
+      { $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+        newPatients: { $sum: 1 },
+      }},
+      { $sort: { _id: 1 } },
+    ]);
+
+    const returning = await Patient.aggregate([
+      { $match: { createdAt: { $lt: start } } },
+      { $lookup: {
+        from: 'appointments',
+        let: { pid: '$_id' },
+        pipeline: [
+          { $match: { $expr: { $eq: ['$patient', '$$pid'] }, date: { $gte: start } } },
+          { $limit: 1 },
+        ],
+        as: 'recentAppt',
+      }},
+      { $match: { recentAppt: { $ne: [] } } },
+      { $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: { $arrayElemAt: ['$recentAppt.date', 0] } } },
+        returningPatients: { $sum: 1 },
+      }},
+      { $sort: { _id: 1 } },
+    ]);
+
+    const dayLabels = [];
+    for (let i = 0; i < days; i++) {
+      const d = new Date(start);
+      d.setDate(d.getDate() + i);
+      dayLabels.push(d.toISOString().split('T')[0]);
+    }
+
+    const result = dayLabels.map(day => {
+      const newP = patients.find(p => p._id === day);
+      const retP = returning.find(p => p._id === day);
+      return {
+        label: new Date(day).toLocaleDateString('en', { weekday: 'short', day: 'numeric' }),
+        newPatients: newP?.newPatients || 0,
+        returningPatients: retP?.returningPatients || 0,
+      };
+    });
+
+    res.json({ stats: result });
+  } catch (error) { next(error); }
+};
+
+export const patientVisitsGauge = async (req, res, next) => {
+  try {
+    const total = await Patient.countDocuments();
+    const male = await Patient.countDocuments({ gender: 'male' });
+    const female = await Patient.countDocuments({ gender: 'female' });
+    const other = total - male - female;
+
+    res.json({
+      total,
+      male: Math.round((male / total) * 100) || 0,
+      female: Math.round((female / total) * 100) || 0,
+      other: Math.round((other / total) * 100) || 0,
+    });
+  } catch (error) { next(error); }
+};
+
+export const doctorsAvailability = async (req, res, next) => {
+  try {
+    const doctors = await Doctor.find()
+      .populate('user', 'name')
+      .populate('department', 'name')
+      .sort({ isAvailable: -1, 'user.name': 1 })
+      .lean();
+
+    const result = doctors.map(d => ({
+      _id: d._id,
+      name: d.user?.name || 'Unknown',
+      specialization: d.specialization,
+      department: d.department?.name || 'General',
+      isAvailable: d.isAvailable,
+    }));
+
+    res.json({ doctors: result });
+  } catch (error) { next(error); }
+};
+
+export const latestAppointments = async (req, res, next) => {
+  try {
+    const appointments = await Appointment.find()
+      .populate('patient', 'firstName lastName')
+      .populate({ path: 'doctor', populate: { path: 'user', select: 'name' } })
+      .sort({ date: -1, 'timeSlot.start': -1 })
+      .limit(10)
+      .lean();
+
+    const result = appointments.map(a => ({
+      _id: a._id,
+      patientId: `PT${String(a.patient?._id).slice(-5).toUpperCase()}`,
+      patientName: `${a.patient?.firstName || ''} ${a.patient?.lastName || ''}`,
+      sessionType: a.type === 'opd' ? 'Visit' : a.type === 'follow-up' ? 'Follow-up' : 'Emergency',
+      doctorName: `Dr. ${a.doctor?.user?.name || 'Unknown'}`,
+      dateTime: a.date ? `${new Date(a.date).toLocaleDateString('en', { day: '2-digit', month: 'short', year: 'numeric' })}, ${a.timeSlot?.start || ''}` : '',
+      status: a.status,
+    }));
+
+    res.json({ appointments: result });
+  } catch (error) { next(error); }
+};
+
+export const patientRecords = async (req, res, next) => {
+  try {
+    const Prescription = (await import('../models/Prescription.js')).default;
+
+    const prescriptions = await Prescription.find()
+      .populate('patient', 'firstName lastName')
+      .populate({ path: 'doctor', populate: { path: 'department', select: 'name' } })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .lean();
+
+    const result = prescriptions.map(p => ({
+      _id: p._id,
+      patientName: `${p.patient?.firstName || ''} ${p.patient?.lastName || ''}`,
+      diagnosis: p.diagnosis?.[0]?.description || 'General Checkup',
+      department: p.doctor?.department?.name || 'General',
+      lastVisit: p.createdAt ? new Date(p.createdAt).toLocaleDateString('en', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+    }));
+
+    res.json({ records: result });
+  } catch (error) { next(error); }
+};
+
+export const recentLabResults = async (req, res, next) => {
+  try {
+    const LabOrder = (await import('../models/LabOrder.js')).default;
+
+    const orders = await LabOrder.find()
+      .populate('patient', 'firstName lastName')
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .lean();
+
+    const result = orders.flatMap(o =>
+      (o.tests || []).map(t => ({
+        _id: `${o._id}-${t.testName}`,
+        patientName: `${o.patient?.firstName || ''} ${o.patient?.lastName || ''}`,
+        testName: t.testName,
+        category: t.category || 'other',
+        status: t.status || o.status,
+        orderNo: o.orderNo,
+      }))
+    ).slice(0, 10);
+
+    res.json({ labResults: result });
+  } catch (error) { next(error); }
+};
+
+export const quickStats = async (req, res, next) => {
+  try {
+    const days = 7;
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(start.getDate() - days + 1);
+    start.setHours(0, 0, 0, 0);
+
+    const dayLabels = [];
+    for (let i = 0; i < days; i++) {
+      const d = new Date(start);
+      d.setDate(d.getDate() + i);
+      dayLabels.push(d.toISOString().split('T')[0]);
+    }
+
+    const [patients, appointments, revenue] = await Promise.all([
+      Patient.aggregate([
+        { $match: { createdAt: { $gte: start } } },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 } } },
+      ]),
+      Appointment.aggregate([
+        { $match: { date: { $gte: start } } },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } }, count: { $sum: 1 } } },
+      ]),
+      Billing.aggregate([
+        { $match: { createdAt: { $gte: start }, status: { $in: ['paid', 'partial'] } } },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, total: { $sum: '$amountPaid' } } },
+      ]),
+    ]);
+
+    const fill = (data, key) => dayLabels.map(day => {
+      const found = data.find(d => d._id === day);
+      return { label: new Date(day).toLocaleDateString('en', { weekday: 'short' }), [key]: found ? (found.count ?? found.total ?? 0) : 0 };
+    });
+
+    res.json({
+      patients: fill(patients, 'value'),
+      appointments: fill(appointments, 'value'),
+      revenue: fill(revenue, 'value'),
+    });
+  } catch (error) { next(error); }
+};

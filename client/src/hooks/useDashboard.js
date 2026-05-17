@@ -64,3 +64,61 @@ export function useAvgWaitTime() {
     queryFn: () => api.get('/dashboard/avg-wait-time'),
   });
 }
+
+export function useTodayAppointments() {
+  return useQuery({
+    queryKey: ['dashboard', 'today-appointments'],
+    queryFn: () => api.get('/dashboard/today-appointments'),
+    refetchInterval: 30000,
+  });
+}
+
+export function usePatientStats() {
+  return useQuery({
+    queryKey: ['dashboard', 'patient-stats'],
+    queryFn: () => api.get('/dashboard/patient-stats'),
+  });
+}
+
+export function usePatientVisitsGauge() {
+  return useQuery({
+    queryKey: ['dashboard', 'patient-visits-gauge'],
+    queryFn: () => api.get('/dashboard/patient-visits-gauge'),
+  });
+}
+
+export function useDoctorsAvailability() {
+  return useQuery({
+    queryKey: ['dashboard', 'doctors-availability'],
+    queryFn: () => api.get('/dashboard/doctors-availability'),
+  });
+}
+
+export function useLatestAppointments() {
+  return useQuery({
+    queryKey: ['dashboard', 'latest-appointments'],
+    queryFn: () => api.get('/dashboard/latest-appointments'),
+  });
+}
+
+export function usePatientRecords() {
+  return useQuery({
+    queryKey: ['dashboard', 'patient-records'],
+    queryFn: () => api.get('/dashboard/patient-records'),
+  });
+}
+
+export function useRecentLabResults() {
+  return useQuery({
+    queryKey: ['dashboard', 'recent-lab-results'],
+    queryFn: () => api.get('/dashboard/recent-lab-results'),
+  });
+}
+
+export function useQuickStats() {
+  return useQuery({
+    queryKey: ['dashboard', 'quick-stats'],
+    queryFn: () => api.get('/dashboard/quick-stats'),
+    refetchInterval: 30000,
+  });
+}
