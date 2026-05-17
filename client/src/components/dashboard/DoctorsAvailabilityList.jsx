@@ -3,13 +3,13 @@ import { Badge } from '../ui/badge';
 import { Stethoscope } from 'lucide-react';
 import { useDoctorsAvailability } from '../../hooks/useDashboard';
 
-export function DoctorsAvailabilityList() {
+export function DoctorsAvailabilityList({ className }) {
   const { data, isLoading } = useDoctorsAvailability();
   const doctors = data?.doctors || [];
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className={className}>
         <CardHeader><CardTitle className="text-lg">Doctors</CardTitle></CardHeader>
         <CardContent><p className="text-sm text-muted-foreground text-center py-8">Loading...</p></CardContent>
       </Card>
@@ -17,7 +17,7 @@ export function DoctorsAvailabilityList() {
   }
 
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">Doctors</CardTitle>
         <Badge variant="outline">{doctors.length} total</Badge>

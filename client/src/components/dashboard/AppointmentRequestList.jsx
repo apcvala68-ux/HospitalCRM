@@ -12,13 +12,13 @@ const statusColors = {
   'no-show': 'destructive',
 };
 
-export function AppointmentRequestList() {
+export function AppointmentRequestList({ className }) {
   const { data, isLoading } = useTodayAppointments();
   const appointments = data?.appointments || [];
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className={className}>
         <CardHeader><CardTitle className="text-lg">Appointment Request</CardTitle></CardHeader>
         <CardContent><p className="text-sm text-muted-foreground text-center py-8">Loading...</p></CardContent>
       </Card>
@@ -26,7 +26,7 @@ export function AppointmentRequestList() {
   }
 
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">Appointment Request</CardTitle>
         <Badge variant="outline">{appointments.length} today</Badge>

@@ -22,13 +22,13 @@ const statusColors = {
   cancelled: 'destructive',
 };
 
-export function PatientReportsList() {
+export function PatientReportsList({ className }) {
   const { data, isLoading } = useRecentLabResults();
   const results = data?.labResults || [];
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className={className}>
         <CardHeader><CardTitle className="text-lg">Patient Reports</CardTitle></CardHeader>
         <CardContent><p className="text-sm text-muted-foreground text-center py-8">Loading...</p></CardContent>
       </Card>
@@ -36,7 +36,7 @@ export function PatientReportsList() {
   }
 
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">Patient Reports</CardTitle>
         <Badge variant="outline">{results.length} results</Badge>

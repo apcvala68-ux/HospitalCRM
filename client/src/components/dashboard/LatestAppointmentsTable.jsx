@@ -11,13 +11,13 @@ const statusColors = {
   'no-show': 'destructive',
 };
 
-export function LatestAppointmentsTable() {
+export function LatestAppointmentsTable({ className }) {
   const { data, isLoading } = useLatestAppointments();
   const appointments = data?.appointments || [];
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className={className}>
         <CardHeader><CardTitle className="text-lg">Latest Appointments</CardTitle></CardHeader>
         <CardContent><p className="text-sm text-muted-foreground text-center py-8">Loading...</p></CardContent>
       </Card>
@@ -25,7 +25,7 @@ export function LatestAppointmentsTable() {
   }
 
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">Latest Appointments</CardTitle>
         <Badge variant="outline">{appointments.length} records</Badge>

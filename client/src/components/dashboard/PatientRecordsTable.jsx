@@ -13,13 +13,13 @@ const deptColors = {
   General: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
 };
 
-export function PatientRecordsTable() {
+export function PatientRecordsTable({ className }) {
   const { data, isLoading } = usePatientRecords();
   const records = data?.records || [];
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className={className}>
         <CardHeader><CardTitle className="text-lg">Patient Record</CardTitle></CardHeader>
         <CardContent><p className="text-sm text-muted-foreground text-center py-8">Loading...</p></CardContent>
       </Card>
@@ -27,7 +27,7 @@ export function PatientRecordsTable() {
   }
 
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">Patient Record</CardTitle>
         <Badge variant="outline">{records.length} records</Badge>
