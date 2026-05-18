@@ -6,26 +6,11 @@ import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
+import { DatePicker } from '@heroui/react';
+import { parseDate } from '@internationalized/date';
 import { ArrowLeft, UserPlus, Search, X, Shield, Heart, Phone, MapPin } from 'lucide-react';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-
-const YEARS = Array.from({ length: 121 }, (_, i) => String(new Date().getFullYear() - i));
-const MONTHS = [
-  { value: '01', label: 'January' },
-  { value: '02', label: 'February' },
-  { value: '03', label: 'March' },
-  { value: '04', label: 'April' },
-  { value: '05', label: 'May' },
-  { value: '06', label: 'June' },
-  { value: '07', label: 'July' },
-  { value: '08', label: 'August' },
-  { value: '09', label: 'September' },
-  { value: '10', label: 'October' },
-  { value: '11', label: 'November' },
-  { value: '12', label: 'December' }
-];
-const DAYS = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
 
 
 function Section({ icon: Icon, title, children, className = '' }) {
@@ -136,33 +121,14 @@ export function PatientFormPage() {
   const updateHabits = (field, value) => update('medicalHistory', { ...form.medicalHistory, habits: { ...form.medicalHistory.habits, [field]: value } });
   const updateInsurance = (field, value) => update('insurance', { ...form.insurance, [field]: value });
 
-  const parseDOB = (dobStr) => {
-    if (!dobStr) return { day: '', month: '', year: '' };
-    const parts = dobStr.split('-');
-    if (parts.length !== 3) return { day: '', month: '', year: '' };
-    return {
-      year: parts[0],
-      month: parts[1],
-      day: parts[2]
-    };
-  };
-
-  const handleDOBChange = (field, value) => {
-    const { day, month, year } = parseDOB(form.dob);
-    const newDOB = {
-      day: field === 'day' ? value : day,
-      month: field === 'month' ? value : month,
-      year: field === 'year' ? value : year
-    };
-    
-    if (newDOB.day && newDOB.month && newDOB.year) {
-      update('dob', `${newDOB.year}-${newDOB.month.padStart(2, '0')}-${newDOB.day.padStart(2, '0')}`);
-    } else {
-      update('dob', '');
+  let dateValue = null;
+  if (form.dob) {
+    try {
+      dateValue = parseDate(form.dob);
+    } catch (e) {
+      console.error("Error parsing DOB:", e);
     }
-  };
-
-  const { day: dobDay, month: dobMonth, year: dobYear } = parseDOB(form.dob);
+  }
 
   const addAllergy = () => {
     if (allergyInput.trim() && !form.allergies.includes(allergyInput.trim())) {
@@ -354,37 +320,27 @@ export function PatientFormPage() {
                 <Field label="Last Name" required>
                   <Input value={form.lastName} onChange={(e) => update('lastName', e.target.value)} required />
                 </Field>
-                <Field label="Date of Birth" required className="col-span-2">
-                  <div className="grid grid-cols-3 gap-2">
-                    <select
-                      value={dobDay}
-                      onChange={(e) => handleDOBChange('day', e.target.value)}
-                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                      required
-                    >
-                      <option value="">Day</option>
-                      {DAYS.map(d => <option key={d} value={d}>{parseInt(d, 10)}</option>)}
-                    </select>
-                    <select
-                      value={dobMonth}
-                      onChange={(e) => handleDOBChange('month', e.target.value)}
-                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                      required
-                    >
-                      <option value="">Month</option>
-                      {MONTHS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-                    </select>
-                    <select
-                      value={dobYear}
-                      onChange={(e) => handleDOBChange('year', e.target.value)}
-                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                      required
-                    >
-                      <option value="">Year</option>
-                      {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
-                    </select>
-                  </div>
-                </Field>
+                <div className="col-span-2">
+                  <DatePicker
+                    label="Date of Birth"
+                    isRequired
+                    value={dateValue}
+                    onChange={(date) => {
+                      if (date) {
+                        update('dob', date.toString());
+                      } else {
+                        update('dob', '');
+                      }
+                    }}
+                    showMonthAndYearPickers
+                    variant="bordered"
+                    className="w-full text-foreground"
+                    classNames={{
+                      inputWrapper: "h-10 bg-background border-input hover:border-accent focus-within:border-primary shadow-none",
+                      label: "text-muted-foreground font-medium text-xs",
+                    }}
+                  />
+                </div>
                 <Field label="Gender" required>
                   <select value={form.gender} onChange={(e) => update('gender', e.target.value)} className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
                     <option value="male">Male</option>
