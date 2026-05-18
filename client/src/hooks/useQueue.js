@@ -34,7 +34,7 @@ export function useGenerateToken() {
   return useMutation({
     mutationFn: (data) => api.post('/queue/generate', data),
     onSuccess: (res) => {
-      toast.success(`Token #${res.token.tokenNo} generated`);
+      toast.success(`Token #${res?.token?.tokenNo} generated`);
       queryClient.invalidateQueries({ queryKey: ['queue'] });
     },
     onError: (err) => toast.error(err.message),
@@ -60,7 +60,7 @@ export function useStartConsultation() {
   return useMutation({
     mutationFn: (id) => api.put(`/queue/${id}/start`),
     onSuccess: (res) => {
-      toast.success(`Consulting ${res.token.patient?.firstName}`);
+      toast.success(`Consulting ${res?.token?.patient?.firstName || 'patient'}`);
       queryClient.invalidateQueries({ queryKey: ['queue'] });
     },
     onError: (err) => toast.error(err.message),
@@ -72,7 +72,7 @@ export function useCompletePatient() {
   const toast = useToast();
   return useMutation({
     mutationFn: ({ id, prescriptionData }) => api.put(`/queue/${id}/complete`, { prescriptionData }),
-    onSuccess: (res) => {
+    onSuccess: () => {
       toast.success('Consultation completed');
       queryClient.invalidateQueries({ queryKey: ['queue'] });
       queryClient.invalidateQueries({ queryKey: ['billing'] });

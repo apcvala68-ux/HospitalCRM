@@ -7,7 +7,7 @@ const colorMap = {
   outline: 'default',
   success: 'success',
   warning: 'warning',
-  info: 'accent',
+  info: 'primary',
 };
 
 export function Badge({ className, variant = 'default', ...props }) {

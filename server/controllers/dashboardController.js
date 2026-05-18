@@ -6,45 +6,73 @@ import IPDAdmission from '../models/IPDAdmission.js';
 import QueueToken from '../models/QueueToken.js';
 import PharmacyInventory from '../models/PharmacyInventory.js';
 
+const getDateBounds = (query) => {
+  const { startDate, endDate } = query;
+  if (startDate && endDate) {
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
+  }
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1); // tomorrow 00:00 is technically today's end
+  return { start, end };
+};
+
 export const stats = async (req, res, next) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const { start, end } = getDateBounds(req.query);
+    const duration = end.getTime() - start.getTime();
+    
+    // For comparisons, calculate previous period
+    const prevStart = new Date(start.getTime() - duration);
+    const prevEnd = new Date(start.getTime() - 1);
 
     const totalPatients = await Patient.countDocuments();
     const totalDoctors = await Doctor.countDocuments({ isAvailable: true });
-    const todayAppointments = await Appointment.countDocuments({ date: { $gte: today, $lt: tomorrow } });
     const activeAdmissions = await IPDAdmission.countDocuments({ status: 'active' });
 
+    // Current period
+    const todayAppointments = await Appointment.countDocuments({ date: { $gte: start, $lte: end } });
     const todayRevenue = await Billing.aggregate([
-      { $match: { createdAt: { $gte: today, $lt: tomorrow }, status: { $in: ['paid', 'partial'] } } },
+      { $match: { createdAt: { $gte: start, $lte: end }, status: { $in: ['paid', 'partial'] } } },
       { $group: { _id: null, total: { $sum: '$amountPaid' } } },
     ]);
-
     const todayBills = await Billing.aggregate([
-      { $match: { createdAt: { $gte: today, $lt: tomorrow } } },
+      { $match: { createdAt: { $gte: start, $lte: end } } },
       { $group: { _id: null, total: { $sum: '$total' } } },
     ]);
-
     const waiting = await QueueToken.countDocuments({
-      date: { $gte: today },
-      status: 'waiting',
+      date: { $gte: start, $lte: end },
+      status: { $in: ['waiting', 'ready', 'called'] },
+    });
+    const triage = await QueueToken.countDocuments({
+      date: { $gte: start, $lte: end },
+      status: 'triage',
+    });
+    const withDoctor = await QueueToken.countDocuments({
+      date: { $gte: start, $lte: end },
+      status: 'with-doctor',
+    });
+    const completedToday = await QueueToken.countDocuments({
+      date: { $gte: start, $lte: end },
+      status: 'completed',
     });
 
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayEnd = new Date(today);
-    const yesterdayPatients = await Patient.countDocuments({ createdAt: { $gte: yesterday, $lt: yesterdayEnd } });
+    // Previous period
+    const yesterdayPatients = await Patient.countDocuments({ createdAt: { $gte: prevStart, $lte: prevEnd } });
     const yesterdayRevenue = await Billing.aggregate([
-      { $match: { createdAt: { $gte: yesterday, $lt: yesterdayEnd }, status: { $in: ['paid', 'partial'] } } },
+      { $match: { createdAt: { $gte: prevStart, $lte: prevEnd }, status: { $in: ['paid', 'partial'] } } },
       { $group: { _id: null, total: { $sum: '$amountPaid' } } },
     ]);
-    const yesterdayAppointments = await Appointment.countDocuments({ date: { $gte: yesterday, $lt: yesterdayEnd } });
-    const yesterdayQueue = await QueueToken.countDocuments({ date: { $gte: yesterday, $lt: yesterdayEnd } });
+    const yesterdayAppointments = await Appointment.countDocuments({ date: { $gte: prevStart, $lte: prevEnd } });
+    const yesterdayQueue = await QueueToken.countDocuments({ date: { $gte: prevStart, $lte: prevEnd } });
 
-    const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    // Month remains fixed for now as it's a fixed KPI
+    const thisMonthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const monthPatients = await Patient.countDocuments({ createdAt: { $gte: thisMonthStart } });
     const monthRevenue = await Billing.aggregate([
       { $match: { createdAt: { $gte: thisMonthStart }, status: { $in: ['paid', 'partial'] } } },
@@ -59,6 +87,9 @@ export const stats = async (req, res, next) => {
       todayRevenue: todayRevenue[0]?.total || 0,
       todayBilled: todayBills[0]?.total || 0,
       waitingInQueue: waiting,
+      triageInQueue: triage,
+      withDoctorInQueue: withDoctor,
+      completedTodayInQueue: completedToday,
       yesterdayPatients,
       yesterdayRevenue: yesterdayRevenue[0]?.total || 0,
       yesterdayAppointments,
@@ -71,36 +102,42 @@ export const stats = async (req, res, next) => {
 
 export const monthlyTrends = async (req, res, next) => {
   try {
+    const { start, end } = getDateBounds(req.query);
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // If range is large enough, group by month, else group by day or week
+    // For simplicity, let's keep it fixed to 12 months from end date as it's meant to be a monthly trend
     const months = 12;
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
+    const now = end;
+    const trendStart = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
 
     const patients = await Patient.aggregate([
-      { $match: { createdAt: { $gte: start } } },
+      { $match: { createdAt: { $gte: trendStart, $lte: end } } },
       { $group: { _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } }, count: { $sum: 1 } } },
       { $sort: { '_id.year': 1, '_id.month': 1 } },
     ]);
 
     const appointments = await Appointment.aggregate([
-      { $match: { date: { $gte: start } } },
+      { $match: { date: { $gte: trendStart, $lte: end } } },
       { $group: { _id: { year: { $year: '$date' }, month: { $month: '$date' } }, count: { $sum: 1 } } },
       { $sort: { '_id.year': 1, '_id.month': 1 } },
     ]);
 
     const revenue = await Billing.aggregate([
-      { $match: { createdAt: { $gte: start }, status: { $in: ['paid', 'partial'] } } },
+      { $match: { createdAt: { $gte: trendStart, $lte: end }, status: { $in: ['paid', 'partial'] } } },
       { $group: { _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } }, total: { $sum: '$amountPaid' }, count: { $sum: 1 } } },
       { $sort: { '_id.year': 1, '_id.month': 1 } },
     ]);
 
     const ipdAdmissions = await IPDAdmission.aggregate([
-      { $match: { admissionDate: { $gte: start } } },
+      { $match: { admissionDate: { $gte: trendStart, $lte: end } } },
       { $group: { _id: { year: { $year: '$admissionDate' }, month: { $month: '$admissionDate' } }, count: { $sum: 1 } } },
       { $sort: { '_id.year': 1, '_id.month': 1 } },
     ]);
 
     const queueTokens = await QueueToken.aggregate([
-      { $match: { date: { $gte: start } } },
+      { $match: { date: { $gte: trendStart, $lte: end } } },
       { $group: { _id: { year: { $year: '$date' }, month: { $month: '$date' } }, count: { $sum: 1 } } },
       { $sort: { '_id.year': 1, '_id.month': 1 } },
     ]);
@@ -128,10 +165,9 @@ export const monthlyTrends = async (req, res, next) => {
 
 export const paymentBreakdown = async (req, res, next) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const { start, end } = getDateBounds(req.query);
     const data = await Billing.aggregate([
-      { $match: { createdAt: { $gte: today }, status: { $in: ['paid', 'partial'] } } },
+      { $match: { createdAt: { $gte: start, $lte: end }, status: { $in: ['paid', 'partial'] } } },
       { $unwind: '$payments' },
       { $group: { _id: '$payments.method', total: { $sum: '$payments.amount' }, count: { $sum: 1 } } },
       { $sort: { total: -1 } },
@@ -142,8 +178,9 @@ export const paymentBreakdown = async (req, res, next) => {
 
 export const departmentRevenue = async (req, res, next) => {
   try {
+    const { start, end } = getDateBounds(req.query);
     const data = await Billing.aggregate([
-      { $match: { status: { $in: ['paid', 'partial'] } } },
+      { $match: { createdAt: { $gte: start, $lte: end }, status: { $in: ['paid', 'partial'] } } },
       { $lookup: { from: 'doctors', localField: 'doctor', foreignField: '_id', as: 'doc' } },
       { $unwind: { path: '$doc', preserveNullAndEmptyArrays: true } },
       { $lookup: { from: 'departments', localField: 'doc.department', foreignField: '_id', as: 'dept' } },
@@ -158,7 +195,9 @@ export const departmentRevenue = async (req, res, next) => {
 
 export const billingStatus = async (req, res, next) => {
   try {
+    const { start, end } = getDateBounds(req.query);
     const data = await Billing.aggregate([
+      { $match: { createdAt: { $gte: start, $lte: end } } },
       { $group: { _id: '$status', count: { $sum: 1 }, total: { $sum: '$total' } } },
     ]);
     res.json({ statuses: data.map(d => ({ status: d._id || 'unknown', count: d.count, total: d.total })) });
@@ -167,13 +206,9 @@ export const billingStatus = async (req, res, next) => {
 
 export const avgWaitTime = async (req, res, next) => {
   try {
-    const days = 30;
-    const start = new Date();
-    start.setDate(start.getDate() - days);
-    start.setHours(0, 0, 0, 0);
-
+    const { start, end } = getDateBounds(req.query);
     const data = await QueueToken.aggregate([
-      { $match: { date: { $gte: start }, status: { $in: ['completed', 'called'] } } },
+      { $match: { date: { $gte: start, $lte: end }, status: { $in: ['completed', 'called'] } } },
       { $group: {
         _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
         avgWait: { $avg: { $subtract: ['$calledAt', '$createdAt'] } },
@@ -188,13 +223,9 @@ export const avgWaitTime = async (req, res, next) => {
 
 export const revenueTrend = async (req, res, next) => {
   try {
-    const days = parseInt(req.query.days) || 30;
-    const start = new Date();
-    start.setDate(start.getDate() - days);
-    start.setHours(0, 0, 0, 0);
-
+    const { start, end } = getDateBounds(req.query);
     const data = await Billing.aggregate([
-      { $match: { createdAt: { $gte: start }, status: { $in: ['paid', 'partial'] } } },
+      { $match: { createdAt: { $gte: start, $lte: end }, status: { $in: ['paid', 'partial'] } } },
       {
         $group: {
           _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
@@ -211,11 +242,9 @@ export const revenueTrend = async (req, res, next) => {
 
 export const doctorPerformance = async (req, res, next) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
+    const { start, end } = getDateBounds(req.query);
     const data = await QueueToken.aggregate([
-      { $match: { date: { $gte: today }, status: { $ne: 'cancelled' } } },
+      { $match: { date: { $gte: start, $lte: end }, status: { $ne: 'cancelled' } } },
       { $group: { _id: '$doctor', total: { $sum: 1 }, completed: { $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] } } } },
       { $sort: { total: -1 } },
     ]);
@@ -250,12 +279,8 @@ export const bedOccupancy = async (req, res, next) => {
 
 export const todayAppointments = async (req, res, next) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const appointments = await Appointment.find({ date: { $gte: today, $lt: tomorrow } })
+    const { start, end } = getDateBounds(req.query);
+    const appointments = await Appointment.find({ date: { $gte: start, $lte: end } })
       .populate('patient', 'firstName lastName')
       .populate('doctor')
       .populate({ path: 'doctor', populate: { path: 'department', select: 'name' } })
@@ -269,6 +294,7 @@ export const todayAppointments = async (req, res, next) => {
       department: a.doctor?.department?.name || 'General',
       status: a.status,
       type: a.type,
+      date: a.date,
     }));
 
     res.json({ appointments: result });
@@ -277,14 +303,10 @@ export const todayAppointments = async (req, res, next) => {
 
 export const patientStats = async (req, res, next) => {
   try {
-    const days = 7;
-    const now = new Date();
-    const start = new Date(now);
-    start.setDate(start.getDate() - days + 1);
-    start.setHours(0, 0, 0, 0);
+    const { start, end } = getDateBounds(req.query);
 
     const patients = await Patient.aggregate([
-      { $match: { createdAt: { $gte: start } } },
+      { $match: { createdAt: { $gte: start, $lte: end } } },
       { $group: {
         _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
         newPatients: { $sum: 1 },
@@ -298,7 +320,7 @@ export const patientStats = async (req, res, next) => {
         from: 'appointments',
         let: { pid: '$_id' },
         pipeline: [
-          { $match: { $expr: { $eq: ['$patient', '$$pid'] }, date: { $gte: start } } },
+          { $match: { $expr: { $eq: ['$patient', '$$pid'] }, date: { $gte: start, $lte: end } } },
           { $limit: 1 },
         ],
         as: 'recentAppt',
@@ -311,18 +333,29 @@ export const patientStats = async (req, res, next) => {
       { $sort: { _id: 1 } },
     ]);
 
+    // Create day labels based on start/end range
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
     const dayLabels = [];
-    for (let i = 0; i < days; i++) {
-      const d = new Date(start);
-      d.setDate(d.getDate() + i);
-      dayLabels.push(d.toISOString().split('T')[0]);
+    if (diffDays <= 31) {
+      for (let i = 0; i < diffDays; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i);
+        dayLabels.push(d.toISOString().split('T')[0]);
+      }
+    } else {
+      // For large ranges, maybe group by week/month, but we'll stick to dates mapped from data if too many
+      // Just map from data directly if diffDays > 31 to prevent huge arrays
+      const uniqueDates = [...new Set([...patients.map(p => p._id), ...returning.map(p => p._id)])].sort();
+      dayLabels.push(...uniqueDates);
     }
 
     const result = dayLabels.map(day => {
       const newP = patients.find(p => p._id === day);
       const retP = returning.find(p => p._id === day);
       return {
-        label: new Date(day).toLocaleDateString('en', { weekday: 'short', day: 'numeric' }),
+        label: new Date(day).toLocaleDateString('en', { weekday: 'short', day: 'numeric', month: diffDays > 31 ? 'short' : undefined }),
         newPatients: newP?.newPatients || 0,
         returningPatients: retP?.returningPatients || 0,
       };
@@ -334,16 +367,34 @@ export const patientStats = async (req, res, next) => {
 
 export const patientVisitsGauge = async (req, res, next) => {
   try {
-    const total = await Patient.countDocuments();
-    const male = await Patient.countDocuments({ gender: 'male' });
-    const female = await Patient.countDocuments({ gender: 'female' });
-    const other = total - male - female;
+    // Gauge is typically overall patient demographics, but we can filter if needed.
+    const { start, end } = getDateBounds(req.query);
+    // Find patients who visited in this timeframe
+    const visitedPatients = await Appointment.distinct('patient', { date: { $gte: start, $lte: end } });
+
+    const total = visitedPatients.length || 1; // avoid div by 0
+    
+    let male = 0, female = 0, other = 0;
+    
+    if (visitedPatients.length > 0) {
+      male = await Patient.countDocuments({ _id: { $in: visitedPatients }, gender: 'male' });
+      female = await Patient.countDocuments({ _id: { $in: visitedPatients }, gender: 'female' });
+      other = visitedPatients.length - male - female;
+    } else {
+      // Fallback to all patients if no visits in range (or return 0)
+      const t = await Patient.countDocuments();
+      if (t > 0) {
+        male = await Patient.countDocuments({ gender: 'male' });
+        female = await Patient.countDocuments({ gender: 'female' });
+        other = t - male - female;
+      }
+    }
 
     res.json({
-      total,
-      male: Math.round((male / total) * 100) || 0,
-      female: Math.round((female / total) * 100) || 0,
-      other: Math.round((other / total) * 100) || 0,
+      total: visitedPatients.length || await Patient.countDocuments(),
+      male: Math.round((male / (male+female+other || 1)) * 100) || 0,
+      female: Math.round((female / (male+female+other || 1)) * 100) || 0,
+      other: Math.round((other / (male+female+other || 1)) * 100) || 0,
     });
   } catch (error) { next(error); }
 };
@@ -370,7 +421,8 @@ export const doctorsAvailability = async (req, res, next) => {
 
 export const latestAppointments = async (req, res, next) => {
   try {
-    const appointments = await Appointment.find()
+    const { start, end } = getDateBounds(req.query);
+    const appointments = await Appointment.find({ date: { $gte: start, $lte: end } })
       .populate('patient', 'firstName lastName')
       .populate({ path: 'doctor', populate: { path: 'user', select: 'name' } })
       .sort({ date: -1, 'timeSlot.start': -1 })
@@ -393,9 +445,10 @@ export const latestAppointments = async (req, res, next) => {
 
 export const patientRecords = async (req, res, next) => {
   try {
+    const { start, end } = getDateBounds(req.query);
     const Prescription = (await import('../models/Prescription.js')).default;
 
-    const prescriptions = await Prescription.find()
+    const prescriptions = await Prescription.find({ createdAt: { $gte: start, $lte: end } })
       .populate('patient', 'firstName lastName')
       .populate({ path: 'doctor', populate: { path: 'department', select: 'name' } })
       .sort({ createdAt: -1 })
@@ -416,9 +469,10 @@ export const patientRecords = async (req, res, next) => {
 
 export const recentLabResults = async (req, res, next) => {
   try {
+    const { start, end } = getDateBounds(req.query);
     const LabOrder = (await import('../models/LabOrder.js')).default;
 
-    const orders = await LabOrder.find()
+    const orders = await LabOrder.find({ createdAt: { $gte: start, $lte: end } })
       .populate('patient', 'firstName lastName')
       .sort({ createdAt: -1 })
       .limit(10)
@@ -441,37 +495,42 @@ export const recentLabResults = async (req, res, next) => {
 
 export const quickStats = async (req, res, next) => {
   try {
-    const days = 7;
-    const now = new Date();
-    const start = new Date(now);
-    start.setDate(start.getDate() - days + 1);
-    start.setHours(0, 0, 0, 0);
-
+    const { start, end } = getDateBounds(req.query);
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
     const dayLabels = [];
-    for (let i = 0; i < days; i++) {
-      const d = new Date(start);
-      d.setDate(d.getDate() + i);
-      dayLabels.push(d.toISOString().split('T')[0]);
+    if (diffDays <= 31) {
+      for (let i = 0; i < diffDays; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i);
+        dayLabels.push(d.toISOString().split('T')[0]);
+      }
     }
 
     const [patients, appointments, revenue] = await Promise.all([
       Patient.aggregate([
-        { $match: { createdAt: { $gte: start } } },
+        { $match: { createdAt: { $gte: start, $lte: end } } },
         { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 } } },
       ]),
       Appointment.aggregate([
-        { $match: { date: { $gte: start } } },
+        { $match: { date: { $gte: start, $lte: end } } },
         { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } }, count: { $sum: 1 } } },
       ]),
       Billing.aggregate([
-        { $match: { createdAt: { $gte: start }, status: { $in: ['paid', 'partial'] } } },
+        { $match: { createdAt: { $gte: start, $lte: end }, status: { $in: ['paid', 'partial'] } } },
         { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, total: { $sum: '$amountPaid' } } },
       ]),
     ]);
 
+    if (diffDays > 31) {
+      const uniqueDates = [...new Set([...patients.map(p => p._id), ...appointments.map(p => p._id), ...revenue.map(p => p._id)])].sort();
+      dayLabels.push(...uniqueDates);
+    }
+
     const fill = (data, key) => dayLabels.map(day => {
       const found = data.find(d => d._id === day);
-      return { label: new Date(day).toLocaleDateString('en', { weekday: 'short' }), [key]: found ? (found.count ?? found.total ?? 0) : 0 };
+      return { label: new Date(day).toLocaleDateString('en', { weekday: 'short', day: 'numeric', month: diffDays > 31 ? 'short' : undefined }), [key]: found ? (found.count ?? found.total ?? 0) : 0 };
     });
 
     res.json({

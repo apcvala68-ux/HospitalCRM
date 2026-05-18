@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from './context/ThemeContext';
 import App from './App.jsx';
+import '@fontsource-variable/inter';
 import './index.css';
 
 const queryClient = new QueryClient({

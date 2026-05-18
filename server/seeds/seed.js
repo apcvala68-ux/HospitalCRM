@@ -415,13 +415,18 @@ async function seed() {
     console.log(`Created ${MEDICINES.length} medicines`);
 
     // Create detailed patients
-    const patients = await Patient.create(PATIENT_PROFILES.map((p, i) => ({
-      ...p,
-      uhid: `HOSP-${new Date().getFullYear()}${String(new Date().getMonth()+1).padStart(2,'0')}-${String(i+1).padStart(5,'0')}`,
-      dob: new Date(p.dob),
-      insurance: p.insurance ? { ...p.insurance, expiry: new Date(p.insurance.expiry) } : undefined,
-      registeredBy: receptionistUser._id,
-    })));
+    const patients = await Patient.create(PATIENT_PROFILES.map((p, i) => {
+      const createdDate = new Date();
+      createdDate.setDate(createdDate.getDate() - 30 - i);
+      return {
+        ...p,
+        uhid: `HOSP-${new Date().getFullYear()}${String(new Date().getMonth()+1).padStart(2,'0')}-${String(i+1).padStart(5,'0')}`,
+        dob: new Date(p.dob),
+        insurance: p.insurance ? { ...p.insurance, expiry: new Date(p.insurance.expiry) } : undefined,
+        registeredBy: receptionistUser._id,
+        createdAt: createdDate,
+      };
+    }));
     console.log(`Created ${patients.length} detailed patients`);
 
     // Create 30 more generic patients
@@ -580,6 +585,7 @@ async function seed() {
 
         await Billing.create({
           patient: patient._id,
+          doctor: doctor._id,
           invoiceNo: `INV-${new Date().getFullYear()}${String(new Date().getMonth()+1).padStart(2,'0')}-${String(invoiceCounter.current).padStart(5,'0')}`,
           items: billingItems,
           paymentSplits: amountPaid > 0 ? [{ method: pickRandom(['cash', 'upi', 'card']), amount: amountPaid }] : [],

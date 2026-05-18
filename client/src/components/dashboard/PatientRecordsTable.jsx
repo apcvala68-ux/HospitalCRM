@@ -12,10 +12,10 @@ const deptColorMap = {
   General: 'default',
 };
 
-export function PatientRecordsTable() {
-  const { data, isLoading } = usePatientRecords();
+export function PatientRecordsTable({ dateRange }) {
+  const { data, isLoading } = usePatientRecords(dateRange);
   const records = data?.records || [];
-  const items = records.slice(0, 5);
+  const items = records.slice(0, 8);
 
   if (isLoading) {
     return (

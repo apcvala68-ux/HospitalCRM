@@ -10,8 +10,8 @@ const statusColorMap = {
   'no-show': 'danger',
 };
 
-export function LatestAppointmentsTable() {
-  const { data, isLoading } = useLatestAppointments();
+export function LatestAppointmentsTable({ dateRange }) {
+  const { data, isLoading } = useLatestAppointments(dateRange);
   const appointments = data?.appointments || [];
   const items = appointments.slice(0, 5);
 

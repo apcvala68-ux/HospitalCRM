@@ -75,6 +75,7 @@ export const create = async (req, res, next) => {
     const bill = await Billing.create({
       patient: req.body.patient,
       appointment: req.body.appointment,
+      doctor: req.body.doctor,
       invoiceNo,
       items: items.map((item) => ({
         ...item,

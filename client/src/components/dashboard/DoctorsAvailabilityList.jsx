@@ -10,8 +10,8 @@ function Avatar({ name }) {
   );
 }
 
-export function DoctorsAvailabilityList() {
-  const { data, isLoading } = useDoctorsAvailability();
+export function DoctorsAvailabilityList({ dateRange }) {
+  const { data, isLoading } = useDoctorsAvailability(dateRange);
   const doctors = data?.doctors || [];
   const items = doctors.slice(0, 5);
 

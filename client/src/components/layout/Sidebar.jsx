@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import {
@@ -6,7 +6,7 @@ import {
   Pill, BedDouble, ClipboardList, BarChart3, Clock,
   FlaskConical, Droplets, Siren, Scissors, ShoppingCart, Brush,
   CalendarDays, Shield, Cross, MessageSquare, AlertTriangle, Syringe, Activity,
-  Mail, Wifi, Settings, ChevronLeft, ChevronRight,
+  Mail, Wifi, Settings, ChevronLeft, ChevronRight, Heart,
 } from 'lucide-react';
 
 const roleMenus = {
@@ -90,27 +90,82 @@ const roleMenus = {
 };
 
 export function Sidebar({ user }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isPinned, setIsPinned] = useState(false);
   const menuItems = roleMenus[user?.role] || roleMenus.admin;
+  const collapseTimer = useRef(null);
+
+  const handleMouseEnter = useCallback(() => {
+    if (collapseTimer.current) {
+      clearTimeout(collapseTimer.current);
+      collapseTimer.current = null;
+    }
+    setIsCollapsed(false);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    if (!isPinned) {
+      collapseTimer.current = setTimeout(() => {
+        setIsCollapsed(true);
+      }, 200);
+    }
+  }, [isPinned]);
+
+  const handleToggle = useCallback(() => {
+    if (collapseTimer.current) {
+      clearTimeout(collapseTimer.current);
+      collapseTimer.current = null;
+    }
+    if (isPinned) {
+      setIsPinned(false);
+      setIsCollapsed(true);
+    } else {
+      setIsPinned(true);
+      setIsCollapsed(false);
+    }
+  }, [isPinned]);
+
+  const handleNavClick = useCallback(() => {
+    if (!isPinned) {
+      setIsCollapsed(true);
+    }
+  }, [isPinned]);
 
   return (
-    <aside className={cn(
-      "flex h-full flex-col border-r bg-card transition-all duration-300 ease-in-out relative overflow-hidden",
-      isCollapsed ? "w-20" : "w-60"
-    )}>
+    <aside
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={cn(
+        "flex h-full flex-col border-r border-border/60 bg-card transition-all duration-300 ease-in-out relative",
+        isCollapsed ? "w-16" : "w-60"
+      )}
+    >
       <div className={cn(
         "flex h-14 items-center border-b transition-all duration-300 shrink-0",
         isCollapsed ? "justify-center px-0" : "px-5"
       )}>
-        <Building2 className="h-6 w-6 text-primary shrink-0" />
-        {!isCollapsed && <span className="ml-3 text-sm font-bold whitespace-nowrap tracking-tight text-foreground">Royale Hospital</span>}
+        <Building2 className="h-5 w-5 text-primary shrink-0 transition-all duration-300" />
+        <span className={cn(
+          "text-[15px] font-bold whitespace-nowrap tracking-tight text-foreground overflow-hidden transition-all duration-300 ease-in-out",
+          isCollapsed ? "max-w-0 opacity-0 ml-0" : "max-w-[150px] opacity-100 ml-2.5"
+        )}>
+          Royale Hospital
+        </span>
       </div>
 
       <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-[1.375rem] z-50 flex h-6 w-6 items-center justify-center rounded-full border bg-background shadow-md hover:shadow-lg hover:bg-accent transition-all"
+        onClick={handleToggle}
+        title={isPinned ? 'Unpin sidebar' : 'Pin sidebar'}
+        className={cn(
+          "absolute -right-3.5 top-[1.375rem] z-50 flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-background shadow-md hover:shadow-lg hover:bg-accent hover:border-accent transition-all",
+          isPinned && "text-primary border-primary/30"
+        )}
       >
-        {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+        {isCollapsed ? (
+          <ChevronRight className="h-3 w-3" />
+        ) : (
+          <ChevronLeft className="h-3 w-3" />
+        )}
       </button>
 
       <nav className="flex-1 space-y-0.5 p-2 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-thumb]:bg-transparent">
@@ -119,19 +174,25 @@ export function Sidebar({ user }) {
             key={item.to}
             to={item.to}
             end={item.to === '/'}
+            onClick={handleNavClick}
             title={isCollapsed ? item.label : undefined}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200',
+                'flex items-center rounded-lg text-sm transition-all duration-150',
                 isCollapsed ? 'justify-center p-2.5' : 'px-3 py-2',
                 isActive
-                  ? 'bg-primary/8 text-primary border-l-2 border-l-primary'
-                  : 'text-[#acadb1] hover:bg-accent/60 hover:text-foreground border-l-2 border-l-transparent'
+                  ? 'bg-[#f4f4f6] text-foreground font-semibold dark:bg-[#26262b]'
+                  : 'font-medium text-muted-foreground hover:bg-[#f4f4f6] hover:text-foreground dark:hover:bg-[#26262b]'
               )
             }
           >
-            <item.icon className={cn("shrink-0", isCollapsed ? "h-5 w-5" : "h-5 w-5")} />
-            {!isCollapsed && <span className="whitespace-nowrap overflow-hidden text-ellipsis transition-all duration-200">{item.label}</span>}
+            <item.icon className="shrink-0 h-[18px] w-[18px] transition-all duration-150" />
+            <span className={cn(
+              "whitespace-nowrap overflow-hidden text-ellipsis transition-all duration-300 ease-in-out",
+              isCollapsed ? "max-w-0 opacity-0 ml-0" : "max-w-[160px] opacity-100 ml-2.5"
+            )}>
+              {item.label}
+            </span>
           </NavLink>
         ))}
       </nav>

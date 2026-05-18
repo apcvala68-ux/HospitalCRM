@@ -1,83 +1,99 @@
 @import "tailwindcss";
 @import "@heroui/styles";
+@source "../node_modules/@heroui/react/dist/**/*.{js,ts,jsx,tsx}";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.96 0.004 280);
-  --foreground: #353536;
+  /* === Background & Surface === */
+  --background: #f1f3f6;           /* Soft premium warm-grey background — reduces eye strain and glare */
+  --foreground: #0f1115;           /* Near-black — maximum legibility */
   --card: #ffffff;
-  --card-foreground: #353536;
+  --card-foreground: #0f1115;
   --popover: #ffffff;
-  --popover-foreground: #353536;
+  --popover-foreground: #0f1115;
+
+  /* === Brand === */
   --primary: #2563eb;
   --primary-foreground: #ffffff;
-  --secondary: #ebedf1;
-  --secondary-foreground: #353536;
-  --muted: #ebedf1;
-  --muted-foreground: #706f70;
-  --accent: #f0f1f4;
-  --accent-foreground: #353536;
+
+  /* === Neutral Surfaces === */
+  --secondary: #e4e7eb;
+  --secondary-foreground: #0f1115;
+  --muted: #e4e7eb;
+  --muted-foreground: #6b7280;
+  --accent: #e4e7eb;
+  --accent-foreground: #0f1115;
+
+  /* === Semantic === */
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: #d4d8df;
-  --input: #d4d8df;
-  --ring: #2563eb;
-  --radius: 0.75rem;
-
-  --surface: #ffffff;
-  --surface-secondary: #ebedf1;
-  --surface-tertiary: #d4d8df;
-
   --success: #10b981;
   --success-foreground: #ffffff;
   --warning: #f59e0b;
-  --warning-foreground: #353536;
+  --warning-foreground: #0f1115;
   --info: #3b82f6;
   --info-foreground: #ffffff;
 
-  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
-  --shadow-elevated: 0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04);
-  --shadow-hover: 0 10px 15px -3px rgb(0 0 0 / 0.06), 0 4px 6px -4px rgb(0 0 0 / 0.04);
-  --shadow-kpi: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+  /* === Borders & Inputs === */
+  --border: #e2e8f0;               /* Sleek light slate border for premium definition */
+  --input: #e2e8f0;
+  --ring: #2563eb;
+
+  /* === Radius — tight 8px like reference CRM === */
+  --radius: 0.5rem;                /* 8px */
+
+  /* === Shadows — crisp outline style like reference === */
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 0 0 1px rgb(0 0 0 / 0.03);
+  --shadow-kpi: 0 1px 4px 0 rgb(0 0 0 / 0.06), 0 0 0 1px rgb(0 0 0 / 0.03);
+  --shadow-elevated: 0 4px 16px -4px rgb(0 0 0 / 0.08), 0 0 0 1px rgb(0 0 0 / 0.04);
+  --shadow-hover: 0 8px 24px -6px rgb(0 0 0 / 0.10), 0 0 0 1px rgb(0 0 0 / 0.04);
+
+  /* === Surface Layers === */
+  --surface: #ffffff;
+  --surface-secondary: #f1f3f6;
+  --surface-tertiary: #e2e8f0;
+
+  /* === Typography === */
+  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .dark {
-  --background: #1a1a1c;
-  --foreground: #ebedf1;
-  --card: #252528;
-  --card-foreground: #ebedf1;
-  --popover: #252528;
-  --popover-foreground: #ebedf1;
+  --background: #111214;
+  --foreground: #f0f0f4;
+  --card: #1c1c20;
+  --card-foreground: #f0f0f4;
+  --popover: #1c1c20;
+  --popover-foreground: #f0f0f4;
   --primary: #3b82f6;
   --primary-foreground: #ffffff;
-  --secondary: #2d2d30;
-  --secondary-foreground: #ebedf1;
-  --muted: #2d2d30;
-  --muted-foreground: #acadb1;
-  --accent: #2d2d30;
-  --accent-foreground: #ebedf1;
+  --secondary: #26262b;
+  --secondary-foreground: #f0f0f4;
+  --muted: #26262b;
+  --muted-foreground: #9b9bb0;
+  --accent: #26262b;
+  --accent-foreground: #f0f0f4;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #353536;
-  --input: #353536;
+  --border: #2e2e34;
+  --input: #2e2e34;
   --ring: #3b82f6;
 
-  --surface: #252528;
-  --surface-secondary: #2d2d30;
-  --surface-tertiary: #353536;
+  --surface: #1c1c20;
+  --surface-secondary: #26262b;
+  --surface-tertiary: #2e2e34;
 
   --success: #10b981;
   --success-foreground: #ffffff;
   --warning: #f59e0b;
-  --warning-foreground: #353536;
+  --warning-foreground: #111214;
   --info: #3b82f6;
   --info-foreground: #ffffff;
 
-  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-elevated: 0 4px 12px -2px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.15);
-  --shadow-hover: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-kpi: 0 1px 2px 0 rgb(0 0 0 / 0.2);
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.25), 0 0 0 1px rgb(255 255 255 / 0.04);
+  --shadow-kpi: 0 1px 4px 0 rgb(0 0 0 / 0.3), 0 0 0 1px rgb(255 255 255 / 0.04);
+  --shadow-elevated: 0 4px 16px -4px rgb(0 0 0 / 0.4), 0 0 0 1px rgb(255 255 255 / 0.05);
+  --shadow-hover: 0 8px 24px -6px rgb(0 0 0 / 0.5), 0 0 0 1px rgb(255 255 255 / 0.06);
 }
 
 @theme inline {
@@ -106,9 +122,9 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-info: var(--info);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
   --radius-xl: calc(var(--radius) + 4px);
 
   --shadow-card: var(--shadow-card);
@@ -124,9 +140,10 @@
 
   body {
     @apply bg-background text-foreground overflow-hidden text-sm;
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'cv11', 'ss01', 'rlig' 1, 'calt' 1;
   }
 
   ::-webkit-scrollbar {
@@ -139,12 +156,12 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--color-muted-foreground);
+    background: var(--color-surface-tertiary);
     border-radius: 10px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-primary);
+    background: var(--color-muted-foreground);
   }
 }
 
@@ -173,24 +190,33 @@
     @apply shadow-[var(--shadow-hover)] -translate-y-0.5;
   }
 
+  /* === Nav Pills — soft grey pill, no border accent === */
   .nav-pill {
-    @apply flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200;
+    @apply flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-150;
   }
 
   .nav-pill--active {
-    @apply bg-primary/10 text-primary;
+    @apply bg-[#f4f4f6] text-foreground font-semibold;
+  }
+
+  .dark .nav-pill--active {
+    @apply bg-[#26262b] text-foreground font-semibold;
   }
 
   .nav-pill--inactive {
-    @apply text-muted-foreground hover:bg-accent hover:text-foreground;
+    @apply text-muted-foreground hover:bg-[#f4f4f6] hover:text-foreground;
+  }
+
+  .dark .nav-pill--inactive {
+    @apply hover:bg-[#26262b];
   }
 
   .surface {
-    @apply rounded-xl border bg-surface text-card-foreground shadow-[var(--shadow-card)];
+    @apply rounded-lg border bg-surface text-card-foreground shadow-[var(--shadow-card)];
   }
 
   .surface--secondary {
-    @apply rounded-xl border bg-surface-secondary text-card-foreground;
+    @apply rounded-lg border bg-surface-secondary text-card-foreground;
   }
 
   .chart-container {
@@ -204,4 +230,166 @@
   .stat-trend-down {
     @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400;
   }
+}
+
+
+/* HeroUI Date Range Picker Global Styling Fixes */
+/* Ensure the group has standard height/border and elegant spacing */
+[data-slot="group"],
+.date-input-group {
+  display: flex !important;
+  align-items: center !important;
+  border: 1px solid #d1d5db !important; /* Premium light border */
+  border-radius: 9999px !important; /* Pill style */
+  background-color: #ffffff !important;
+  height: 40px !important;
+  min-width: 220px !important;
+  width: 100% !important;
+  padding: 0 12px !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.dark [data-slot="group"],
+.dark .date-input-group {
+  border-color: #374151 !important;
+  background-color: #1f2937 !important;
+}
+
+[data-slot="group"]:hover,
+.date-input-group:hover {
+  border-color: #3b82f6 !important; /* Highlight color on hover */
+}
+
+/* Make sure the text container takes the full remaining space */
+.date-input-group__input-container {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  align-items: center !important;
+  width: auto !important;
+  min-width: 0 !important;
+  gap: 4px !important;
+}
+
+/* Target the inputs to display properly inline */
+[data-slot="input"],
+.date-input-group__input {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-width: 90px !important;
+}
+
+/* Trigger button default properties */
+.date-range-picker__trigger {
+  cursor: pointer !important;
+}
+
+/* Align the calendar icon inside the group visually */
+[data-slot="date-range-picker-trigger-indicator"],
+.date-range-picker__trigger-indicator {
+  color: #6b7280 !important;
+}
+
+.dark [data-slot="date-range-picker-trigger-indicator"],
+.dark .date-range-picker__trigger-indicator {
+  color: #9ca3af !important;
+}
+
+/* --- LIGHT MODE BULLETPROOF CONTRAST FOR ALL DATE COMPONENTS --- */
+/* Target all components and text inside inputs and calendar popovers to be rich dark slate */
+[data-slot="group"] *,
+[data-slot="input"] *,
+[data-slot="input-container"] *,
+[data-slot="content"] *,
+[data-slot="range-calendar"] *,
+[data-slot="calendar"] *,
+.range-calendar *,
+.range-calendar__cell-button,
+.date-input-group__segment {
+  color: #1f2937 !important; /* Extremely high legibility dark charcoal */
+}
+
+/* Day Numbers & Grid Headers */
+.range-calendar__cell-button,
+[data-slot="range-calendar-header-cell"],
+[data-slot="range-calendar-header-cell"] *,
+th[data-slot="range-calendar-header-cell"] {
+  color: #374151 !important; /* Bold, clear dark text */
+  font-weight: 600 !important;
+}
+
+/* Separators and Literals */
+.date-input-group__segment[data-type="literal"],
+.date-range-picker__range-separator {
+  color: #4b5563 !important;
+  opacity: 0.8 !important;
+  margin: 0 2px;
+}
+
+/* Month Heading */
+[data-slot="range-calendar-heading"] {
+  color: #111827 !important;
+  font-weight: 700 !important;
+}
+
+/* Selected cells must be bright white text with blue background */
+[data-selected="true"],
+[data-selected="true"] *,
+.range-calendar__cell-button[data-selected="true"] {
+  background-color: #2563eb !important; /* Rich Royal Blue */
+  color: #ffffff !important; /* Crisp pure white text */
+}
+
+[data-selection-start="true"],
+[data-selection-start="true"] *,
+[data-selection-end="true"],
+[data-selection-end="true"] * {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+/* --- DARK MODE OVERRIDES --- */
+.dark [data-slot="group"] *,
+.dark [data-slot="input"] *,
+.dark [data-slot="input-container"] *,
+.dark [data-slot="content"] *,
+.dark [data-slot="range-calendar"] *,
+.dark [data-slot="calendar"] *,
+.dark .range-calendar *,
+.dark .range-calendar__cell-button,
+.dark .date-input-group__segment {
+  color: #f3f4f6 !important; /* Crisply visible off-white in dark mode */
+}
+
+.dark .range-calendar__cell-button,
+.dark [data-slot="range-calendar-header-cell"] *,
+.dark [data-slot="range-calendar-header-cell"] {
+  color: #e5e7eb !important;
+}
+
+.dark [data-selected="true"],
+.dark [data-selected="true"] *,
+.dark .range-calendar__cell-button[data-selected="true"] {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+.dark [data-selection-start="true"],
+.dark [data-selection-start="true"] *,
+.dark [data-selection-end="true"],
+.dark [data-selection-end="true"] * {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+/* --- Table Column Header Visibility Override --- */
+th,
+[role="columnheader"],
+[data-slot="column"],
+.table__column {
+  color: var(--muted-foreground) !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+  letter-spacing: 0.05em !important;
 }

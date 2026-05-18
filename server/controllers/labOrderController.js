@@ -2,14 +2,20 @@ import LabOrder from '../models/LabOrder.js';
 
 export const list = async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, status, patient, category } = req.query;
+    const { page = 1, limit = 20, status, patient, category, search } = req.query;
     const query = {};
     if (status) query.status = status;
     if (patient) query.patient = patient;
     if (category) query['tests.category'] = category;
+    if (search) {
+      query.$or = [
+        { orderNo: new RegExp(search, 'i') },
+        { 'tests.testName': new RegExp(search, 'i') },
+      ];
+    }
     const orders = await LabOrder.find(query)
       .populate('patient', 'firstName lastName uhid phone')
-      .populate('doctor', 'user')
+      .populate({ path: 'doctor', populate: { path: 'user', select: 'name' } })
       .populate('collectedBy testedBy verifiedBy', 'name')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
@@ -23,7 +29,7 @@ export const getById = async (req, res, next) => {
   try {
     const order = await LabOrder.findById(req.params.id)
       .populate('patient', 'firstName lastName uhid phone age gender')
-      .populate('doctor', 'user')
+      .populate({ path: 'doctor', populate: { path: 'user', select: 'name' } })
       .populate('collectedBy testedBy verifiedBy', 'name');
     if (!order) return res.status(404).json({ message: 'Lab order not found' });
     res.json({ order });
@@ -47,12 +53,39 @@ export const update = async (req, res, next) => {
 
 export const updateStatus = async (req, res, next) => {
   try {
-    const { status } = req.body;
-    const updates = { status };
-    if (status === 'collected') updates.collectedAt = new Date();
-    if (status === 'completed') updates.completedAt = new Date();
-    const order = await LabOrder.findByIdAndUpdate(req.params.id, updates, { new: true });
-    res.json({ order });
+    const { status, testIndex } = req.body;
+    const order = await LabOrder.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Lab order not found' });
+
+    if (testIndex !== undefined && order.tests[testIndex]) {
+      order.tests[testIndex].status = status;
+      order.markModified('tests');
+      if (status === 'collected') order.collectedAt = new Date();
+    } else {
+      order.status = status;
+      if (status === 'collected') order.collectedAt = new Date();
+      if (status === 'completed') order.completedAt = new Date();
+    }
+
+    const anyCollected = order.tests.some(t => t.status === 'collected');
+    const anyInProgress = order.tests.some(t => t.status === 'processing' || t.status === 'in-progress');
+    const anyPending = order.tests.some(t => t.status === 'pending');
+    const allCompleted = order.tests.every(t => t.status === 'completed' || t.status === 'cancelled');
+
+    if (allCompleted) order.status = 'completed';
+    else if (anyInProgress) order.status = 'processing';
+    else if (anyCollected) order.status = 'collected';
+    else if (!anyPending) order.status = 'completed';
+    else order.status = 'pending';
+
+    await order.save();
+
+    const populated = await LabOrder.findById(order._id)
+      .populate('patient', 'firstName lastName uhid phone')
+      .populate({ path: 'doctor', populate: { path: 'user', select: 'name' } })
+      .populate('collectedBy testedBy verifiedBy', 'name');
+
+    res.json({ order: populated });
   } catch (error) { next(error); }
 };
 

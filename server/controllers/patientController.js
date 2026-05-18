@@ -14,9 +14,11 @@ const generateUHID = async () => {
   return `${prefix}${String(nextNum).padStart(5, '0')}`;
 };
 
+const SORTABLE_FIELDS = ['firstName', 'lastName', 'uhid', 'gender', 'bloodGroup', 'phone', 'createdAt'];
+
 export const list = async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, search, gender, bloodGroup } = req.query;
+    const { page = 1, limit = 20, search, gender, bloodGroup, sortBy, sortOrder } = req.query;
     const query = {};
     if (search) {
       query.$or = [
@@ -30,10 +32,13 @@ export const list = async (req, res, next) => {
     if (gender) query.gender = gender;
     if (bloodGroup) query.bloodGroup = bloodGroup;
 
+    const sortField = SORTABLE_FIELDS.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
+
     const total = await Patient.countDocuments(query);
     const patients = await Patient.find(query)
       .populate('registeredBy', 'name')
-      .sort({ createdAt: -1 })
+      .sort({ [sortField]: sortDir })
       .skip((page - 1) * limit)
       .limit(Number(limit));
 

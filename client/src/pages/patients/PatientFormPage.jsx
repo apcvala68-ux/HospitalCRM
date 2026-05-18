@@ -1,14 +1,32 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useCreatePatient, usePatientSearch } from '../../hooks/usePatients';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useCreatePatient, usePatientSearch, usePatient, useUpdatePatient } from '../../hooks/usePatients';
 import { useToast } from '../../hooks/useToast';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { ArrowLeft, UserPlus, Search, X, Shield, Heart, Phone, MapPin } from 'lucide-react';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
+const YEARS = Array.from({ length: 121 }, (_, i) => String(new Date().getFullYear() - i));
+const MONTHS = [
+  { value: '01', label: 'January' },
+  { value: '02', label: 'February' },
+  { value: '03', label: 'March' },
+  { value: '04', label: 'April' },
+  { value: '05', label: 'May' },
+  { value: '06', label: 'June' },
+  { value: '07', label: 'July' },
+  { value: '08', label: 'August' },
+  { value: '09', label: 'September' },
+  { value: '10', label: 'October' },
+  { value: '11', label: 'November' },
+  { value: '12', label: 'December' }
+];
+const DAYS = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
+
 
 function Section({ icon: Icon, title, children, className = '' }) {
   return (
@@ -35,13 +53,17 @@ function Field({ label, required, children, className = '' }) {
 
 export function PatientFormPage() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEdit = !!id;
   const createPatient = useCreatePatient();
+  const updatePatient = useUpdatePatient();
+  const { data: patientData, isLoading: patientLoading } = usePatient(id);
   const toast = useToast();
 
   const [lookupPhone, setLookupPhone] = useState('');
   const { data: searchResults } = usePatientSearch(lookupPhone);
 
-  const [form, setForm] = useState({
+  const blankForm = {
     firstName: '', lastName: '', dob: '', gender: 'male',
     phone: '', email: '',
     address: { street: '', city: '', state: '', zip: '', pincode: '' },
@@ -50,7 +72,57 @@ export function PatientFormPage() {
     aadhaar: '', maritalStatus: '', occupation: '',
     medicalHistory: { conditions: [], surgeries: [], familyHistory: [], immunizations: [], habits: { smoking: '', alcohol: '', tobacco: '' } },
     insurance: { provider: '', policyNo: '', expiry: '' },
-  });
+  };
+
+  const [form, setForm] = useState(blankForm);
+
+  useEffect(() => {
+    if (patientData?.patient) {
+      const p = patientData.patient;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setForm({
+        firstName: p.firstName || '',
+        lastName: p.lastName || '',
+        dob: p.dob ? p.dob.split('T')[0] : '',
+        gender: p.gender || 'male',
+        phone: p.phone || '',
+        email: p.email || '',
+        address: {
+          street: p.address?.street || '',
+          city: p.address?.city || '',
+          state: p.address?.state || '',
+          zip: p.address?.zip || '',
+          pincode: p.address?.pincode || '',
+        },
+        bloodGroup: p.bloodGroup || '',
+        allergies: p.allergies || [],
+        emergencyContact: {
+          name: p.emergencyContact?.name || '',
+          phone: p.emergencyContact?.phone || '',
+          relation: p.emergencyContact?.relation || '',
+        },
+        aadhaar: p.aadhaar || '',
+        maritalStatus: p.maritalStatus || '',
+        occupation: p.occupation || '',
+        medicalHistory: {
+          conditions: p.medicalHistory?.conditions || [],
+          surgeries: p.medicalHistory?.surgeries || [],
+          familyHistory: p.medicalHistory?.familyHistory || [],
+          immunizations: p.medicalHistory?.immunizations || [],
+          habits: {
+            smoking: p.medicalHistory?.habits?.smoking || '',
+            alcohol: p.medicalHistory?.habits?.alcohol || '',
+            tobacco: p.medicalHistory?.habits?.tobacco || '',
+          },
+        },
+        insurance: {
+          provider: p.insurance?.provider || '',
+          policyNo: p.insurance?.policyNo || '',
+          expiry: p.insurance?.expiry ? p.insurance.expiry.split('T')[0] : '',
+        },
+      });
+    }
+  }, [patientData]);
 
   const [allergyInput, setAllergyInput] = useState('');
   const [conditionInput, setConditionInput] = useState('');
@@ -63,6 +135,34 @@ export function PatientFormPage() {
   const updateEmergency = (field, value) => setForm(prev => ({ ...prev, emergencyContact: { ...prev.emergencyContact, [field]: value } }));
   const updateHabits = (field, value) => update('medicalHistory', { ...form.medicalHistory, habits: { ...form.medicalHistory.habits, [field]: value } });
   const updateInsurance = (field, value) => update('insurance', { ...form.insurance, [field]: value });
+
+  const parseDOB = (dobStr) => {
+    if (!dobStr) return { day: '', month: '', year: '' };
+    const parts = dobStr.split('-');
+    if (parts.length !== 3) return { day: '', month: '', year: '' };
+    return {
+      year: parts[0],
+      month: parts[1],
+      day: parts[2]
+    };
+  };
+
+  const handleDOBChange = (field, value) => {
+    const { day, month, year } = parseDOB(form.dob);
+    const newDOB = {
+      day: field === 'day' ? value : day,
+      month: field === 'month' ? value : month,
+      year: field === 'year' ? value : year
+    };
+    
+    if (newDOB.day && newDOB.month && newDOB.year) {
+      update('dob', `${newDOB.year}-${newDOB.month.padStart(2, '0')}-${newDOB.day.padStart(2, '0')}`);
+    } else {
+      update('dob', '');
+    }
+  };
+
+  const { day: dobDay, month: dobMonth, year: dobYear } = parseDOB(form.dob);
 
   const addAllergy = () => {
     if (allergyInput.trim() && !form.allergies.includes(allergyInput.trim())) {
@@ -80,64 +180,168 @@ export function PatientFormPage() {
   };
   const removeMedField = (field, item) => update('medicalHistory', { ...form.medicalHistory, [field]: form.medicalHistory[field].filter(x => x !== item) });
 
+  const mutation = isEdit ? updatePatient : createPatient;
+  const isPending = mutation.isPending;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.firstName || !form.lastName || !form.dob || !form.phone) {
-      toast.error('First name, last name, DOB, and phone are required');
+    
+    // 1. Required fields check
+    if (!form.firstName.trim()) {
+      toast.error('First name is required');
       return;
     }
+    if (!form.lastName.trim()) {
+      toast.error('Last name is required');
+      return;
+    }
+    if (!form.dob) {
+      toast.error('Date of birth is required');
+      return;
+    }
+    if (!form.phone.trim()) {
+      toast.error('Phone number is required');
+      return;
+    }
+
+    // 2. Date of Birth cannot be in the future
+    const dobDate = new Date(form.dob);
+    if (dobDate > new Date()) {
+      toast.error('Date of birth cannot be in the future');
+      return;
+    }
+
+    // 3. Phone number validation (Country prefix + exactly 10 digits)
+    let rawPhone = form.phone.trim();
+    if (/^\d{10}$/.test(rawPhone)) {
+      rawPhone = '+91' + rawPhone;
+      update('phone', rawPhone);
+    }
+
+    if (!rawPhone.startsWith('+')) {
+      toast.error('Mobile number must start with a "+" and country code (e.g., +91 98765 43210)');
+      return;
+    }
+
+    const phoneDigits = rawPhone.substring(1).replace(/[^0-9]/g, '');
+    if (phoneDigits.length < 11 || phoneDigits.length > 13) {
+      toast.error('Mobile number must have exactly 10 digits after the country code prefix (e.g., +91 98765 43210)');
+      return;
+    }
+
+    // 4. Email format validation (if provided)
+    if (form.email && form.email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(form.email.trim())) {
+        toast.error('Please enter a valid email address');
+        return;
+      }
+    }
+
+    // 5. Emergency Contact Phone number validation (if provided)
+    if (form.emergencyContact.phone && form.emergencyContact.phone.trim()) {
+      let ecPhone = form.emergencyContact.phone.trim();
+      if (/^\d{10}$/.test(ecPhone)) {
+        ecPhone = '+91' + ecPhone;
+        updateEmergency('phone', ecPhone);
+      }
+      if (!ecPhone.startsWith('+')) {
+        toast.error('Emergency contact phone must start with a "+" and country code (e.g., +91 98765 43210)');
+        return;
+      }
+      const ecDigits = ecPhone.substring(1).replace(/[^0-9]/g, '');
+      if (ecDigits.length < 11 || ecDigits.length > 13) {
+        toast.error('Emergency contact must have exactly 10 digits after the country code prefix (e.g., +91 98765 43210)');
+        return;
+      }
+    }
+
+    // 6. Aadhaar Number validation (12 digits, if provided)
+    if (form.aadhaar && form.aadhaar.trim()) {
+      const aadhaarClean = form.aadhaar.replace(/[^0-9]/g, '');
+      if (aadhaarClean.length !== 12) {
+        toast.error('Aadhaar number must be exactly 12 digits');
+        return;
+      }
+    }
+
+    // 7. Pincode validation (6 digits, if provided)
+    if (form.address.pincode && form.address.pincode.trim()) {
+      const pinClean = form.address.pincode.replace(/[^0-9]/g, '');
+      if (pinClean.length !== 6) {
+        toast.error('Pincode must be exactly 6 digits');
+        return;
+      }
+    }
+
     try {
-      const res = await createPatient.mutateAsync(form);
-      toast.success(`Patient registered: ${res.patient.uhid}`);
-      navigate(`/patients/${res.patient._id}`);
+      if (isEdit) {
+        await updatePatient.mutateAsync({ id, data: form });
+        toast.success('Patient updated');
+        navigate(`/patients/${id}`);
+      } else {
+        const res = await createPatient.mutateAsync(form);
+        toast.success(`Patient registered: ${res.patient.uhid}`);
+        navigate(`/patients/${res.patient._id}`);
+      }
     } catch (err) {
-      if (err.message.includes('already exists')) {
+      if (!isEdit && err.message.includes('already exists')) {
         toast.error('Phone number already registered. Use search to find existing patient.');
       }
     }
   };
 
+  if (isEdit && patientLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/patients')}>
+          <Button variant="ghost" size="icon" onClick={() => navigate(isEdit ? `/patients/${id}` : '/patients')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Register New Patient</h1>
-            <p className="text-sm text-muted-foreground">Create a new patient record</p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">{isEdit ? 'Edit Patient' : 'Register New Patient'}</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">{isEdit ? 'Update patient record' : 'Create a new patient record'}</p>
           </div>
         </div>
         <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={() => navigate('/patients')}>Cancel</Button>
-          <Button type="submit" form="patient-form" disabled={createPatient.isPending}>
+          <Button type="button" variant="outline" onClick={() => navigate(isEdit ? `/patients/${id}` : '/patients')}>Cancel</Button>
+          <Button type="submit" form="patient-form" disabled={isPending}>
             <UserPlus className="mr-2 h-4 w-4" />
-            {createPatient.isPending ? 'Registering...' : 'Register Patient'}
+            {isPending ? 'Saving...' : isEdit ? 'Save Changes' : 'Register Patient'}
           </Button>
         </div>
       </div>
 
-      <Card>
-        <CardContent className="pt-4">
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Quick lookup — search by phone number..." value={lookupPhone} onChange={(e) => setLookupPhone(e.target.value)} className="pl-10" />
+      {!isEdit && (
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input placeholder="Quick lookup — search by phone number..." value={lookupPhone} onChange={(e) => setLookupPhone(e.target.value)} className="pl-10" />
+              </div>
             </div>
-          </div>
-          {searchResults?.patients?.length > 0 && (
-            <div className="mt-2 space-y-1">
-              {searchResults.patients.map((p) => (
-                <div key={p._id} className="flex items-center justify-between rounded-lg border p-2 text-sm">
-                  <span>{p.firstName} {p.lastName} — {p.uhid} ({p.phone})</span>
-                  <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${p._id}`)}>View</Button>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            {searchResults?.patients?.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {searchResults.patients.map((p) => (
+                  <div key={p._id} className="flex items-center justify-between rounded-lg border p-2 text-sm">
+                    <span>{p.firstName} {p.lastName} — {p.uhid} ({p.phone})</span>
+                    <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${p._id}`)}>View</Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <form id="patient-form" onSubmit={handleSubmit}>
         <div className="grid gap-4 md:grid-cols-2">
@@ -150,8 +354,36 @@ export function PatientFormPage() {
                 <Field label="Last Name" required>
                   <Input value={form.lastName} onChange={(e) => update('lastName', e.target.value)} required />
                 </Field>
-                <Field label="Date of Birth" required>
-                  <Input type="date" value={form.dob} onChange={(e) => update('dob', e.target.value)} required />
+                <Field label="Date of Birth" required className="col-span-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    <select
+                      value={dobDay}
+                      onChange={(e) => handleDOBChange('day', e.target.value)}
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                      required
+                    >
+                      <option value="">Day</option>
+                      {DAYS.map(d => <option key={d} value={d}>{parseInt(d, 10)}</option>)}
+                    </select>
+                    <select
+                      value={dobMonth}
+                      onChange={(e) => handleDOBChange('month', e.target.value)}
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                      required
+                    >
+                      <option value="">Month</option>
+                      {MONTHS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                    </select>
+                    <select
+                      value={dobYear}
+                      onChange={(e) => handleDOBChange('year', e.target.value)}
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                      required
+                    >
+                      <option value="">Year</option>
+                      {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                    </select>
+                  </div>
                 </Field>
                 <Field label="Gender" required>
                   <select value={form.gender} onChange={(e) => update('gender', e.target.value)} className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
@@ -167,10 +399,10 @@ export function PatientFormPage() {
                   </select>
                 </Field>
                 <Field label="Phone" required>
-                  <Input value={form.phone} onChange={(e) => update('phone', e.target.value)} required />
+                  <Input value={form.phone} onChange={(e) => update('phone', e.target.value)} placeholder="e.g. +91 98765 43210" required />
                 </Field>
                 <Field label="Email" className="col-span-2">
-                  <Input type="email" value={form.email} onChange={(e) => update('email', e.target.value)} />
+                  <Input type="email" value={form.email} onChange={(e) => update('email', e.target.value)} placeholder="e.g. rekha.joshi@email.com" />
                 </Field>
               </div>
             </Section>

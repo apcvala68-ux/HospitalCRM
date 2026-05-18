@@ -75,6 +75,7 @@ function AppRoutes() {
         <Route path="patients" element={<PatientListPage />} />
         <Route path="patients/new" element={<PatientFormPage />} />
         <Route path="patients/:id" element={<PatientDetailPage />} />
+        <Route path="patients/:id/edit" element={<PatientFormPage />} />
         <Route path="queue" element={<QueuePage />} />
         <Route path="doctor" element={<DoctorDashboard />} />
         <Route path="consultation/:tokenId" element={<ConsultationPage />} />
@@ -85,7 +86,7 @@ function AppRoutes() {
         <Route path="billing/new" element={<NewInvoicePage />} />
         <Route path="billing/:id" element={<InvoiceDetailPage />} />
         <Route path="reports/eod" element={<EODReportPage />} />
-        <Route path="reports" element={<div className="text-muted-foreground">Reports module coming soon</div>} />
+        <Route path="reports" element={<Navigate to="/reports/eod" replace />} />
         <Route path="pharmacy" element={<PharmacyPage />} />
         <Route path="ipd" element={<IPDPage />} />
         <Route path="attendance" element={<AttendancePage />} />

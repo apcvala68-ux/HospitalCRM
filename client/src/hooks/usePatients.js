@@ -54,3 +54,16 @@ export function useUpdatePatient() {
     onError: (err) => toast.error(err.message),
   });
 }
+
+export function useDeletePatient() {
+  const queryClient = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: (id) => api.delete(`/patients/${id}`),
+    onSuccess: () => {
+      toast.success('Patient deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['patients'] });
+    },
+    onError: (err) => toast.error(err.message || 'Failed to delete patient'),
+  });
+}

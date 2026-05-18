@@ -18,8 +18,8 @@ const categoryIcons = {
   other: '',
 };
 
-export function PatientReportsList() {
-  const { data, isLoading } = useRecentLabResults();
+export function PatientReportsList({ dateRange }) {
+  const { data, isLoading } = useRecentLabResults(dateRange);
   const results = data?.labResults || [];
   const items = results.slice(0, 5);
 
