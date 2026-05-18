@@ -3,48 +3,72 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.98 0 0); /* Off-white for depth */
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0); /* Pure white for cards */
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0.042 265.755);
+  --background: oklch(0.97 0.003 280);
+  --foreground: oklch(0.1 0.015 280);
+  --card: oklch(0.995 0.001 280);
+  --card-foreground: oklch(0.1 0.015 280);
+  --popover: oklch(0.995 0.001 280);
+  --popover-foreground: oklch(0.1 0.015 280);
+  --primary: oklch(0.45 0.18 260);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.965 0.001 286.375);
-  --secondary-foreground: oklch(0.205 0.042 265.755);
-  --muted: oklch(0.965 0.001 286.375);
-  --muted-foreground: oklch(0.556 0.011 286.375);
-  --accent: oklch(0.965 0.001 286.375);
-  --accent-foreground: oklch(0.205 0.042 265.755);
+  --secondary: oklch(0.92 0.008 280);
+  --secondary-foreground: oklch(0.18 0.02 280);
+  --muted: oklch(0.94 0.006 280);
+  --muted-foreground: oklch(0.42 0.02 280);
+  --accent: oklch(0.93 0.01 280);
+  --accent-foreground: oklch(0.18 0.02 280);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.94 0 0); /* Softer gray border */
-  --input: oklch(0.94 0 0);
-  --ring: oklch(0.205 0.042 265.755);
-  --radius: 1rem; /* Premium larger border radius */
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.86 0.008 280);
+  --input: oklch(0.86 0.008 280);
+  --ring: oklch(0.45 0.18 260);
+  --radius: 0.75rem;
+
+  /* HeroUI surface layers */
+  --surface: oklch(0.995 0.001 280);
+  --surface-secondary: oklch(0.97 0.003 280);
+  --surface-tertiary: oklch(0.94 0.006 280);
+
+  /* Status colors */
+  --success: oklch(0.6 0.18 145);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.75 0.18 85);
+  --warning-foreground: oklch(0.12 0.01 280);
+  --info: oklch(0.55 0.18 260);
+  --info-foreground: oklch(0.985 0 0);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0.042 265.755);
-  --secondary: oklch(0.269 0.015 286.375);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0.015 286.375);
-  --muted-foreground: oklch(0.708 0.01 286.375);
-  --accent: oklch(0.269 0.015 286.375);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: oklch(0.11 0.008 280);
+  --foreground: oklch(0.955 0.01 280);
+  --card: oklch(0.14 0.01 280);
+  --card-foreground: oklch(0.955 0.01 280);
+  --popover: oklch(0.14 0.01 280);
+  --popover-foreground: oklch(0.955 0.01 280);
+  --primary: oklch(0.6 0.18 260);
+  --primary-foreground: oklch(0.12 0.01 280);
+  --secondary: oklch(0.22 0.012 280);
+  --secondary-foreground: oklch(0.955 0.01 280);
+  --muted: oklch(0.2 0.01 280);
+  --muted-foreground: oklch(0.58 0.015 280);
+  --accent: oklch(0.22 0.012 280);
+  --accent-foreground: oklch(0.955 0.01 280);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.269 0.015 286.375);
-  --input: oklch(0.269 0.015 286.375);
-  --ring: oklch(0.708 0.01 286.375);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.26 0.015 280);
+  --input: oklch(0.26 0.015 280);
+  --ring: oklch(0.6 0.18 260);
+
+  --surface: oklch(0.14 0.01 280);
+  --surface-secondary: oklch(0.17 0.01 280);
+  --surface-tertiary: oklch(0.2 0.01 280);
+
+  --success: oklch(0.55 0.18 145);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.7 0.18 85);
+  --warning-foreground: oklch(0.12 0.01 280);
+  --info: oklch(0.5 0.18 260);
+  --info-foreground: oklch(0.985 0 0);
 }
 
 @theme inline {
@@ -67,39 +91,168 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-surface: var(--surface);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-tertiary: var(--surface-tertiary);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-skeleton: skeleton 2s linear infinite;
+
+  @keyframes shimmer {
+    100% { transform: translateX(200%); }
+  }
+  @keyframes skeleton {
+    100% { transform: translateX(200%); }
+  }
 }
 
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground overflow-hidden;
     font-family: system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Thin Scrollbar Styling */
   ::-webkit-scrollbar {
     width: 5px;
     height: 5px;
   }
-  
+
   ::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   ::-webkit-scrollbar-thumb {
     background: var(--color-muted-foreground);
     border-radius: 10px;
-    opacity: 0.3;
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
     background: var(--color-primary);
   }
 }
 
+@layer components {
+  .dashboard-wrapper {
+    @apply space-y-5;
+  }
+
+  .dashboard-greeting h1 {
+    @apply text-2xl font-bold tracking-tight text-foreground;
+  }
+
+  .dashboard-greeting p {
+    @apply text-sm text-muted-foreground/80 mt-0.5;
+  }
+
+  .dashboard-section-title {
+    @apply text-sm font-bold text-foreground tracking-wide;
+  }
+
+  /* ── HeroUI-style component classes ── */
+
+  /* Card surface variants */
+  .card-surface {
+    @apply rounded-xl border bg-surface text-card-foreground;
+  }
+
+  .card-surface-secondary {
+    @apply rounded-xl border bg-surface-secondary text-card-foreground;
+  }
+
+  .card-surface-tertiary {
+    @apply rounded-xl border bg-surface-tertiary text-card-foreground;
+  }
+
+  /* Chip-style badges */
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors;
+  }
+
+  .chip--accent {
+    @apply bg-accent/15 text-accent-foreground;
+  }
+
+  .chip--success {
+    @apply bg-success/15 text-success;
+  }
+
+  .chip--warning {
+    @apply bg-warning/15 text-warning;
+  }
+
+  .chip--danger {
+    @apply bg-destructive/15 text-destructive;
+  }
+
+  .chip--primary {
+    @apply bg-primary/15 text-primary;
+  }
+
+  .chip--soft {
+    @apply bg-muted text-muted-foreground;
+  }
+
+  /* Status indicator dots */
+  .status-dot {
+    @apply h-2 w-2 rounded-full ring-1 ring-black/5 shrink-0;
+  }
+
+  .status-dot--success {
+    @apply bg-success;
+  }
+
+  .status-dot--warning {
+    @apply bg-warning;
+  }
+
+  .status-dot--danger {
+    @apply bg-destructive;
+  }
+
+  .status-dot--info {
+    @apply bg-info;
+  }
+
+  .status-dot--muted {
+    @apply bg-muted-foreground/40;
+  }
+
+  /* Navigation pills */
+  .nav-pill {
+    @apply flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200;
+  }
+
+  .nav-pill--active {
+    @apply bg-primary/15 text-primary shadow-sm;
+  }
+
+  .nav-pill--inactive {
+    @apply text-muted-foreground/70 hover:bg-accent/60 hover:text-foreground;
+  }
+
+  /* HeroUI surface container */
+  .surface {
+    @apply rounded-xl border bg-surface text-card-foreground;
+  }
+
+  .surface--secondary {
+    @apply rounded-xl border bg-surface-secondary text-card-foreground;
+  }
+
+  .surface--tertiary {
+    @apply rounded-xl border bg-surface-tertiary text-card-foreground;
+  }
+}

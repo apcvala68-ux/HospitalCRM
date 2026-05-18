@@ -4,7 +4,7 @@ export function RadialGauge({ percentage = 0, size = 160, color = '#3b82f6', lab
   const offset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="relative flex flex-col items-center justify-center">
       <svg width={size} height={size} className="transform -rotate-90">
         <circle
           cx={size / 2}

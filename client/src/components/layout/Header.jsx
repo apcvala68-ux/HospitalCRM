@@ -28,43 +28,43 @@ export function Header() {
     .slice(0, 2) || 'U';
 
   return (
-    <header className="flex h-14 items-center justify-between gap-4 border-b bg-card px-4 lg:px-6">
-      <div className="relative flex-1 max-w-md">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Search patients, doctors..." className="pl-10" />
+    <header className="flex h-16 items-center justify-between gap-4 border-b bg-card px-4 lg:px-6">
+      <div className="relative flex-1 max-w-sm">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/50" />
+        <Input placeholder="Search patients, doctors..." className="h-10 pl-10 pr-4 text-sm rounded-lg bg-muted/30 border-muted/60 focus-visible:bg-card focus-visible:border-ring" />
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <button
           onClick={toggleTheme}
-          className="rounded-full p-2 hover:bg-accent transition-colors cursor-pointer"
+          className="rounded-lg p-2.5 hover:bg-accent transition-colors cursor-pointer"
           title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
         >
           {theme === 'dark' ? (
-            <Sun className="h-5 w-5 text-muted-foreground" />
+            <Sun className="h-4 w-4 text-muted-foreground/80" />
           ) : (
-            <Moon className="h-5 w-5 text-muted-foreground" />
+            <Moon className="h-4 w-4 text-muted-foreground/80" />
           )}
         </button>
 
-        <button className="relative rounded-full p-2 hover:bg-accent transition-colors cursor-pointer">
-          <Bell className="h-5 w-5 text-muted-foreground" />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />
+        <button className="relative rounded-lg p-2.5 hover:bg-accent transition-colors cursor-pointer">
+          <Bell className="h-4 w-4 text-muted-foreground/80" />
+          <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-destructive ring-2 ring-card" />
         </button>
 
-        <div ref={menuRef} className="relative">
+        <div ref={menuRef} className="relative ml-3">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-accent transition-colors cursor-pointer"
+            className="flex items-center gap-2.5 rounded-lg pl-2.5 pr-3.5 py-1.5 hover:bg-accent transition-colors cursor-pointer"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary ring-1 ring-primary/20">
               {initials}
             </div>
             <div className="hidden md:block text-left">
-              <p className="text-sm font-medium leading-tight">{user?.name}</p>
-              <p className="text-xs capitalize text-muted-foreground leading-tight">{user?.role}</p>
+              <p className="text-sm font-semibold leading-tight text-foreground">{user?.name}</p>
+              <p className="text-[11px] capitalize text-muted-foreground/70 leading-tight">{user?.role}</p>
             </div>
-            <ChevronDown className="hidden md:block h-4 w-4 text-muted-foreground" />
+            <ChevronDown className="hidden md:block h-3.5 w-3.5 text-muted-foreground/50" />
           </button>
 
           {menuOpen && (

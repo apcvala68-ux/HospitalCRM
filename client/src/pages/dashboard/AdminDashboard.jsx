@@ -1,21 +1,21 @@
 import { useAuth } from '../../context/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardContent, DashboardCard, DashboardCardHeader, DashboardCardTitle, DashboardCardContent } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { cn } from '../../lib/utils';
 import {
   Users, Stethoscope, CalendarCheck, DollarSign,
-  Users2, Building2, FlaskConical, FileText, BedDouble, ClipboardList,
+  Users2, FlaskConical, FileText, BedDouble, ClipboardList,
   TrendingUp, TrendingDown, Activity, Clock, ChevronRight, ArrowUpRight,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   useDashboardStats, usePatientStats, usePatientVisitsGauge,
-  useDoctorsAvailability, useDepartmentRevenue, useBedOccupancy,
+  useDepartmentRevenue, useBedOccupancy,
   useQuickStats,
 } from '../../hooks/useDashboard';
 import {
-  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
+  BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { Sparkline } from '../../components/charts/Sparkline';
 import { RadialGauge } from '../../components/charts/RadialGauge';
@@ -32,37 +32,36 @@ const pctChange = (curr, prev) => prev === 0 ? 0 : Math.round(((curr - prev) / p
 // ─── Micro stat card ────────────────────────────────────────────────────────
 function StatCard({ label, value, icon: Icon, color, bg, change, sparkline = [] }) {
   const up = change >= 0;
-  
-  // Dummy data for cards that don't have historical data yet
+
   const graphData = sparkline.length > 0 ? sparkline : [
     { value: 10 }, { value: 12 }, { value: 11 }, { value: 13 },
     { value: 12 }, { value: 14 }, { value: 13 }
   ];
 
   return (
-    <Card className="overflow-hidden border border-border/40 shadow-none hover:shadow-md transition-shadow duration-200 bg-card h-[140px] flex flex-col justify-between">
-      <CardContent className="p-4 pb-2 relative z-10">
-        <div className="flex items-start justify-between">
-          <div className={cn('rounded-lg p-2 shrink-0', bg)}>
-            <Icon className="h-4 w-4" style={{ color }} />
+    <Card className="shadow-[0_1px_2px_0_rgb(0_0_0_/_0.04)] hover:shadow-[0_4px_12px_-2px_rgb(0_0_0_/_0.08)] transition-shadow duration-200 h-[150px] flex flex-col justify-between">
+      <CardContent className="p-4 pb-1 relative z-10">
+        <div className="flex items-start justify-between gap-2">
+          <div className={cn('rounded-xl p-2.5 shrink-0', bg)}>
+            <Icon className="h-5 w-5" style={{ color }} />
           </div>
           {change !== 0 && (
             <span className={cn(
-              'flex items-center gap-0.5 text-[10px] font-semibold rounded-full px-1.5 py-0.5 shadow-sm',
-              up ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50' : 'bg-red-50 text-red-500 dark:bg-red-950/50'
+              'shrink-0 flex items-center gap-1 text-[11px] font-semibold rounded-full px-2 py-0.5',
+              up ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' : 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400'
             )}>
-              {up ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
+              {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
               {up ? '+' : ''}{change}%
             </span>
           )}
         </div>
-        <div className="mt-4">
-          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest leading-tight block whitespace-nowrap">{label}</span>
-          <p className="mt-1 text-2xl font-bold tracking-tight text-foreground leading-none">{value}</p>
+        <div className="mt-2.5">
+          <span className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider leading-tight block">{label}</span>
+          <p className="mt-1.5 text-3xl font-bold tracking-tight text-foreground leading-none">{value}</p>
         </div>
       </CardContent>
-      <div className="w-full h-12 opacity-50 pointer-events-none mt-auto">
-        <Sparkline data={graphData} color={color} height={48} />
+      <div className="w-full h-11 opacity-50 pointer-events-none mt-auto">
+        <Sparkline data={graphData} color={color} height={44} />
       </div>
     </Card>
   );
@@ -74,15 +73,15 @@ function QuickAction({ label, icon: Icon, route, color, bg, navigate }) {
     <button
       onClick={() => navigate(route)}
       className={cn(
-        'flex items-center gap-2.5 rounded-xl border border-border/40 bg-card px-3.5 py-2.5',
-        'hover:bg-accent hover:border-border hover:shadow-sm cursor-pointer transition-all duration-150 group'
+        'flex items-center gap-3 rounded-xl border bg-card px-4 py-3.5',
+        'hover:bg-accent hover:border-border hover:shadow-md cursor-pointer transition-all duration-150 group active:scale-[0.98]'
       )}
     >
-      <div className={cn('rounded-lg p-1.5 shrink-0', bg)}>
-        <Icon className={cn('h-3.5 w-3.5', color)} />
+      <div className={cn('rounded-xl p-2.5 shrink-0 transition-all duration-150 group-hover:scale-110 group-active:scale-95', bg)}>
+        <Icon className={cn('h-4 w-4', color)} />
       </div>
-      <span className="text-xs font-semibold text-foreground">{label}</span>
-      <ChevronRight className="h-3 w-3 ml-auto text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      <span className="text-sm font-semibold text-foreground/90 group-hover:text-foreground">{label}</span>
+      <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground/40 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all" />
     </button>
   );
 }
@@ -91,7 +90,7 @@ function QuickAction({ label, icon: Icon, route, color, bg, navigate }) {
 function SectionTitle({ children, action }) {
   return (
     <div className="flex items-center justify-between mb-3">
-      <h2 className="text-[13px] font-bold text-foreground uppercase tracking-widest">{children}</h2>
+      <h2 className="text-sm font-bold text-foreground tracking-wide">{children}</h2>
       {action}
     </div>
   );
@@ -182,15 +181,15 @@ export function AdminDashboard() {
   const collectionRate = s.todayBilled ? Math.round((s.todayRevenue / s.todayBilled) * 100) : 0;
 
   return (
-    <div className="space-y-5 px-1 py-0.5">
+    <div className="dashboard-wrapper">
 
       {/* ── Top bar: greeting + date + key live metrics ── */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-lg font-bold tracking-tight text-foreground">
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
             Welcome back, {user?.name?.split(' ')[0]}
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-sm text-muted-foreground mt-0.5">
             {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
@@ -240,160 +239,160 @@ export function AdminDashboard() {
         {/* Patient stats chart – takes 3/5 */}
         <div className="lg:col-span-3">
           <SectionTitle action={
-            <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-500" />New</span>
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-200" />Returning</span>
+            <div className="flex items-center gap-3 text-xs font-medium text-muted-foreground/80">
+              <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-blue-600" />New</span>
+              <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-blue-300" />Returning</span>
             </div>
           }>
             Patient Statistics
           </SectionTitle>
-          <Card className="border-border/40 shadow-none">
-            <CardContent className="p-4 h-52">
+          <DashboardCard>
+            <DashboardCardContent className="h-64 pt-3">
               {patientStats.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
-                  <p className="text-xs text-muted-foreground">No data available</p>
+                  <p className="text-sm text-muted-foreground">No data available</p>
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={patientStats} barSize={14}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
-                    <XAxis dataKey="label" fontSize={10} tickLine={false} axisLine={false} />
-                    <YAxis fontSize={10} tickLine={false} axisLine={false} width={30} />
+                <ResponsiveContainer width="100%" height="100%" debounce={1}>
+                  <BarChart data={patientStats} barSize={20} barGap={6} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} vertical={false} />
+                    <XAxis dataKey="label" fontSize={11} tickLine={false} axisLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontWeight: 500 }} />
+                    <YAxis fontSize={11} tickLine={false} axisLine={false} width={35} tick={{ fill: 'hsl(var(--muted-foreground))' }} />
                     <Tooltip
                       contentStyle={{
-                        fontSize: 11, borderRadius: 8,
+                        fontSize: 12, borderRadius: 8,
                         border: '1px solid hsl(var(--border))',
                         background: 'hsl(var(--card))',
-                        boxShadow: '0 4px 12px rgba(0,0,0,.08)'
+                        boxShadow: '0 4px 12px rgba(0,0,0,.1)'
                       }}
                     />
-                    <Bar dataKey="newPatients" stackId="a" fill="#2563eb" radius={[0, 0, 0, 0]} name="New" />
-                    <Bar dataKey="returningPatients" stackId="a" fill="#bfdbfe" radius={[4, 4, 0, 0]} name="Returning" />
+                    <Bar dataKey="newPatients" stackId="a" fill="#2563eb" radius={[3, 3, 0, 0]} name="New" />
+                    <Bar dataKey="returningPatients" stackId="a" fill="#93c5fd" radius={[4, 4, 0, 0]} name="Returning" />
                   </BarChart>
                 </ResponsiveContainer>
               )}
-            </CardContent>
-          </Card>
+            </DashboardCardContent>
+          </DashboardCard>
         </div>
       </div>
 
       {/* ── Row 4: Patient Visits gauge + Revenue + Bed Occupancy + Queue ── */}
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 
         {/* Patient Visits Gauge */}
-        <Card className="border-border/40 shadow-none">
-          <CardHeader className="pb-1 pt-4 px-4">
-            <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Patient Visits</CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4 flex flex-col items-center">
-            <RadialGauge percentage={Math.min(gauge.total, 100)} size={110} color="#2563eb" label="Total" />
-            <div className="mt-3 w-full space-y-1.5">
+        <DashboardCard>
+          <DashboardCardHeader className="pb-0 pt-3.5 px-3.5">
+            <DashboardCardTitle>Patient Visits</DashboardCardTitle>
+          </DashboardCardHeader>
+          <DashboardCardContent className="flex flex-col items-center pt-3">
+            <RadialGauge percentage={Math.min(gauge.total, 100)} size={140} color="#2563eb" label="Total" />
+            <div className="mt-3 w-full px-2 space-y-1.5">
               {[
                 { label: 'Male', val: gauge.male, color: '#2563eb' },
                 { label: 'Female', val: gauge.female, color: '#ec4899' },
               ].map(r => (
                 <div key={r.label} className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full" style={{ background: r.color }} />
-                    <span className="text-[11px] text-muted-foreground">{r.label}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full ring-1 ring-black/5" style={{ background: r.color }} />
+                    <span className="text-xs font-medium text-muted-foreground">{r.label}</span>
                   </div>
-                  <span className="text-[11px] font-semibold">{r.val}%</span>
+                  <span className="text-xs font-bold text-foreground">{r.val}%</span>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </DashboardCardContent>
+        </DashboardCard>
 
         {/* Revenue */}
-        <Card className="border-border/40 shadow-none">
-          <CardHeader className="pb-1 pt-4 px-4">
-            <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Today's Revenue</CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
+        <DashboardCard>
+          <DashboardCardHeader className="pb-0 pt-3.5 px-3.5">
+            <DashboardCardTitle>Today's Revenue</DashboardCardTitle>
+          </DashboardCardHeader>
+          <DashboardCardContent className="pt-3">
             <p className="text-3xl font-bold text-emerald-600 tracking-tight">
               ₹{(s.todayRevenue || 0).toLocaleString('en-IN')}
             </p>
-            <p className="text-[11px] text-muted-foreground mt-1">
-              Billed: <span className="font-medium text-foreground">₹{(s.todayBilled || 0).toLocaleString('en-IN')}</span>
+            <p className="text-xs text-muted-foreground/80 mt-1">
+              Billed: <span className="font-semibold text-foreground">₹{(s.todayBilled || 0).toLocaleString('en-IN')}</span>
             </p>
-            <div className="mt-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] text-muted-foreground">Collection rate</span>
-                <span className="text-[10px] font-bold text-emerald-600">{collectionRate}%</span>
+            <div className="mt-4">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-medium text-muted-foreground/80">Collection rate</span>
+                <span className="text-xs font-bold text-emerald-600">{collectionRate}%</span>
               </div>
-              <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+              <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden">
                 <div
                   className="h-full rounded-full bg-emerald-500 transition-all duration-700"
                   style={{ width: `${collectionRate}%` }}
                 />
               </div>
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950 px-3 py-2">
-                <p className="text-[10px] text-muted-foreground">This Month</p>
-                <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
+            <div className="mt-4 grid grid-cols-2 gap-2.5">
+              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-900/50 px-3 py-2.5">
+                <p className="text-[11px] font-medium text-muted-foreground/80">This Month</p>
+                <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400 mt-0.5">
                   ₹{(s.monthRevenue || 0).toLocaleString('en-IN')}
                 </p>
               </div>
-              <div className="rounded-lg bg-blue-50 dark:bg-blue-950 px-3 py-2">
-                <p className="text-[10px] text-muted-foreground">Avg / Day</p>
-                <p className="text-sm font-bold text-blue-700 dark:text-blue-400">
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200/50 dark:border-blue-900/50 px-3 py-2.5">
+                <p className="text-[11px] font-medium text-muted-foreground/80">Avg / Day</p>
+                <p className="text-sm font-bold text-blue-700 dark:text-blue-400 mt-0.5">
                   ₹{s.monthRevenue ? Math.round(s.monthRevenue / 30).toLocaleString('en-IN') : 0}
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </DashboardCardContent>
+        </DashboardCard>
 
         {/* Bed Occupancy */}
-        <Card className="border-border/40 shadow-none">
-          <CardHeader className="pb-1 pt-4 px-4">
-            <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Bed Occupancy</CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4 flex flex-col items-center">
-            <RadialGauge percentage={bedData?.occupancyRate || 0} size={110} color="#10b981" />
-            <div className="mt-3 w-full grid grid-cols-2 gap-2 text-center">
+        <DashboardCard>
+          <DashboardCardHeader className="pb-0 pt-3.5 px-3.5">
+            <DashboardCardTitle>Bed Occupancy</DashboardCardTitle>
+          </DashboardCardHeader>
+          <DashboardCardContent className="flex flex-col items-center pt-3">
+            <RadialGauge percentage={bedData?.occupancyRate || 0} size={140} color="#10b981" />
+            <div className="mt-3 w-full grid grid-cols-4 gap-1.5 text-center">
               {[
-                { label: 'Available', val: bedData?.available || 0, color: 'text-emerald-600' },
-                { label: 'Occupied', val: bedData?.occupied || 0, color: 'text-blue-600' },
+                { label: 'Avail', val: bedData?.available || 0, color: 'text-emerald-600' },
+                { label: 'Occup', val: bedData?.occupied || 0, color: 'text-blue-600' },
                 { label: 'Dirty', val: bedData?.dirty || 0, color: 'text-amber-600' },
-                { label: 'Maint.', val: bedData?.maintenance || 0, color: 'text-red-500' },
+                { label: 'Maint', val: bedData?.maintenance || 0, color: 'text-red-500' },
               ].map(b => (
-                <div key={b.label} className="rounded-lg bg-muted/40 py-1.5">
-                  <p className={cn('text-base font-bold', b.color)}>{b.val}</p>
-                  <p className="text-[10px] text-muted-foreground">{b.label}</p>
+                <div key={b.label} className="rounded-lg bg-muted/50 py-2 px-1">
+                  <p className={cn('text-sm font-bold', b.color)}>{b.val}</p>
+                  <p className="text-[10px] font-medium text-muted-foreground/70 mt-0.5">{b.label}</p>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </DashboardCardContent>
+        </DashboardCard>
 
         {/* Queue Status */}
-        <Card className="border-border/40 shadow-none">
-          <CardHeader className="pb-1 pt-4 px-4">
-            <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Queue Status</CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4 space-y-2">
+        <DashboardCard>
+          <DashboardCardHeader className="pb-0 pt-3.5 px-3.5">
+            <DashboardCardTitle>Queue Status</DashboardCardTitle>
+          </DashboardCardHeader>
+          <DashboardCardContent className="pt-3 space-y-2">
             {[
               { label: 'Waiting', val: s.waitingInQueue || 0, dot: 'bg-amber-400' },
               { label: 'In Triage', val: '—', dot: 'bg-sky-400' },
               { label: 'With Doctor', val: '—', dot: 'bg-violet-400' },
               { label: 'Completed Today', val: s.todayAppointments || 0, dot: 'bg-emerald-400' },
             ].map(q => (
-              <div key={q.label} className="flex items-center justify-between rounded-lg bg-muted/30 px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <span className={cn('h-2 w-2 rounded-full', q.dot)} />
-                  <span className="text-[11px] text-muted-foreground">{q.label}</span>
+              <div key={q.label} className="flex items-center justify-between rounded-lg bg-muted/30 px-3 py-2.5">
+                <div className="flex items-center gap-2.5">
+                  <span className={cn('h-2 w-2 rounded-full ring-1 ring-black/5', q.dot)} />
+                  <span className="text-xs font-medium text-muted-foreground">{q.label}</span>
                 </div>
-                <span className="text-[11px] font-bold text-foreground">{q.val}</span>
+                <span className="text-xs font-bold text-foreground">{q.val}</span>
               </div>
             ))}
-            <div className="mt-2 rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-center">
-              <p className="text-[10px] text-muted-foreground">Avg wait time</p>
-              <p className="text-sm font-bold text-foreground">~12 min</p>
+            <div className="pt-1 rounded-lg bg-muted/20 px-3 py-2.5 text-center">
+              <p className="text-[11px] font-medium text-muted-foreground/70">Avg wait time</p>
+              <p className="text-sm font-bold text-foreground mt-0.5">~12 min</p>
             </div>
-          </CardContent>
-        </Card>
+          </DashboardCardContent>
+        </DashboardCard>
       </div>
 
       {/* ── Row 5: Patient Reports + Doctors Availability ── */}
@@ -426,10 +425,10 @@ export function AdminDashboard() {
           <SectionTitle action={<Badge variant="outline" className="text-[10px] px-2 py-0.5">By Revenue</Badge>}>
             Top Departments
           </SectionTitle>
-          <Card className="border-border/40 shadow-none">
-            <CardContent className="p-4">
+          <DashboardCard>
+            <DashboardCardContent>
               {deptRevenue.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-6">No data yet</p>
+                <p className="text-sm text-muted-foreground text-center py-6">No data yet</p>
               ) : (
                 <div className="flex items-center gap-4">
                   <div className="h-32 w-32 shrink-0">
@@ -465,8 +464,8 @@ export function AdminDashboard() {
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </DashboardCardContent>
+          </DashboardCard>
         </div>
         <div className="lg:col-span-3">
           <SectionTitle>Patient Records</SectionTitle>

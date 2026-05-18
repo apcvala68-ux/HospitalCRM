@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useMyDoctorProfile } from '../../hooks/useDoctor';
 import { useCurrentQueue, useStartConsultation } from '../../hooks/useQueue';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { DashboardCard, DashboardCardHeader, DashboardCardTitle, DashboardCardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import { Activity, Users, CheckCircle, Clock, ArrowRight, Loader2, AlertTriangle, Heart, Thermometer, Droplets, Stethoscope, Calendar, MapPin } from 'lucide-react';
+import { Activity, Users, CheckCircle, Clock, ArrowRight, Loader2, AlertTriangle, Heart, Stethoscope, Calendar, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 
 export function DoctorDashboard() {
@@ -28,7 +28,6 @@ export function DoctorDashboard() {
   const ready = queueData?.ready || [];
   const waiting = queueData?.waiting || [];
   const inTriage = queueData?.inTriage || [];
-  const withDoctor = queueData?.withDoctor || [];
   const historyCount = queueData?.historyCount || 0;
 
   const nextPatient = ready[0] || waiting[0] || inTriage[0];
@@ -47,86 +46,80 @@ export function DoctorDashboard() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="dashboard-wrapper">
+
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary text-xl font-bold">
-            {doctor.user?.name?.charAt(0) || 'D'}
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">Dr. {doctor.user?.name}</h1>
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1"><Stethoscope className="h-3.5 w-3.5" />{doctor.specialization}</span>
-              <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{doctor.department?.name}</span>
-              <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" />{format(new Date(), 'EEE, MMM d, yyyy')}</span>
-            </div>
-          </div>
+      <div className="flex items-center justify-between gap-4">
+        <div className="dashboard-greeting">
+          <h1>Dr. {doctor.user?.name}</h1>
+          <p className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
+            <span className="flex items-center gap-1"><Stethoscope className="h-3.5 w-3.5" />{doctor.specialization}</span>
+            <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{doctor.department?.name}</span>
+            <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" />{format(new Date(), 'EEE, MMM d, yyyy')}</span>
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-sm px-3 py-1">
-            Fee: ₹{doctor.consultationFee}
-          </Badge>
-        </div>
+        <Badge variant="outline" className="text-sm px-3 py-1 shrink-0">
+          Fee: ₹{doctor.consultationFee}
+        </Badge>
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card className={waiting.length + inTriage.length > 0 ? 'border-amber-300 bg-amber-50/50 dark:bg-amber-950/20' : ''}>
-          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2"><Clock className="h-4 w-4" />Waiting</CardTitle>
+      <div className="grid gap-3 md:grid-cols-4">
+        <DashboardCard className={waiting.length + inTriage.length > 0 ? 'border-amber-300 bg-amber-50/50 dark:bg-amber-950/20' : ''}>
+          <DashboardCardHeader className="flex flex-row items-center justify-between space-y-0">
+            <DashboardCardTitle className="flex items-center gap-2"><Clock className="h-4 w-4" /> Waiting</DashboardCardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{waiting.length + inTriage.length}</p>
+          </DashboardCardHeader>
+          <DashboardCardContent>
+            <p className="text-2xl font-bold">{waiting.length + inTriage.length}</p>
             {inTriage.length > 0 && <p className="text-xs text-muted-foreground mt-1">{inTriage.length} in triage</p>}
-          </CardContent>
-        </Card>
-        <Card className={ready.length > 0 ? 'border-green-300 bg-green-50/50 dark:bg-green-950/20' : ''}>
-          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2"><Activity className="h-4 w-4 text-green-500" />Ready</CardTitle>
+          </DashboardCardContent>
+        </DashboardCard>
+        <DashboardCard className={ready.length > 0 ? 'border-green-300 bg-green-50/50 dark:bg-green-950/20' : ''}>
+          <DashboardCardHeader className="flex flex-row items-center justify-between space-y-0">
+            <DashboardCardTitle className="flex items-center gap-2"><Activity className="h-4 w-4 text-green-500" /> Ready</DashboardCardTitle>
             <CheckCircle className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-green-600">{ready.length}</p>
+          </DashboardCardHeader>
+          <DashboardCardContent>
+            <p className="text-2xl font-bold text-green-600">{ready.length}</p>
             {ready.length > 0 && <p className="text-xs text-green-600 mt-1">Vitals recorded</p>}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2"><CheckCircle className="h-4 w-4 text-blue-500" />Completed</CardTitle>
+          </DashboardCardContent>
+        </DashboardCard>
+        <DashboardCard>
+          <DashboardCardHeader className="flex flex-row items-center justify-between space-y-0">
+            <DashboardCardTitle className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-blue-500" /> Completed</DashboardCardTitle>
             <CheckCircle className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-blue-600">{historyCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2"><Activity className="h-4 w-4" />Total Today</CardTitle>
+          </DashboardCardHeader>
+          <DashboardCardContent>
+            <p className="text-2xl font-bold text-blue-600">{historyCount}</p>
+          </DashboardCardContent>
+        </DashboardCard>
+        <DashboardCard>
+          <DashboardCardHeader className="flex flex-row items-center justify-between space-y-0">
+            <DashboardCardTitle className="flex items-center gap-2"><Activity className="h-4 w-4" /> Total Today</DashboardCardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{ready.length + waiting.length + inTriage.length + historyCount}</p>
-          </CardContent>
-        </Card>
+          </DashboardCardHeader>
+          <DashboardCardContent>
+            <p className="text-2xl font-bold">{ready.length + waiting.length + inTriage.length + historyCount}</p>
+          </DashboardCardContent>
+        </DashboardCard>
       </div>
 
       {/* Next Patient - Hero Card */}
       {nextPatient ? (
-        <Card className="border-2 border-primary shadow-lg">
-          <CardHeader className="pb-3">
+        <DashboardCard className="border-2 border-primary shadow-lg">
+          <DashboardCardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2 text-primary">
+              <DashboardCardTitle className="text-lg flex items-center gap-2 text-primary normal-case tracking-normal">
                 <ArrowRight className="h-5 w-5" />
                 Next Patient
-              </CardTitle>
+              </DashboardCardTitle>
               <Badge variant={nextPatient.status === 'ready' ? 'success' : nextPatient.status === 'triage' ? 'info' : 'warning'} className="text-sm">
                 {nextPatient.status === 'ready' ? 'Ready for Consultation' : nextPatient.status === 'triage' ? 'In Triage' : 'Waiting'}
               </Badge>
             </div>
-          </CardHeader>
-          <CardContent>
+          </DashboardCardHeader>
+          <DashboardCardContent>
             <div className="flex items-start justify-between gap-6">
               <div className="flex items-start gap-4 flex-1">
                 <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary text-2xl font-bold text-primary-foreground shrink-0">
@@ -169,33 +162,33 @@ export function DoctorDashboard() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </DashboardCardContent>
+        </DashboardCard>
       ) : (
-        <Card className="border-2 border-dashed">
-          <CardContent className="py-12 text-center">
+        <DashboardCard className="border-2 border-dashed">
+          <DashboardCardContent className="py-12 text-center">
             <Activity className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <p className="text-lg font-medium text-muted-foreground">No patients in queue</p>
             <p className="text-sm text-muted-foreground">New patients will appear here when triage is complete</p>
-          </CardContent>
-        </Card>
+          </DashboardCardContent>
+        </DashboardCard>
       )}
 
       {/* Upcoming Queue */}
       {upcomingQueue.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
+        <DashboardCard>
+          <DashboardCardHeader className="pb-3">
+            <DashboardCardTitle className="text-base flex items-center gap-2 normal-case tracking-normal">
               <Users className="h-4 w-4" />
               Upcoming Queue ({upcomingQueue.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </DashboardCardTitle>
+          </DashboardCardHeader>
+          <DashboardCardContent>
             <div className="space-y-2">
-              {upcomingQueue.map((t, idx) => (
+              {upcomingQueue.map((t) => (
                 <div
                   key={t._id}
-                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors cursor-pointer"
+                  className="flex items-center justify-between rounded-lg border border-border/40 p-3 hover:bg-muted/50 transition-colors cursor-pointer"
                   onClick={() => handleStartConsult(t)}
                 >
                   <div className="flex items-center gap-3">
@@ -222,8 +215,8 @@ export function DoctorDashboard() {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </DashboardCardContent>
+        </DashboardCard>
       )}
     </div>
   );
