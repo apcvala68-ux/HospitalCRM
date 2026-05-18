@@ -1,74 +1,83 @@
 @import "tailwindcss";
+@import "@heroui/styles";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.97 0.003 280);
-  --foreground: oklch(0.1 0.015 280);
-  --card: oklch(0.995 0.001 280);
-  --card-foreground: oklch(0.1 0.015 280);
-  --popover: oklch(0.995 0.001 280);
-  --popover-foreground: oklch(0.1 0.015 280);
-  --primary: oklch(0.45 0.18 260);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.92 0.008 280);
-  --secondary-foreground: oklch(0.18 0.02 280);
-  --muted: oklch(0.94 0.006 280);
-  --muted-foreground: oklch(0.42 0.02 280);
-  --accent: oklch(0.93 0.01 280);
-  --accent-foreground: oklch(0.18 0.02 280);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.86 0.008 280);
-  --input: oklch(0.86 0.008 280);
-  --ring: oklch(0.45 0.18 260);
+  --background: oklch(0.96 0.004 280);
+  --foreground: #353536;
+  --card: #ffffff;
+  --card-foreground: #353536;
+  --popover: #ffffff;
+  --popover-foreground: #353536;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #ebedf1;
+  --secondary-foreground: #353536;
+  --muted: #ebedf1;
+  --muted-foreground: #706f70;
+  --accent: #f0f1f4;
+  --accent-foreground: #353536;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #d4d8df;
+  --input: #d4d8df;
+  --ring: #2563eb;
   --radius: 0.75rem;
 
-  /* HeroUI surface layers */
-  --surface: oklch(0.995 0.001 280);
-  --surface-secondary: oklch(0.97 0.003 280);
-  --surface-tertiary: oklch(0.94 0.006 280);
+  --surface: #ffffff;
+  --surface-secondary: #ebedf1;
+  --surface-tertiary: #d4d8df;
 
-  /* Status colors */
-  --success: oklch(0.6 0.18 145);
-  --success-foreground: oklch(0.985 0 0);
-  --warning: oklch(0.75 0.18 85);
-  --warning-foreground: oklch(0.12 0.01 280);
-  --info: oklch(0.55 0.18 260);
-  --info-foreground: oklch(0.985 0 0);
+  --success: #10b981;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #353536;
+  --info: #3b82f6;
+  --info-foreground: #ffffff;
+
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  --shadow-elevated: 0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+  --shadow-hover: 0 10px 15px -3px rgb(0 0 0 / 0.06), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+  --shadow-kpi: 0 1px 2px 0 rgb(0 0 0 / 0.04);
 }
 
 .dark {
-  --background: oklch(0.11 0.008 280);
-  --foreground: oklch(0.955 0.01 280);
-  --card: oklch(0.14 0.01 280);
-  --card-foreground: oklch(0.955 0.01 280);
-  --popover: oklch(0.14 0.01 280);
-  --popover-foreground: oklch(0.955 0.01 280);
-  --primary: oklch(0.6 0.18 260);
-  --primary-foreground: oklch(0.12 0.01 280);
-  --secondary: oklch(0.22 0.012 280);
-  --secondary-foreground: oklch(0.955 0.01 280);
-  --muted: oklch(0.2 0.01 280);
-  --muted-foreground: oklch(0.58 0.015 280);
-  --accent: oklch(0.22 0.012 280);
-  --accent-foreground: oklch(0.955 0.01 280);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.26 0.015 280);
-  --input: oklch(0.26 0.015 280);
-  --ring: oklch(0.6 0.18 260);
+  --background: #1a1a1c;
+  --foreground: #ebedf1;
+  --card: #252528;
+  --card-foreground: #ebedf1;
+  --popover: #252528;
+  --popover-foreground: #ebedf1;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #2d2d30;
+  --secondary-foreground: #ebedf1;
+  --muted: #2d2d30;
+  --muted-foreground: #acadb1;
+  --accent: #2d2d30;
+  --accent-foreground: #ebedf1;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #353536;
+  --input: #353536;
+  --ring: #3b82f6;
 
-  --surface: oklch(0.14 0.01 280);
-  --surface-secondary: oklch(0.17 0.01 280);
-  --surface-tertiary: oklch(0.2 0.01 280);
+  --surface: #252528;
+  --surface-secondary: #2d2d30;
+  --surface-tertiary: #353536;
 
-  --success: oklch(0.55 0.18 145);
-  --success-foreground: oklch(0.985 0 0);
-  --warning: oklch(0.7 0.18 85);
-  --warning-foreground: oklch(0.12 0.01 280);
-  --info: oklch(0.5 0.18 260);
-  --info-foreground: oklch(0.985 0 0);
+  --success: #10b981;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #353536;
+  --info: #3b82f6;
+  --info-foreground: #ffffff;
+
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-elevated: 0 4px 12px -2px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.15);
+  --shadow-hover: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-kpi: 0 1px 2px 0 rgb(0 0 0 / 0.2);
 }
 
 @theme inline {
@@ -102,15 +111,10 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  --animate-shimmer: shimmer 2s linear infinite;
-  --animate-skeleton: skeleton 2s linear infinite;
-
-  @keyframes shimmer {
-    100% { transform: translateX(200%); }
-  }
-  @keyframes skeleton {
-    100% { transform: translateX(200%); }
-  }
+  --shadow-card: var(--shadow-card);
+  --shadow-elevated: var(--shadow-elevated);
+  --shadow-hover: var(--shadow-hover);
+  --shadow-kpi: var(--shadow-kpi);
 }
 
 @layer base {
@@ -119,7 +123,7 @@
   }
 
   body {
-    @apply bg-background text-foreground overflow-hidden;
+    @apply bg-background text-foreground overflow-hidden text-sm;
     font-family: system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -146,7 +150,7 @@
 
 @layer components {
   .dashboard-wrapper {
-    @apply space-y-5;
+    @apply space-y-4;
   }
 
   .dashboard-greeting h1 {
@@ -154,105 +158,50 @@
   }
 
   .dashboard-greeting p {
-    @apply text-sm text-muted-foreground/80 mt-0.5;
+    @apply text-sm text-muted-foreground mt-0.5;
   }
 
   .dashboard-section-title {
-    @apply text-sm font-bold text-foreground tracking-wide;
+    @apply text-xs font-semibold text-muted-foreground uppercase tracking-wider;
   }
 
-  /* ── HeroUI-style component classes ── */
-
-  /* Card surface variants */
-  .card-surface {
-    @apply rounded-xl border bg-surface text-card-foreground;
+  .card-hover {
+    @apply transition-all duration-200;
   }
 
-  .card-surface-secondary {
-    @apply rounded-xl border bg-surface-secondary text-card-foreground;
+  .card-hover:hover {
+    @apply shadow-[var(--shadow-hover)] -translate-y-0.5;
   }
 
-  .card-surface-tertiary {
-    @apply rounded-xl border bg-surface-tertiary text-card-foreground;
-  }
-
-  /* Chip-style badges */
-  .chip {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors;
-  }
-
-  .chip--accent {
-    @apply bg-accent/15 text-accent-foreground;
-  }
-
-  .chip--success {
-    @apply bg-success/15 text-success;
-  }
-
-  .chip--warning {
-    @apply bg-warning/15 text-warning;
-  }
-
-  .chip--danger {
-    @apply bg-destructive/15 text-destructive;
-  }
-
-  .chip--primary {
-    @apply bg-primary/15 text-primary;
-  }
-
-  .chip--soft {
-    @apply bg-muted text-muted-foreground;
-  }
-
-  /* Status indicator dots */
-  .status-dot {
-    @apply h-2 w-2 rounded-full ring-1 ring-black/5 shrink-0;
-  }
-
-  .status-dot--success {
-    @apply bg-success;
-  }
-
-  .status-dot--warning {
-    @apply bg-warning;
-  }
-
-  .status-dot--danger {
-    @apply bg-destructive;
-  }
-
-  .status-dot--info {
-    @apply bg-info;
-  }
-
-  .status-dot--muted {
-    @apply bg-muted-foreground/40;
-  }
-
-  /* Navigation pills */
   .nav-pill {
     @apply flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200;
   }
 
   .nav-pill--active {
-    @apply bg-primary/15 text-primary shadow-sm;
+    @apply bg-primary/10 text-primary;
   }
 
   .nav-pill--inactive {
-    @apply text-muted-foreground/70 hover:bg-accent/60 hover:text-foreground;
+    @apply text-muted-foreground hover:bg-accent hover:text-foreground;
   }
 
-  /* HeroUI surface container */
   .surface {
-    @apply rounded-xl border bg-surface text-card-foreground;
+    @apply rounded-xl border bg-surface text-card-foreground shadow-[var(--shadow-card)];
   }
 
   .surface--secondary {
     @apply rounded-xl border bg-surface-secondary text-card-foreground;
   }
 
-  .surface--tertiary {
-    @apply rounded-xl border bg-surface-tertiary text-card-foreground;
+  .chart-container {
+    @apply w-full;
+  }
+
+  .stat-trend-up {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400;
+  }
+
+  .stat-trend-down {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400;
   }
 }

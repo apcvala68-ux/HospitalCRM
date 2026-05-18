@@ -1,20 +1,29 @@
-import { AreaChart, Area, ResponsiveContainer } from 'recharts';
+import Chart from 'react-apexcharts';
 
-export function Sparkline({ data, color = '#3b82f6', height = 40 }) {
+export function Sparkline({ data, color = '#2563eb', height = 36 }) {
   if (!data || data.length === 0) return null;
 
+  const series = [{ data: data.map(d => d.value) }];
+
   return (
-    <ResponsiveContainer width="100%" height={height}>
-      <AreaChart data={data}>
-        <Area
-          type="monotone"
-          dataKey="value"
-          stroke={color}
-          fill={color}
-          fillOpacity={0.15}
-          strokeWidth={2}
-        />
-      </AreaChart>
-    </ResponsiveContainer>
+    <Chart
+      options={{
+        chart: {
+          type: 'line',
+          sparkline: { enabled: true },
+          toolbar: { show: false },
+        },
+        stroke: { curve: 'smooth', width: 1.5 },
+        colors: [color],
+        fill: {
+          type: 'gradient',
+          gradient: { shadeIntensity: 0, opacityFrom: 0.15, opacityTo: 0 },
+        },
+        tooltip: { enabled: false },
+      }}
+      series={series}
+      type="area"
+      height={height}
+    />
   );
 }

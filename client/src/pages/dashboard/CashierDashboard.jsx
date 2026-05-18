@@ -5,12 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import {
   useDashboardStats, usePaymentBreakdown, useBillingStatus, useRevenueTrend,
 } from '../../hooks/useDashboard';
-import {
-  BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, Legend
-} from 'recharts';
+import Chart from 'react-apexcharts';
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 export function CashierDashboard() {
   const { user } = useAuth();
@@ -26,6 +23,34 @@ export function CashierDashboard() {
   const payments = paymentData?.breakdown || [];
   const statuses = billingData?.statuses || [];
 
+  const revenueChartOptions = {
+    chart: { type: 'bar', toolbar: { show: false }, fontFamily: 'system-ui, sans-serif' },
+    colors: ['#10b981'],
+    plotOptions: { bar: { columnWidth: '50%', borderRadius: 3, borderRadiusApplication: 'end' } },
+    dataLabels: { enabled: false },
+    xaxis: {
+      categories: trend.map(d => d.date ? d.date.slice(5) : ''),
+      labels: { style: { colors: '#706f70', fontSize: '11px' } },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      labels: { style: { colors: '#706f70', fontSize: '11px' }, formatter: (v) => v >= 1000 ? `${v/1000}k` : v },
+    },
+    grid: { borderColor: '#ebedf1', strokeDashArray: 3, xaxis: { lines: { show: false } } },
+    tooltip: { y: { formatter: (v) => `₹${v.toLocaleString('en-IN')}` } },
+  };
+
+  const paymentChartOptions = {
+    chart: { type: 'donut', toolbar: { show: false }, fontFamily: 'system-ui, sans-serif' },
+    colors: COLORS,
+    plotOptions: { pie: { donut: { size: '55%' }, expandOnClick: false } },
+    dataLabels: { enabled: false },
+    legend: { position: 'bottom', fontSize: '11px', labels: { colors: '#706f70' }, itemMargin: { horizontal: 12 } },
+    tooltip: { y: { formatter: (v) => `₹${v.toLocaleString('en-IN')}` } },
+    states: { hover: { filter: { type: 'none' } } },
+  };
+
   return (
     <div className="dashboard-wrapper">
       <div className="dashboard-greeting">
@@ -34,29 +59,35 @@ export function CashierDashboard() {
       </div>
 
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-        <DashboardCard>
+        <DashboardCard className="card-hover cursor-pointer" onClick={() => navigate('/billing')}>
           <DashboardCardHeader>
             <DashboardCardTitle className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-green-500" /> Today's Revenue
             </DashboardCardTitle>
           </DashboardCardHeader>
-          <DashboardCardContent><p className="text-2xl font-bold text-green-600">{(s.todayRevenue || 0).toLocaleString('en-IN')}</p></DashboardCardContent>
+          <DashboardCardContent>
+            <p className="text-2xl font-bold text-green-600">₹{(s.todayRevenue || 0).toLocaleString('en-IN')}</p>
+          </DashboardCardContent>
         </DashboardCard>
-        <DashboardCard>
+        <DashboardCard className="card-hover cursor-pointer" onClick={() => navigate('/billing')}>
           <DashboardCardHeader>
             <DashboardCardTitle className="flex items-center gap-2">
               <Receipt className="h-4 w-4 text-blue-500" /> Total Billed
             </DashboardCardTitle>
           </DashboardCardHeader>
-          <DashboardCardContent><p className="text-2xl font-bold">{(s.todayBilled || 0).toLocaleString('en-IN')}</p></DashboardCardContent>
+          <DashboardCardContent>
+            <p className="text-2xl font-bold">₹{(s.todayBilled || 0).toLocaleString('en-IN')}</p>
+          </DashboardCardContent>
         </DashboardCard>
-        <DashboardCard>
+        <DashboardCard className="card-hover cursor-pointer" onClick={() => navigate('/billing')}>
           <DashboardCardHeader>
             <DashboardCardTitle className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-purple-500" /> Month Revenue
             </DashboardCardTitle>
           </DashboardCardHeader>
-          <DashboardCardContent><p className="text-2xl font-bold">{(s.monthRevenue || 0).toLocaleString('en-IN')}</p></DashboardCardContent>
+          <DashboardCardContent>
+            <p className="text-2xl font-bold">₹{(s.monthRevenue || 0).toLocaleString('en-IN')}</p>
+          </DashboardCardContent>
         </DashboardCard>
         <DashboardCard>
           <DashboardCardHeader>
@@ -73,56 +104,46 @@ export function CashierDashboard() {
       <div className="grid gap-4 md:grid-cols-2">
         <DashboardCard>
           <DashboardCardHeader>
-            <DashboardCardTitle className="text-sm font-bold uppercase tracking-widest">Revenue Trend (7 days)</DashboardCardTitle>
+            <DashboardCardTitle>Revenue Trend (7 days)</DashboardCardTitle>
           </DashboardCardHeader>
-          <DashboardCardContent className="h-64">
-            {trend.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No data yet</p>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={trend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" fontSize={11} tickFormatter={(v) => v.slice(5)} />
-                  <YAxis fontSize={11} tickFormatter={(v) => v >= 1000 ? `${v/1000}k` : v} />
-                  <Tooltip formatter={(v) => `₹${v.toLocaleString('en-IN')}`} />
-                  <Bar dataKey="revenue" fill="#10b981" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+          <DashboardCardContent>
+            <div className="h-64">
+              {trend.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">No data yet</p>
+              ) : (
+                <Chart options={revenueChartOptions} series={[{ data: trend.map(d => d.revenue), name: 'Revenue' }]} type="bar" height={256} />
+              )}
+            </div>
           </DashboardCardContent>
         </DashboardCard>
         <DashboardCard>
           <DashboardCardHeader>
-            <DashboardCardTitle className="text-sm font-bold uppercase tracking-widest">Payment Methods</DashboardCardTitle>
+            <DashboardCardTitle>Payment Methods</DashboardCardTitle>
           </DashboardCardHeader>
-          <DashboardCardContent className="h-64">
-            {payments.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No data yet</p>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={payments.map(d => ({ name: d.method, value: d.total }))} cx="50%" cy="50%" outerRadius={80} dataKey="value">
-                    {payments.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
-                  </Pie>
-                  <Tooltip formatter={(v) => `₹${v.toLocaleString('en-IN')}`} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
+          <DashboardCardContent>
+            <div className="h-64">
+              {payments.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">No data yet</p>
+              ) : (
+                <Chart options={paymentChartOptions} series={payments.map(d => d.total)} type="donut" height={256} />
+              )}
+            </div>
           </DashboardCardContent>
         </DashboardCard>
       </div>
 
       <div className="grid gap-3 md:grid-cols-3">
-        <DashboardCard onClick={() => navigate('/billing')} className="cursor-pointer hover:shadow-md transition-shadow">
+        <DashboardCard onClick={() => navigate('/billing')} className="card-hover cursor-pointer">
           <DashboardCardHeader>
             <DashboardCardTitle className="flex items-center gap-2">
               <FileText className="h-4 w-4 text-blue-500" /> All Invoices
             </DashboardCardTitle>
           </DashboardCardHeader>
-          <DashboardCardContent><p className="text-xl font-bold">{statuses.reduce((a, b) => a + b.count, 0) || 0}</p></DashboardCardContent>
+          <DashboardCardContent>
+            <p className="text-xl font-bold">{statuses.reduce((a, b) => a + b.count, 0) || 0}</p>
+          </DashboardCardContent>
         </DashboardCard>
-        <DashboardCard onClick={() => navigate('/insurance')} className="cursor-pointer hover:shadow-md transition-shadow">
+        <DashboardCard onClick={() => navigate('/insurance')} className="card-hover cursor-pointer">
           <DashboardCardHeader>
             <DashboardCardTitle className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-green-500" /> Insurance Claims
@@ -130,7 +151,7 @@ export function CashierDashboard() {
           </DashboardCardHeader>
           <DashboardCardContent><p className="text-xl font-bold">-</p></DashboardCardContent>
         </DashboardCard>
-        <DashboardCard onClick={() => navigate('/reports/eod')} className="cursor-pointer hover:shadow-md transition-shadow">
+        <DashboardCard onClick={() => navigate('/reports/eod')} className="card-hover cursor-pointer">
           <DashboardCardHeader>
             <DashboardCardTitle className="flex items-center gap-2">
               <Receipt className="h-4 w-4 text-purple-500" /> EOD Report

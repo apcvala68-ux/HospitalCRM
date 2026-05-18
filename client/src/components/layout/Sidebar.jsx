@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import {
   LayoutDashboard, Users, Stethoscope, Building2, CalendarCheck, DollarSign,
-  Pill, BedDouble, ClipboardList, LogOut, BarChart3, Clock,
+  Pill, BedDouble, ClipboardList, BarChart3, Clock,
   FlaskConical, Droplets, Siren, Scissors, ShoppingCart, Brush,
   CalendarDays, Shield, Cross, MessageSquare, AlertTriangle, Syringe, Activity,
   Mail, Wifi, Settings, ChevronLeft, ChevronRight,
@@ -95,24 +95,25 @@ export function Sidebar({ user }) {
 
   return (
     <aside className={cn(
-      "flex h-full flex-col border-r bg-card transition-all duration-300 ease-in-out relative",
-      isCollapsed ? "w-20" : "w-64"
+      "flex h-full flex-col border-r bg-card transition-all duration-300 ease-in-out relative overflow-hidden",
+      isCollapsed ? "w-20" : "w-60"
     )}>
       <div className={cn(
-        "flex h-16 items-center border-b transition-all duration-300",
-        isCollapsed ? "justify-center px-0" : "px-6"
+        "flex h-14 items-center border-b transition-all duration-300 shrink-0",
+        isCollapsed ? "justify-center px-0" : "px-5"
       )}>
-        <Building2 className="h-7 w-7 text-primary shrink-0" />
-        {!isCollapsed && <span className="ml-3 text-base font-bold whitespace-nowrap tracking-tight">Royale Hospital</span>}
+        <Building2 className="h-6 w-6 text-primary shrink-0" />
+        {!isCollapsed && <span className="ml-3 text-sm font-bold whitespace-nowrap tracking-tight text-foreground">Royale Hospital</span>}
       </div>
 
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-[1.625rem] z-50 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-background shadow-md hover:shadow-lg hover:bg-accent transition-all"
+        className="absolute -right-3 top-[1.375rem] z-50 flex h-6 w-6 items-center justify-center rounded-full border bg-background shadow-md hover:shadow-lg hover:bg-accent transition-all"
       >
-        {isCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+        {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
       </button>
-      <nav className="flex-1 space-y-0.5 p-3 overflow-y-auto overflow-x-hidden">
+
+      <nav className="flex-1 space-y-0.5 p-2 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-thumb]:bg-transparent">
         {menuItems.map((item) => (
           <NavLink
             key={item.to}
@@ -121,16 +122,16 @@ export function Sidebar({ user }) {
             title={isCollapsed ? item.label : undefined}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200',
-                isCollapsed ? 'justify-center p-2.5' : 'px-4 py-2.5',
+                'flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200',
+                isCollapsed ? 'justify-center p-2.5' : 'px-3 py-2',
                 isActive
-                  ? 'bg-primary/15 text-primary shadow-sm'
-                  : 'text-muted-foreground/70 hover:bg-accent/60 hover:text-foreground'
+                  ? 'bg-primary/8 text-primary border-l-2 border-l-primary'
+                  : 'text-[#acadb1] hover:bg-accent/60 hover:text-foreground border-l-2 border-l-transparent'
               )
             }
           >
-            <item.icon className={cn("shrink-0", isCollapsed ? "h-5 w-5" : "h-4 w-4")} />
-            {!isCollapsed && <span className="whitespace-nowrap overflow-hidden transition-all duration-200">{item.label}</span>}
+            <item.icon className={cn("shrink-0", isCollapsed ? "h-5 w-5" : "h-5 w-5")} />
+            {!isCollapsed && <span className="whitespace-nowrap overflow-hidden text-ellipsis transition-all duration-200">{item.label}</span>}
           </NavLink>
         ))}
       </nav>

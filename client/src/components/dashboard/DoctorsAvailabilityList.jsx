@@ -1,54 +1,52 @@
-import { DashboardCard, DashboardCardContent } from '../ui/card';
+import { Chip } from '@heroui/react';
 import { useDoctorsAvailability } from '../../hooks/useDashboard';
-import { cn } from '../../lib/utils';
+
+function Avatar({ name }) {
+  const initials = name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'D';
+  return (
+    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary shrink-0">
+      {initials}
+    </div>
+  );
+}
 
 export function DoctorsAvailabilityList() {
   const { data, isLoading } = useDoctorsAvailability();
   const doctors = data?.doctors || [];
-  const displayDoctors = doctors.slice(0, 5);
+  const items = doctors.slice(0, 5);
 
   if (isLoading) {
     return (
-      <DashboardCard>
-        <DashboardCardContent className="flex items-center justify-center py-8">
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        </DashboardCardContent>
-      </DashboardCard>
+      <div className="flex items-center justify-center py-8">
+        <p className="text-sm text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <p className="text-sm text-muted-foreground">No doctors found</p>
+      </div>
     );
   }
 
   return (
-    <DashboardCard>
-      <DashboardCardContent className="p-0">
-        {doctors.length === 0 ? (
-          <div className="flex items-center justify-center py-8">
-            <p className="text-sm text-muted-foreground">No doctors found</p>
+    <div className="divide-y divide-border/30 rounded-xl border border-border/60 bg-card shadow-[var(--shadow-card)] overflow-hidden">
+      {items.map((doc) => (
+        <div key={doc._id} className="flex items-center justify-between px-3.5 py-2.5 hover:bg-muted/40 hover:border-l-2 hover:border-l-primary transition-all duration-150 border-l-2 border-l-transparent">
+          <div className="flex items-center gap-3 min-w-0">
+            <Avatar name={doc.name} />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">{doc.name}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">{doc.specialization}</p>
+            </div>
           </div>
-        ) : (
-          <div className="divide-y divide-border/40">
-            {displayDoctors.map((doc) => (
-              <div key={doc._id} className="flex items-center justify-between px-3.5 py-3 hover:bg-muted/20 transition-colors">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary shrink-0">
-                    {doc.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'D'}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground truncate">{doc.name}</p>
-                    <p className="text-xs text-muted-foreground/80 mt-0.5 truncate">{doc.specialization}</p>
-                  </div>
-                </div>
-                <span className={cn('shrink-0 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold',
-                  doc.isAvailable
-                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
-                    : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
-                )}>
-                  {doc.isAvailable ? 'Available' : 'Unavailable'}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </DashboardCardContent>
-    </DashboardCard>
+          <Chip color={doc.isAvailable ? 'success' : 'danger'} variant="soft" size="sm">
+            {doc.isAvailable ? 'Available' : 'Unavailable'}
+          </Chip>
+        </div>
+      ))}
+    </div>
   );
 }
