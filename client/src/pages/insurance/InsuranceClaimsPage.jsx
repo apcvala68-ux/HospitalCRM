@@ -66,7 +66,7 @@ export function InsuranceClaimsPage(){
   return(<div className="space-y-6">
     <div className="flex items-center justify-between">
       <div><h1 className="text-2xl font-bold tracking-tight text-foreground">Insurance Claims</h1><p className="text-sm text-muted-foreground mt-0.5">Manage insurance claims and TPA coordination.</p></div>
-      <Button><Plus className="mr-2 h-4 w-4" /> New Claim</Button>
+      <Button><Plus className="h-4 w-4 sm:mr-2" /><Shield className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">New Claim</span></Button>
     </div>
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">{kpi.map(c=><StatCard key={c.label} {...c}/>)}</div>
     <div className="flex flex-col gap-3">

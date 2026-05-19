@@ -199,7 +199,7 @@ export function IPDPage() {
                 <textarea value={diagnosis} onChange={(e) => setDiagnosis(e.target.value)} rows={3} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
               </div>
               <Button onClick={handleAdmit} disabled={admitPatient.isPending} className="w-full">
-                <UserPlus className="mr-2 h-4 w-4" /> Admit Patient
+                <UserPlus className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Admit Patient</span>
               </Button>
             </CardContent>
           </Card>
@@ -231,7 +231,7 @@ export function IPDPage() {
               </p>
             </div>
             <Button variant="destructive" onClick={handleDischarge} disabled={discharge.isPending}>
-              <LogOut className="mr-2 h-4 w-4" /> Discharge
+              <LogOut className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Discharge</span>
             </Button>
           </div>
 

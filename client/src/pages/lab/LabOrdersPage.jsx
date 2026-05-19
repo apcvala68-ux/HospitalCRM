@@ -522,7 +522,7 @@ function CreateOrderForm({ onClose }) {
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="outline" onClick={onClose}>Cancel</Button>
               <Button onClick={handleCreate} isLoading={createMutation.isPending}>
-                <Plus className="mr-2 h-4 w-4" /> Create Order
+                <Plus className="h-4 w-4 sm:mr-2" /><FlaskConical className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">Create Order</span>
               </Button>
             </div>
           </>
@@ -643,7 +643,7 @@ export function LabOrdersPage() {
           </p>
         </div>
         <Button onClick={() => setShowForm(!showForm)}>
-          <Plus className="mr-2 h-4 w-4" /> {showForm ? 'Close Form' : 'New Order'}
+          <Plus className="h-4 w-4 sm:mr-2" /><FlaskConical className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">{showForm ? 'Close Form' : 'New Order'}</span>
         </Button>
       </div>
 
@@ -721,16 +721,16 @@ export function LabOrdersPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b text-left text-[10px] font-bold text-muted-foreground/55 uppercase tracking-widest">
-                    <th className="pb-3 pr-2 w-10 text-center font-semibold">#</th>
-                    <th className="pb-3 font-semibold">Order No</th>
-                    <th className="pb-3 font-semibold">Patient</th>
-                    <th className="pb-3 font-semibold">Doctor</th>
-                    <th className="pb-3 font-semibold">Tests Status</th>
-                    <th className="pb-3 font-semibold">Status</th>
-                    <th className="pb-3 font-semibold">Ordered Date</th>
-                    <th className="pb-3 font-semibold w-24 text-right pr-4">Actions</th>
-                  </tr>
+                    <tr className="border-b text-left text-[10px] font-bold text-muted-foreground/55 uppercase tracking-widest">
+                      <th className="pb-3 pr-2 w-10 text-center font-semibold">#</th>
+                      <th className="pb-3 font-semibold">Order No</th>
+                      <th className="pb-3 font-semibold">Patient</th>
+                      <th className="pb-3 font-semibold hidden md:table-cell">Doctor</th>
+                      <th className="pb-3 font-semibold hidden md:table-cell">Tests Status</th>
+                      <th className="pb-3 font-semibold">Status</th>
+                      <th className="pb-3 font-semibold hidden lg:table-cell">Ordered Date</th>
+                      <th className="pb-3 font-semibold w-24 text-right pr-4">Actions</th>
+                    </tr>
                 </thead>
                 <tbody>
                   {orders.map((o, idx) => {
@@ -787,13 +787,13 @@ export function LabOrdersPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="py-3.5">
+                          <td className="py-3.5 hidden md:table-cell">
                             <div className="flex flex-col">
                               <span className="text-sm font-semibold text-foreground">{o.doctor?.user?.name || '—'}</span>
                               <span className="text-xs text-muted-foreground">{o.doctor?.specialization || ''}</span>
                             </div>
                           </td>
-                          <td className="py-3.5 text-sm font-medium text-foreground">
+                          <td className="py-3.5 text-sm font-medium text-foreground hidden md:table-cell">
                             <div className="flex items-center gap-1.5">
                               <span className="text-xs font-semibold text-foreground">{completedCount}/{totalTests} Completed</span>
                               <span className="text-[10px] text-muted-foreground font-mono">({totalTests > 0 ? Math.round((completedCount/totalTests)*100) : 0}%)</span>
@@ -807,7 +807,7 @@ export function LabOrdersPage() {
                               {STATUS_CONFIG[o.status]?.label || o.status}
                             </Badge>
                           </td>
-                          <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium font-mono">
+                          <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium font-mono hidden lg:table-cell">
                             {new Date(o.createdAt).toLocaleDateString('en-IN', {
                               day: '2-digit', month: 'short', year: 'numeric',
                               hour: '2-digit', minute: '2-digit'

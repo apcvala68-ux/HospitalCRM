@@ -109,8 +109,8 @@ export function NetworkDiagnosticPage() {
           <p className="text-sm text-muted-foreground">Check connectivity to Railway backend</p>
         </div>
         <Button onClick={runDiagnostics} disabled={status.loading}>
-          {status.loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-          {status.loading ? 'Testing...' : 'Run Tests'}
+          {status.loading ? <Loader2 className="h-4 w-4 animate-spin sm:mr-2" /> : <RefreshCw className="h-4 w-4 sm:mr-2" />}
+          <span className="hidden sm:inline">{status.loading ? 'Testing...' : 'Run Tests'}</span>
         </Button>
       </div>
 
@@ -265,8 +265,8 @@ export function NetworkDiagnosticPage() {
 
             <div className="flex gap-2">
               <Button onClick={runDiagnostics} variant="outline">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Re-test Connection
+                <RefreshCw className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Re-test Connection</span>
               </Button>
             </div>
           </CardContent>

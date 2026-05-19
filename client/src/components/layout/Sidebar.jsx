@@ -1,13 +1,17 @@
 import { useState, useRef, useCallback } from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '../../lib/utils';
+import { useToast } from '../../hooks/useToast';
 import {
   LayoutDashboard, Users, Stethoscope, Building2, CalendarCheck, DollarSign,
   Pill, BedDouble, ClipboardList, BarChart3, Clock,
   FlaskConical, Droplets, Siren, Scissors, ShoppingCart, Brush,
   CalendarDays, Shield, Cross, MessageSquare, AlertTriangle, Syringe, Activity,
-  Mail, Wifi, Settings, ChevronLeft, ChevronRight, Heart,
+  Mail, Wifi, Settings, ChevronLeft, ChevronRight, Lock,
 } from 'lucide-react';
+
+const UNLOCKED = new Set(['/', '/patients', '/allergies', '/doctors', '/departments', '/lab', '/billing', '/settings']);
+const LOCKED_MSG = '🔒 This module is locked. Contact Axiora Digital for full access.';
 
 const roleMenus = {
   doctor: [
@@ -89,11 +93,14 @@ const roleMenus = {
   ],
 };
 
-export function Sidebar({ user }) {
+export function Sidebar({ user, mobileOpen, onMobileClose }) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isPinned, setIsPinned] = useState(false);
   const menuItems = roleMenus[user?.role] || roleMenus.admin;
   const collapseTimer = useRef(null);
+  const t = useToast();
+
+  const isMobileMode = mobileOpen !== undefined;
 
   const handleMouseEnter = useCallback(() => {
     if (collapseTimer.current) {
@@ -105,9 +112,7 @@ export function Sidebar({ user }) {
 
   const handleMouseLeave = useCallback(() => {
     if (!isPinned) {
-      collapseTimer.current = setTimeout(() => {
-        setIsCollapsed(true);
-      }, 200);
+      collapseTimer.current = setTimeout(() => { setIsCollapsed(true); }, 200);
     }
   }, [isPinned]);
 
@@ -116,86 +121,137 @@ export function Sidebar({ user }) {
       clearTimeout(collapseTimer.current);
       collapseTimer.current = null;
     }
-    if (isPinned) {
-      setIsPinned(false);
-      setIsCollapsed(true);
-    } else {
-      setIsPinned(true);
-      setIsCollapsed(false);
-    }
+    if (isPinned) { setIsPinned(false); setIsCollapsed(true); }
+    else { setIsPinned(true); setIsCollapsed(false); }
   }, [isPinned]);
 
   const handleNavClick = useCallback(() => {
-    if (!isPinned) {
-      setIsCollapsed(true);
-    }
+    if (!isPinned) setIsCollapsed(true);
   }, [isPinned]);
 
-  return (
-    <aside
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className={cn(
-        "flex h-full flex-col border-r border-border/60 bg-card transition-all duration-300 ease-in-out relative",
-        isCollapsed ? "w-16" : "w-60"
-      )}
-    >
-      <div className={cn(
-        "flex h-14 items-center border-b transition-all duration-300 shrink-0",
-        isCollapsed ? "justify-center px-0" : "px-5"
-      )}>
-        <Building2 className="h-5 w-5 text-primary shrink-0 transition-all duration-300" />
-        <span className={cn(
-          "text-[15px] font-bold whitespace-nowrap tracking-tight text-foreground overflow-hidden transition-all duration-300 ease-in-out",
-          isCollapsed ? "max-w-0 opacity-0 ml-0" : "max-w-[150px] opacity-100 ml-2.5"
-        )}>
-          Royale Hospital
-        </span>
-      </div>
+  const handleMobileNavClick = useCallback(() => {
+    onMobileClose?.();
+  }, [onMobileClose]);
 
-      <button
-        onClick={handleToggle}
-        title={isPinned ? 'Unpin sidebar' : 'Pin sidebar'}
-        className={cn(
-          "absolute -right-3.5 top-[1.375rem] z-50 flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-background shadow-md hover:shadow-lg hover:bg-accent hover:border-accent transition-all",
-          isPinned && "text-primary border-primary/30"
-        )}
-      >
-        {isCollapsed ? (
-          <ChevronRight className="h-3 w-3" />
-        ) : (
-          <ChevronLeft className="h-3 w-3" />
-        )}
-      </button>
+  const renderNavItems = useCallback((expanded, onNavClick) => (
+    menuItems.map((item) => {
+      const unlocked = UNLOCKED.has(item.to);
+      const linkClasses = ({ isActive }) =>
+        cn(
+          'flex items-center rounded-lg text-sm transition-all duration-150',
+          expanded ? 'px-3 py-2' : 'justify-center p-2.5',
+          !unlocked && 'opacity-50',
+          unlocked && isActive
+            ? 'bg-[#f4f4f6] text-foreground font-semibold dark:bg-[#26262b]'
+            : unlocked
+              ? 'font-medium text-muted-foreground hover:bg-[#f4f4f6] hover:text-foreground dark:hover:bg-[#26262b]'
+              : 'font-medium text-muted-foreground'
+        );
 
-      <nav className="flex-1 space-y-0.5 p-2 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-thumb]:bg-transparent">
-        {menuItems.map((item) => (
+      if (unlocked) {
+        return (
           <NavLink
             key={item.to}
             to={item.to}
             end={item.to === '/'}
-            onClick={handleNavClick}
-            title={isCollapsed ? item.label : undefined}
-            className={({ isActive }) =>
-              cn(
-                'flex items-center rounded-lg text-sm transition-all duration-150',
-                isCollapsed ? 'justify-center p-2.5' : 'px-3 py-2',
-                isActive
-                  ? 'bg-[#f4f4f6] text-foreground font-semibold dark:bg-[#26262b]'
-                  : 'font-medium text-muted-foreground hover:bg-[#f4f4f6] hover:text-foreground dark:hover:bg-[#26262b]'
-              )
-            }
+            onClick={onNavClick}
+            title={!expanded ? item.label : undefined}
+            className={linkClasses}
           >
             <item.icon className="shrink-0 h-[18px] w-[18px] transition-all duration-150" />
-            <span className={cn(
-              "whitespace-nowrap overflow-hidden text-ellipsis transition-all duration-300 ease-in-out",
-              isCollapsed ? "max-w-0 opacity-0 ml-0" : "max-w-[160px] opacity-100 ml-2.5"
-            )}>
+            <span className={cn("whitespace-nowrap overflow-hidden text-ellipsis transition-all duration-300 ease-in-out", expanded ? "max-w-[160px] opacity-100 ml-2.5" : "max-w-0 opacity-0 ml-0")}>
               {item.label}
             </span>
           </NavLink>
-        ))}
-      </nav>
-    </aside>
+        );
+      }
+
+      return (
+        <button
+          key={item.to}
+          onClick={() => t.info(LOCKED_MSG)}
+          title={!expanded ? item.label : undefined}
+          className={linkClasses({ isActive: false }) + ' w-full cursor-pointer'}
+        >
+          <item.icon className="shrink-0 h-[18px] w-[18px] transition-all duration-150" />
+          <span className={cn("whitespace-nowrap overflow-hidden text-ellipsis transition-all duration-300 ease-in-out flex items-center gap-1", expanded ? "max-w-[160px] opacity-100 ml-2.5" : "max-w-0 opacity-0 ml-0")}>
+            {item.label}
+            <Lock className="h-3 w-3 shrink-0 text-muted-foreground/40" />
+          </span>
+        </button>
+      );
+    })
+  ), [menuItems, t]);
+
+  const renderLogo = (expanded) => (
+    <div className={cn(
+      "flex h-14 items-center border-b transition-all duration-300 shrink-0",
+      expanded ? "px-5" : "justify-center px-0"
+    )}>
+      <Building2 className="h-5 w-5 text-primary shrink-0 transition-all duration-300" />
+      <span className={cn(
+        "text-[15px] font-bold whitespace-nowrap tracking-tight text-foreground overflow-hidden transition-all duration-300 ease-in-out",
+        expanded ? "max-w-[150px] opacity-100 ml-2.5" : "max-w-0 opacity-0 ml-0"
+      )}>
+        Royale Hospital
+      </span>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Mobile backdrop */}
+      {isMobileMode && (
+        <div
+          className={cn(
+            "fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 lg:hidden",
+            mobileOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}
+          onClick={onMobileClose}
+        />
+      )}
+
+      {/* Mobile drawer */}
+      {isMobileMode && (
+        <aside
+          className={cn(
+            "fixed inset-y-0 left-0 z-50 flex h-full w-60 flex-col border-r border-border/60 bg-card transition-transform duration-300 ease-in-out lg:hidden",
+            mobileOpen ? "translate-x-0" : "-translate-x-full"
+          )}
+        >
+          {renderLogo(true)}
+          <nav className="flex-1 space-y-0.5 p-2 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-thumb]:bg-transparent">
+            {renderNavItems(true, handleMobileNavClick)}
+          </nav>
+        </aside>
+      )}
+
+      {/* Desktop sidebar */}
+      <aside
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className={cn(
+          "hidden lg:flex h-full flex-col border-r border-border/60 bg-card transition-all duration-300 ease-in-out relative",
+          isCollapsed ? "w-16" : "w-60"
+        )}
+      >
+        {renderLogo(!isCollapsed)}
+
+        <button
+          onClick={handleToggle}
+          title={isPinned ? 'Unpin sidebar' : 'Pin sidebar'}
+          className={cn(
+            "absolute -right-3.5 top-[1.375rem] z-50 flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-background shadow-md hover:shadow-lg hover:bg-accent hover:border-accent transition-all",
+            isPinned && "text-primary border-primary/30"
+          )}
+        >
+          {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+        </button>
+
+        <nav className="flex-1 space-y-0.5 p-2 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-thumb]:bg-transparent">
+          {renderNavItems(!isCollapsed, handleNavClick)}
+        </nav>
+      </aside>
+    </>
   );
 }

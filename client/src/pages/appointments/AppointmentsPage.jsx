@@ -123,9 +123,9 @@ export function AppointmentsPage() {
           <p className="text-sm text-muted-foreground mt-0.5">Schedule, view, and manage patient appointments.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant={view === 'calendar' ? 'default' : 'outline'} size="sm" onClick={() => setView('calendar')}><Calendar className="mr-1 h-4 w-4" /> Calendar</Button>
-          <Button variant={view === 'list' ? 'default' : 'outline'} size="sm" onClick={() => setView('list')}>List</Button>
-          <Button onClick={() => setShowBook(true)}><Plus className="mr-2 h-4 w-4" /> Book</Button>
+          <Button variant={view === 'calendar' ? 'default' : 'outline'} size="sm" onClick={() => setView('calendar')}><Calendar className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Calendar</span></Button>
+          <Button variant={view === 'list' ? 'default' : 'outline'} size="sm" onClick={() => setView('list')}><span className="hidden sm:inline">List</span></Button>
+          <Button onClick={() => setShowBook(true)}><Plus className="h-4 w-4 sm:mr-2" /><Calendar className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">Book</span></Button>
         </div>
       </div>
 
@@ -225,9 +225,9 @@ export function AppointmentsPage() {
                 <Input placeholder="Search by reason..." value={searchInput} onChange={e => setSearchInput(e.target.value)} className="pl-10 pr-4 rounded-xl border-border/20 bg-muted/15 focus-visible:bg-background focus:ring-1 focus:ring-primary h-9 text-xs" />
               </form>
               <div className="flex items-center gap-2">
-                {haf && <button onClick={hcf} className="h-9 px-3.5 rounded-xl border border-red-200 dark:border-red-950/40 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none shadow-sm"><X className="h-3.5 w-3.5" /> Clear Filters</button>}
+                {haf && <button onClick={hcf} className="h-9 px-3.5 rounded-xl border border-red-200 dark:border-red-950/40 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none shadow-sm"><X className="h-3.5 w-3.5" /><span className="hidden sm:inline"> Clear Filters</span></button>}
                 <button onClick={() => setIsFilterOpen(!isFilterOpen)} className={cn("h-9 px-4 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer select-none", isFilterOpen ? "bg-muted text-foreground border-zinc-300 dark:bg-[#18181b] dark:text-zinc-100 dark:border-zinc-700 shadow-md" : "border-border/60 dark:border-border/20 bg-muted/30 hover:bg-muted/50 dark:bg-muted/10 dark:hover:bg-muted/20 text-muted-foreground hover:text-foreground")}>
-                  <SlidersHorizontal className="h-3.5 w-3.5" /> Filter{statusFilter && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                  <SlidersHorizontal className="h-3.5 w-3.5" /><span className="hidden sm:inline"> Filter</span>{statusFilter && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
                 </button>
               </div>
             </div>
@@ -252,11 +252,11 @@ export function AppointmentsPage() {
                         <tr className="border-b text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                           <th className="pb-3 pr-2 w-10 text-center font-semibold">#</th>
                           <th className="pb-3 font-semibold">Patient</th>
-                          <th className="pb-3 font-semibold">Doctor</th>
-                          <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => hs('date')}><span className="inline-flex items-center gap-1">Date <SortIcon active={sortBy === 'date'} direction={sortOrder} /></span></th>
+                          <th className="pb-3 font-semibold hidden md:table-cell">Doctor</th>
+                          <th className="pb-3 font-semibold cursor-pointer select-none hidden md:table-cell" onClick={() => hs('date')}><span className="inline-flex items-center gap-1">Date <SortIcon active={sortBy === 'date'} direction={sortOrder} /></span></th>
                           <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => hs('timeSlot.start')}><span className="inline-flex items-center gap-1">Time <SortIcon active={sortBy === 'timeSlot.start'} direction={sortOrder} /></span></th>
                           <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => hs('status')}><span className="inline-flex items-center gap-1">Status <SortIcon active={sortBy === 'status'} direction={sortOrder} /></span></th>
-                          <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => hs('createdAt')}><span className="inline-flex items-center gap-1">Created <SortIcon active={sortBy === 'createdAt'} direction={sortOrder} /></span></th>
+                          <th className="pb-3 font-semibold cursor-pointer select-none hidden lg:table-cell" onClick={() => hs('createdAt')}><span className="inline-flex items-center gap-1">Created <SortIcon active={sortBy === 'createdAt'} direction={sortOrder} /></span></th>
                           <th className="pb-3 font-semibold w-32 text-right pr-4">Actions</th>
                         </tr>
                       </thead>
@@ -275,11 +275,11 @@ export function AppointmentsPage() {
                                 </div>
                               </div>
                             </td>
-                            <td className="py-3.5"><span className="text-sm font-medium">{a.doctor?.user?.name || <span className="text-muted-foreground">—</span>}</span><span className="block text-[10px] text-muted-foreground">{a.doctor?.specialization}</span></td>
-                            <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium">{a.date ? new Date(a.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
+                            <td className="py-3.5 hidden md:table-cell"><span className="text-sm font-medium">{a.doctor?.user?.name || <span className="text-muted-foreground">—</span>}</span><span className="block text-[10px] text-muted-foreground">{a.doctor?.specialization}</span></td>
+                            <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium hidden md:table-cell">{a.date ? new Date(a.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
                             <td className="py-3.5 text-sm font-medium">{a.timeSlot?.start}–{a.timeSlot?.end}</td>
                             <td className="py-3.5"><Badge variant={statusVariant[a.status] || 'default'} className="capitalize">{a.status}</Badge></td>
-                            <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium">{new Date(a.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                            <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium hidden lg:table-cell">{new Date(a.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                             <td className="py-3.5 text-right pr-4">
                               <div className="flex items-center justify-end gap-2">
                                 <button className="w-9 h-9 rounded-full border border-border dark:border-zinc-800/80 flex items-center justify-center bg-background dark:bg-[#18181b] hover:bg-muted dark:hover:bg-[#27272a] text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-zinc-100 shadow-sm transition-all duration-200 cursor-pointer" title="View"><Eye className="h-[18px] w-[18px]" /></button>

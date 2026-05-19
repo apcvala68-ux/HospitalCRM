@@ -76,7 +76,7 @@ export function StaffRosterPage(){
   return(<div className="space-y-6">
     <div className="flex items-center justify-between">
       <div><h1 className="text-2xl font-bold tracking-tight text-foreground">Staff Roster</h1><p className="text-sm text-muted-foreground mt-0.5">Shift scheduling and attendance management.</p></div>
-      <Button onClick={()=>setSf(!sf)}><Plus className="mr-2 h-4 w-4" /> Add Entry</Button>
+      <Button onClick={()=>setSf(!sf)}><Plus className="h-4 w-4 sm:mr-2" /><CalendarDays className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">Add Entry</span></Button>
     </div>
 
     {sf&&<Card><CardContent className="pt-6"><div className="grid gap-4 md:grid-cols-2">

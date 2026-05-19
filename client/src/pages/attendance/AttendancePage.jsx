@@ -106,8 +106,8 @@ export function AttendancePage() {
               </div>
             ) : <p className="text-sm text-muted-foreground">Not checked in today</p>}
             <div className="flex gap-2">
-              {!myRecord && <Button onClick={() => checkIn.mutate({})} disabled={checkIn.isPending} className="flex-1"><LogIn className="mr-2 h-4 w-4" /> Check In</Button>}
-              {myRecord && !myRecord.checkOut && <Button onClick={() => checkOut.mutate()} disabled={checkOut.isPending} variant="outline" className="flex-1"><LogOut className="mr-2 h-4 w-4" /> Check Out</Button>}
+              {!myRecord && <Button onClick={() => checkIn.mutate({})} disabled={checkIn.isPending} className="flex-1"><LogIn className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Check In</span></Button>}
+              {myRecord && !myRecord.checkOut && <Button onClick={() => checkOut.mutate()} disabled={checkOut.isPending} variant="outline" className="flex-1"><LogOut className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Check Out</span></Button>}
             </div>
           </CardContent>
         </Card>

@@ -74,8 +74,8 @@ function ComposeModal({ onClose, onSent, replyTo }) {
               <Button variant="ghost" size="sm" className="text-muted-foreground"><Paperclip className="h-4 w-4" /></Button>
             </div>
             <Button onClick={handleSend} disabled={sendEmail.isPending || !to.trim()}>
-              {sendEmail.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
-              Send
+              {sendEmail.isPending ? <Loader2 className="h-4 w-4 animate-spin sm:mr-2" /> : <Send className="h-4 w-4 sm:mr-2" />}
+              <span className="hidden sm:inline">Send</span>
             </Button>
           </div>
         </div>
@@ -159,7 +159,7 @@ export function EmailPage() {
       <div className="w-56 border-r bg-card flex flex-col">
         <div className="p-4">
           <Button onClick={() => { setReplyTo(null); setShowCompose(true); }} className="w-full">
-            <Edit3 className="h-4 w-4 mr-2" /> Compose
+            <Edit3 className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Compose</span>
           </Button>
         </div>
         <nav className="flex-1 space-y-1 px-2">
@@ -304,10 +304,10 @@ export function EmailPage() {
               {/* Action Buttons */}
               <div className="flex items-center gap-2 pt-1">
                 <Button variant="outline" size="sm" onClick={() => handleReply(selectedEmail)}>
-                  <Reply className="h-3.5 w-3.5 mr-1.5" /> Reply
+                  <Reply className="h-3.5 w-3.5 sm:mr-1.5" /><span className="hidden sm:inline"> Reply</span>
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => handleForward(selectedEmail)}>
-                  <Forward className="h-3.5 w-3.5 mr-1.5" /> Forward
+                  <Forward className="h-3.5 w-3.5 sm:mr-1.5" /><span className="hidden sm:inline"> Forward</span>
                 </Button>
               </div>
             </div>

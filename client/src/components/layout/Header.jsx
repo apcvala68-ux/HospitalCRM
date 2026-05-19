@@ -2,11 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { Bell, Search, Moon, Sun, LogOut, User, Settings, ChevronDown, Plus, X } from 'lucide-react';
+import { Bell, Search, Moon, Sun, LogOut, User, Settings, ChevronDown, Plus, X, Menu, ArrowLeft } from 'lucide-react';
 import { Input } from '../ui/input';
 import { usePatientSearch } from '../../hooks/usePatients';
 
-export function Header() {
+export function Header({ onMenuToggle }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -15,6 +15,7 @@ export function Header() {
   const searchInputRef = useRef(null);
   const searchContainerRef = useRef(null);
 
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -42,13 +43,17 @@ export function Header() {
       }
       // Close dropdown on Escape key
       if (e.key === 'Escape') {
+        if (mobileSearchOpen) {
+          setMobileSearchOpen(false);
+          setSearchQuery('');
+        }
         setShowDropdown(false);
         searchInputRef.current?.blur();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [mobileSearchOpen]);
 
   const initials = user?.name
     ?.split(' ')
@@ -61,7 +66,14 @@ export function Header() {
 
   return (
     <header className="relative z-30 flex h-14 items-center justify-between gap-4 border-b border-border/50 bg-card/90 backdrop-blur-sm px-4 lg:px-6">
-      <div ref={searchContainerRef} className="relative flex-1 max-w-sm">
+      <button
+        onClick={onMenuToggle}
+        className="lg:hidden rounded-lg p-2 hover:bg-accent transition-colors cursor-pointer mr-1"
+        title="Toggle menu"
+      >
+        <Menu className="h-5 w-5 text-muted-foreground/80" />
+      </button>
+      <div ref={searchContainerRef} className="relative flex-1 lg:max-w-sm hidden lg:block">
         <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
         <Input 
           ref={searchInputRef}
@@ -88,7 +100,7 @@ export function Header() {
             <X className="h-3.5 w-3.5" />
           </button>
         )}
-        <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-5 select-none items-center gap-0.5 rounded border border-border/80 bg-muted/50 dark:bg-zinc-900 px-1.5 font-mono text-[9px] font-medium text-muted-foreground/80 shadow-sm">
+        <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 hidden lg:inline-flex h-5 select-none items-center gap-0.5 rounded border border-border/80 bg-muted/50 dark:bg-zinc-900 px-1.5 font-mono text-[9px] font-medium text-muted-foreground/80 shadow-sm">
           <span className="text-[10px]">⌘</span>K
         </kbd>
 
@@ -138,9 +150,16 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-1">
+        <button
+          onClick={() => setMobileSearchOpen(true)}
+          className="lg:hidden rounded-lg p-2.5 hover:bg-accent transition-colors cursor-pointer"
+          title="Search"
+        >
+          <Search className="h-4 w-4 text-muted-foreground/80" />
+        </button>
         <button 
           onClick={() => navigate('/appointments')}
-          className="hidden sm:flex items-center gap-1.5 rounded-lg bg-primary hover:bg-primary/90 text-white dark:text-white px-3.5 py-2 text-sm font-semibold transition-all mr-2 shadow-sm hover:shadow active:scale-95 cursor-pointer"
+          className="hidden sm:flex items-center gap-1.5 rounded-lg bg-primary hover:bg-primary/90 text-white dark:text-white px-3.5 py-2 text-sm font-semibold transition-all shadow-sm hover:shadow active:scale-95 cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           New Appointment
@@ -162,10 +181,10 @@ export function Header() {
           <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-destructive ring-2 ring-card" />
         </button>
 
-        <div ref={menuRef} className="relative ml-3">
+        <div ref={menuRef} className="relative ml-0 md:ml-3">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="flex items-center gap-2.5 rounded-lg pl-2.5 pr-3.5 py-1.5 hover:bg-accent transition-colors cursor-pointer"
+            className="flex items-center gap-2.5 rounded-lg p-2.5 lg:pl-2.5 lg:pr-3.5 lg:py-1.5 hover:bg-accent transition-colors cursor-pointer"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary ring-1 ring-primary/20">
               {initials}
@@ -213,6 +232,81 @@ export function Header() {
           )}
         </div>
       </div>
+
+      {/* Mobile search expand */}
+      {mobileSearchOpen && (
+        <div className="absolute inset-0 z-50 flex items-center gap-2 bg-card/95 backdrop-blur-sm px-2 lg:hidden">
+          <button
+            onClick={() => { setMobileSearchOpen(false); setSearchQuery(''); setShowDropdown(false); }}
+            className="rounded-lg p-2 hover:bg-accent transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="h-5 w-5 text-muted-foreground/80" />
+          </button>
+          <div ref={searchContainerRef} className="relative flex-1">
+            <Input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setShowDropdown(true); }}
+              onFocus={() => setShowDropdown(true)}
+              placeholder="Search patients, doctors..."
+              autoFocus
+              className="w-full rounded-xl border-border/20 bg-muted/15 focus-visible:bg-background focus:ring-1 focus:ring-primary h-9 text-xs placeholder:text-muted-foreground/60"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => { setSearchQuery(''); searchInputRef.current?.focus(); }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-muted text-muted-foreground/60 hover:text-foreground cursor-pointer"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+            {showDropdown && searchQuery.length >= 2 && (
+              <div className="absolute left-0 right-0 top-full mt-1.5 max-h-80 overflow-y-auto rounded-xl border border-border bg-popover p-1.5 shadow-lg z-50 flex flex-col gap-0.5 animate-in fade-in-50 slide-in-from-top-1 duration-150">
+                {isSearching ? (
+                  <div className="flex items-center justify-center py-6 gap-2 text-xs text-muted-foreground">
+                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    Searching...
+                  </div>
+                ) : patientsList.length > 0 ? (
+                  <>
+                    <div className="px-2.5 py-1 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase">
+                      Patients ({patientsList.length})
+                    </div>
+                    {patientsList.map((patient) => (
+                      <button
+                        key={patient._id}
+                        onClick={() => {
+                          navigate(`/patients/${patient._id}`);
+                          setMobileSearchOpen(false);
+                          setShowDropdown(false);
+                          setSearchQuery('');
+                        }}
+                        className="flex items-center justify-between w-full rounded-lg px-2.5 py-2 text-left text-xs hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+                      >
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-medium text-foreground">{patient.firstName} {patient.lastName}</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {patient.gender} • {patient.age} yrs • {patient.phone}
+                          </span>
+                        </div>
+                        <span className="font-mono text-[10px] text-muted-foreground bg-muted/40 dark:bg-zinc-900 px-2 py-0.5 rounded border border-border/60 dark:border-zinc-800/80">
+                          {patient.uhid}
+                        </span>
+                      </button>
+                    ))}
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-6 text-center text-xs text-muted-foreground">
+                    <Search className="h-5 w-5 mb-1.5 text-muted-foreground/40" />
+                    No matching patients found
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }

@@ -95,7 +95,7 @@ export function DoctorsListPage() {
           <p className="text-sm text-muted-foreground mt-0.5">Manage hospital medical staff and their profiles.</p>
         </div>
         <Link to="/doctors/new">
-          <Button><Plus className="mr-2 h-4 w-4" /> Add Doctor</Button>
+          <Button><Plus className="h-4 w-4 sm:mr-2" /><Stethoscope className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">Add Doctor</span></Button>
         </Link>
       </div>
 

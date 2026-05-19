@@ -73,7 +73,7 @@ export function DepartmentListPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div><h1 className="text-2xl font-bold tracking-tight text-foreground">Departments</h1><p className="text-sm text-muted-foreground">Hospital departments and specialties</p></div>
-        <Link to="/departments/new"><Button><Plus className="mr-2 h-4 w-4" /> Add Department</Button></Link>
+        <Link to="/departments/new"><Button><Plus className="h-4 w-4 sm:mr-2" /><Building2 className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">Add Department</span></Button></Link>
       </div>
 
       <div className="flex flex-wrap gap-3">

@@ -214,8 +214,9 @@ export function PatientListPage() {
         </div>
         <Link to="/patients/new">
           <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Register Patient
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <UserPlus className="h-4 w-4 sm:hidden" />
+            <span className="hidden sm:inline">Register Patient</span>
           </Button>
         </Link>
       </div>
@@ -250,7 +251,7 @@ export function PatientListPage() {
                 title="Clear all active search and filters"
               >
                 <X className="h-3.5 w-3.5" />
-                Clear Filters
+                <span className="hidden sm:inline">Clear Filters</span>
               </button>
             )}
 
@@ -264,7 +265,7 @@ export function PatientListPage() {
               )}
             >
               <SlidersHorizontal className="h-3.5 w-3.5" />
-              Filter
+              <span className="hidden sm:inline">Filter</span>
               {(gender || bloodGroup) && (
                 <span className="w-1.5 h-1.5 rounded-full bg-primary" />
               )}
@@ -346,25 +347,25 @@ export function PatientListPage() {
                           <SortIcon active={sortBy === 'firstName'} direction={sortOrder} />
                         </span>
                       </th>
-                      <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('phone')}>
+                      <th className="pb-3 font-semibold cursor-pointer select-none hidden md:table-cell" onClick={() => handleSort('phone')}>
                         <span className="inline-flex items-center gap-1">
                           Phone
                           <SortIcon active={sortBy === 'phone'} direction={sortOrder} />
                         </span>
                       </th>
-                      <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('gender')}>
+                      <th className="pb-3 font-semibold cursor-pointer select-none hidden md:table-cell" onClick={() => handleSort('gender')}>
                         <span className="inline-flex items-center gap-1">
                           Gender
                           <SortIcon active={sortBy === 'gender'} direction={sortOrder} />
                         </span>
                       </th>
-                      <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('bloodGroup')}>
+                      <th className="pb-3 font-semibold cursor-pointer select-none hidden md:table-cell" onClick={() => handleSort('bloodGroup')}>
                         <span className="inline-flex items-center gap-1">
                           Blood Group
                           <SortIcon active={sortBy === 'bloodGroup'} direction={sortOrder} />
                         </span>
                       </th>
-                      <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('createdAt')}>
+                      <th className="pb-3 font-semibold cursor-pointer select-none hidden lg:table-cell" onClick={() => handleSort('createdAt')}>
                         <span className="inline-flex items-center gap-1">
                           Registered
                           <SortIcon active={sortBy === 'createdAt'} direction={sortOrder} />
@@ -415,13 +416,13 @@ export function PatientListPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="py-3.5 text-sm font-medium text-foreground">{p.phone}</td>
-                        <td className="py-3.5 text-sm">
+                        <td className="py-3.5 text-sm font-medium text-foreground hidden md:table-cell">{p.phone}</td>
+                        <td className="py-3.5 text-sm hidden md:table-cell">
                           <Badge variant="outline" className="capitalize px-2 py-0.5 font-semibold text-[11px] bg-muted/20 text-muted-foreground border-border/10">
                             {p.gender}
                           </Badge>
                         </td>
-                        <td className="py-3.5">
+                        <td className="py-3.5 hidden md:table-cell">
                           {p.bloodGroup ? (
                             <Badge variant="outline" className="px-2 py-0.5 font-mono text-[11px] font-bold border-primary/20 bg-primary/5 text-primary">
                               {p.bloodGroup}
@@ -430,7 +431,7 @@ export function PatientListPage() {
                             <span className="text-muted-foreground text-xs font-mono">--</span>
                           )}
                         </td>
-                        <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium">
+                        <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium hidden lg:table-cell">
                           {new Date(p.createdAt).toLocaleDateString('en-IN', {
                             day: '2-digit', month: 'short', year: 'numeric',
                           })}

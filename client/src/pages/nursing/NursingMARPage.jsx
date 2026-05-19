@@ -57,7 +57,7 @@ export function NursingMARPage() {
           <h1 className="text-3xl font-bold">Nursing MAR</h1>
           <p className="text-muted-foreground">Medication Administration Record</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)}><Plus className="mr-2 h-4 w-4" /> New MAR</Button>
+        <Button onClick={() => setShowForm(!showForm)}><Plus className="h-4 w-4 sm:mr-2" /><Pill className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">New MAR</span></Button>
       </div>
 
       {stats && (

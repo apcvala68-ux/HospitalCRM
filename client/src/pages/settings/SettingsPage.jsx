@@ -195,7 +195,7 @@ export function SettingsPage() {
                   {updateProfile.isPending ? (
                     <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
                   ) : (
-                    <><Save className="h-4 w-4 mr-2" /> Save Changes</>
+                    <><Save className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Save Changes</span></>
                   )}
                 </Button>
               </form>
@@ -386,7 +386,7 @@ export function SettingsPage() {
                   localStorage.removeItem('token');
                   window.location.href = '/login';
                 }}>
-                  <LogOut className="h-4 w-4 mr-2" /> Logout
+                  <LogOut className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Logout</span>
                 </Button>
               </div>
             </CardContent>

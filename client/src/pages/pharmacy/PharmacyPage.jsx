@@ -128,7 +128,7 @@ export function PharmacyPage() {
 
       <div className="flex gap-2 flex-wrap">
         <Button variant={tab === 'inventory' ? 'default' : 'outline'} size="sm" onClick={() => setTab('inventory')}><Package className="mr-1 h-4 w-4" /> Inventory</Button>
-        <Button variant={tab === 'add' ? 'default' : 'outline'} size="sm" onClick={() => setTab('add')}><Plus className="mr-1 h-4 w-4" /> Add Stock</Button>
+        <Button variant={tab === 'add' ? 'default' : 'outline'} size="sm" onClick={() => setTab('add')}><Plus className="h-4 w-4 sm:mr-1" /><Pill className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">Add Stock</span></Button>
         <Button variant={tab === 'new' ? 'default' : 'outline'} size="sm" onClick={() => setTab('new')}><Pill className="mr-1 h-4 w-4" /> New Medicine</Button>
         <Button variant={tab === 'alerts' ? 'default' : 'outline'} size="sm" onClick={() => setTab('alerts')}><AlertTriangle className="mr-1 h-4 w-4" /> Alerts ({alerts.length})</Button>
       </div>

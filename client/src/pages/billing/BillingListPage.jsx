@@ -170,7 +170,7 @@ export function BillingListPage() {
           <p className="text-sm text-muted-foreground mt-0.5">Manage invoices, payments, and revenue.</p>
         </div>
         <Link to="/billing/new">
-          <Button><Plus className="mr-2 h-4 w-4" /> New Invoice</Button>
+          <Button><Plus className="h-4 w-4 sm:mr-2" /><CreditCard className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">New Invoice</span></Button>
         </Link>
       </div>
 
@@ -193,7 +193,7 @@ export function BillingListPage() {
             {hasActiveFilters && (
               <button onClick={handleClearFilters}
                 className="h-9 px-3.5 rounded-xl border border-red-200 dark:border-red-950/40 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none shadow-sm"
-              ><X className="h-3.5 w-3.5" /> Clear Filters</button>
+              ><X className="h-3.5 w-3.5" /><span className="hidden sm:inline"> Clear Filters</span></button>
             )}
             <button onClick={() => setIsFilterOpen(!isFilterOpen)}
               className={cn("h-9 px-4 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer select-none",
@@ -201,7 +201,7 @@ export function BillingListPage() {
                   ? "bg-muted text-foreground border-zinc-300 dark:bg-[#18181b] dark:text-zinc-100 dark:border-zinc-700 shadow-md"
                   : "border-border/60 dark:border-border/20 bg-muted/30 hover:bg-muted/50 dark:bg-muted/10 dark:hover:bg-muted/20 text-muted-foreground hover:text-foreground"
               )}
-            ><SlidersHorizontal className="h-3.5 w-3.5" /> Filter{statusFilter && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}</button>
+            ><SlidersHorizontal className="h-3.5 w-3.5" /><span className="hidden sm:inline"> Filter</span>{statusFilter && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}</button>
           </div>
         </div>
         {isFilterOpen && (
@@ -238,17 +238,17 @@ export function BillingListPage() {
                         <span className="inline-flex items-center gap-1">Invoice <SortIcon active={sortBy === 'invoiceNo'} direction={sortOrder} /></span>
                       </th>
                       <th className="pb-3 font-semibold">Patient</th>
-                      <th className="pb-3 font-semibold">Items</th>
+                      <th className="pb-3 font-semibold hidden md:table-cell">Items</th>
                       <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('total')}>
                         <span className="inline-flex items-center gap-1">Total <SortIcon active={sortBy === 'total'} direction={sortOrder} /></span>
                       </th>
-                      <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('amountPaid')}>
+                      <th className="pb-3 font-semibold cursor-pointer select-none hidden md:table-cell" onClick={() => handleSort('amountPaid')}>
                         <span className="inline-flex items-center gap-1">Paid <SortIcon active={sortBy === 'amountPaid'} direction={sortOrder} /></span>
                       </th>
                       <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('status')}>
                         <span className="inline-flex items-center gap-1">Status <SortIcon active={sortBy === 'status'} direction={sortOrder} /></span>
                       </th>
-                      <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('createdAt')}>
+                      <th className="pb-3 font-semibold cursor-pointer select-none hidden lg:table-cell" onClick={() => handleSort('createdAt')}>
                         <span className="inline-flex items-center gap-1">Date <SortIcon active={sortBy === 'createdAt'} direction={sortOrder} /></span>
                       </th>
                       <th className="pb-3 font-semibold w-32 text-right pr-4">Actions</th>
@@ -260,11 +260,11 @@ export function BillingListPage() {
                         <td className="py-3.5 pr-2 text-center text-xs text-muted-foreground font-mono">{from + idx}</td>
                         <td className="py-3.5 text-sm font-mono text-xs">{b.invoiceNo}</td>
                         <td className="py-3.5 text-sm font-medium">{b.patient?.firstName ? `${b.patient.firstName} ${b.patient.lastName}` : <span className="text-muted-foreground">—</span>}</td>
-                        <td className="py-3.5 text-sm">{b.items?.length}</td>
+                        <td className="py-3.5 text-sm hidden md:table-cell">{b.items?.length}</td>
                         <td className="py-3.5 text-sm font-medium">₹{b.total?.toLocaleString()}</td>
-                        <td className="py-3.5 text-sm">₹{b.amountPaid?.toLocaleString()}</td>
+                        <td className="py-3.5 text-sm hidden md:table-cell">₹{b.amountPaid?.toLocaleString()}</td>
                         <td className="py-3.5"><Badge variant={statusVariant[b.status]}>{b.status}</Badge></td>
-                        <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium">{new Date(b.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                        <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium hidden lg:table-cell">{new Date(b.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                         <td className="py-3.5 text-right pr-4">
                           <div className="flex items-center justify-end gap-2">
                             <Link to={`/billing/${b._id}`}

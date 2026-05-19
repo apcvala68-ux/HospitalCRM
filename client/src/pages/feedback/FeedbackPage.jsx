@@ -57,7 +57,7 @@ export function FeedbackPage() {
           <h1 className="text-3xl font-bold">Feedback & Complaints</h1>
           <p className="text-muted-foreground">Patient satisfaction and grievance management</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)}><Plus className="mr-2 h-4 w-4" /> New Feedback</Button>
+        <Button onClick={() => setShowForm(!showForm)}><Plus className="h-4 w-4 sm:mr-2" /><MessageSquare className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">New Feedback</span></Button>
       </div>
 
       {stats && (

@@ -215,8 +215,8 @@ export function TriagePage() {
                 </div>
 
                 <Button onClick={handleSubmit} disabled={createVitals.isPending || !form.chiefComplaint} className="w-full">
-                  <Check className="mr-2 h-4 w-4" />
-                  {createVitals.isPending ? 'Recording...' : 'Record Vitals & Mark Ready'}
+                  <Check className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">{createVitals.isPending ? 'Recording...' : 'Record Vitals & Mark Ready'}</span>
                 </Button>
               </div>
             )}

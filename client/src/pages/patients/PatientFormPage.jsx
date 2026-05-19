@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useCreatePatient, usePatientSearch, usePatient, useUpdatePatient } from '../../hooks/usePatients';
+import { useCreatePatient, usePatient, useUpdatePatient } from '../../hooks/usePatients';
 import { useToast } from '../../hooks/useToast';
 import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
@@ -8,7 +8,7 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { DatePicker } from '@heroui/react';
 import { parseDate } from '@internationalized/date';
-import { ArrowLeft, UserPlus, Search, X, Shield, Heart, Phone, MapPin } from 'lucide-react';
+import { ArrowLeft, UserPlus, X, Shield, Heart, Phone, MapPin } from 'lucide-react';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -44,9 +44,6 @@ export function PatientFormPage() {
   const updatePatient = useUpdatePatient();
   const { data: patientData, isLoading: patientLoading } = usePatient(id);
   const toast = useToast();
-
-  const [lookupPhone, setLookupPhone] = useState('');
-  const { data: searchResults } = usePatientSearch(lookupPhone);
 
   const blankForm = {
     firstName: '', lastName: '', dob: '', gender: 'male',
@@ -280,34 +277,11 @@ export function PatientFormPage() {
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={() => navigate(isEdit ? `/patients/${id}` : '/patients')}>Cancel</Button>
           <Button type="submit" form="patient-form" disabled={isPending}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            {isPending ? 'Saving...' : isEdit ? 'Save Changes' : 'Register Patient'}
+            <UserPlus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">{isPending ? 'Saving...' : isEdit ? 'Save Changes' : 'Register Patient'}</span>
           </Button>
         </div>
       </div>
-
-      {!isEdit && (
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="Quick lookup — search by phone number..." value={lookupPhone} onChange={(e) => setLookupPhone(e.target.value)} className="pl-10" />
-              </div>
-            </div>
-            {searchResults?.patients?.length > 0 && (
-              <div className="mt-2 space-y-1">
-                {searchResults.patients.map((p) => (
-                  <div key={p._id} className="flex items-center justify-between rounded-lg border p-2 text-sm">
-                    <span>{p.firstName} {p.lastName} — {p.uhid} ({p.phone})</span>
-                    <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${p._id}`)}>View</Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       <form id="patient-form" onSubmit={handleSubmit}>
         <div className="grid gap-4 md:grid-cols-2">

@@ -74,7 +74,7 @@ export function OTSurgeryPage(){
   return(<div className="space-y-6">
     <div className="flex items-center justify-between">
       <div><h1 className="text-2xl font-bold tracking-tight text-foreground">OT & Surgery</h1><p className="text-sm text-muted-foreground mt-0.5">Manage surgical procedures and operating theatre schedules.</p></div>
-      <Button onClick={()=>setSf(!sf)}><Plus className="mr-2 h-4 w-4" /> New Surgery</Button>
+      <Button onClick={()=>setSf(!sf)}><Plus className="h-4 w-4 sm:mr-2" /><Microscope className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">New Surgery</span></Button>
     </div>
 
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">{kpi.map(c=><StatCard key={c.label} {...c}/>)}</div>

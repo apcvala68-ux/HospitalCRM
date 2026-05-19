@@ -77,7 +77,7 @@ export function AmbulancePage(){
   return(<div className="space-y-6">
     <div className="flex items-center justify-between">
       <div><h1 className="text-2xl font-bold tracking-tight text-foreground">Ambulance</h1><p className="text-sm text-muted-foreground mt-0.5">Manage ambulance dispatches and emergency response.</p></div>
-      <Button onClick={()=>setSf(!sf)}><Plus className="mr-2 h-4 w-4" /> New Dispatch</Button>
+      <Button onClick={()=>setSf(!sf)}><Plus className="h-4 w-4 sm:mr-2" /><Truck className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">New Dispatch</span></Button>
     </div>
 
     {sf&&<Card><CardContent className="pt-6"><div className="grid gap-4 md:grid-cols-2">

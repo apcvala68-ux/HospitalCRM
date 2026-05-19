@@ -288,7 +288,7 @@ export function AdminDashboard() {
               </button>
             ))}
           </div>
-          <div>
+          <div className="hidden md:block">
             <Popover placement="bottom-end">
               <PopoverTrigger>
                 <button className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-border/80 bg-card text-foreground text-sm font-medium hover:bg-accent hover:border-border transition-colors shadow-sm select-none h-9 cursor-pointer">
@@ -669,9 +669,9 @@ export function AdminDashboard() {
                 const isTrendUp = trendVal >= 0;
 
                 return (
-                  <div className="flex items-center gap-5 flex-1 my-2">
+                  <div className="flex flex-col md:flex-row items-center gap-5 flex-1 my-2">
                     {/* Left Column: Donut Chart (Bigger!) */}
-                    <div className="relative flex items-center justify-center h-56 w-56 shrink-0">
+                    <div className="relative flex items-center justify-center h-44 w-44 md:h-56 md:w-56 shrink-0">
                       <Chart
                         options={deptChartOptions}
                         series={deptRevenue.slice(0, 5).map(d => d.revenue)}
@@ -682,14 +682,14 @@ export function AdminDashboard() {
                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
                         <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-semibold">Total Revenue</span>
                         <span className="text-xl font-bold text-foreground mt-0.5">₹{totalRevenue.toLocaleString('en-IN')}</span>
-                        <span className={`text-[9px] font-semibold mt-0.5 flex items-center gap-0.5 ${isTrendUp ? 'text-emerald-500' : 'text-red-500'}`}>
+                        <span className={`hidden md:flex text-[9px] font-semibold mt-0.5 items-center gap-0.5 ${isTrendUp ? 'text-emerald-500' : 'text-red-500'}`}>
                           {isTrendUp ? '↗' : '↘'} {Math.abs(trendVal)}% vs last period
                         </span>
                       </div>
                     </div>
 
                     {/* Right Column: Custom Progress Indicators */}
-                    <div className="flex-1 space-y-3">
+                    <div className="flex-1 space-y-3 hidden md:block">
                       {deptRevenue.slice(0, 5).map((d) => {
                         const config = getDeptConfig(d.name);
                         const IconComponent = config.icon;
@@ -748,7 +748,7 @@ export function AdminDashboard() {
                 const isTrendUp = trendVal >= 0;
 
                 return (
-                  <div className="grid grid-cols-4 gap-1.5 pt-3.5 mt-4 border-t border-border/40">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-3.5 mt-4 border-t border-border/40">
                     <div className="bg-slate-500/5 dark:bg-slate-400/5 border border-border/30 rounded-xl p-2 flex items-center gap-1.5 min-w-0">
                       <div className="h-7 w-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0">
                         <ClipboardList className="h-3.5 w-3.5" />
@@ -800,7 +800,7 @@ export function AdminDashboard() {
             </DashboardCardContent>
           </DashboardCard>
         </div>
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 hidden md:block">
           <SectionTitle action={
             <button className="text-[11px] text-primary font-semibold flex items-center gap-0.5 hover:underline" onClick={() => navigate('/patients')}>
               View all <ArrowUpRight className="h-3 w-3" />
@@ -808,7 +808,7 @@ export function AdminDashboard() {
           }>
             Patient Records
           </SectionTitle>
-          <PatientRecordsTable dateRange={dateRange} />
+          <div className="overflow-x-auto"><PatientRecordsTable dateRange={dateRange} /></div>
         </div>
       </div>
 

@@ -212,7 +212,7 @@ export function BloodBankPage() {
           <p className="text-sm text-muted-foreground mt-0.5">Blood inventory, donations, and issue records.</p>
         </div>
         <Button onClick={() => setShowForm(!showForm)}>
-          <Plus className="mr-2 h-4 w-4" /> New Entry
+          <Plus className="h-4 w-4 sm:mr-2" /><Droplets className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">New Entry</span>
         </Button>
       </div>
 

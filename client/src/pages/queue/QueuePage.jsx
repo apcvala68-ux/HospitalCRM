@@ -109,8 +109,8 @@ export function QueuePage() {
               disabled={!selectedDoctor || !selectedPatient || generateToken.isPending}
               className="w-full"
             >
-              <UserPlus className="mr-2 h-4 w-4" />
-              {generateToken.isPending ? 'Generating...' : 'Generate Token'}
+              <UserPlus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">{generateToken.isPending ? 'Generating...' : 'Generate Token'}</span>
             </Button>
           </CardContent>
         </Card>
@@ -123,8 +123,8 @@ export function QueuePage() {
               size="sm"
               onClick={() => setShowHistory(!showHistory)}
             >
-              <History className="mr-1 h-4 w-4" />
-              {showHistory ? 'Live' : 'History'}
+              <History className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">{showHistory ? 'Live' : 'History'}</span>
             </Button>
           </CardHeader>
           <CardContent>
