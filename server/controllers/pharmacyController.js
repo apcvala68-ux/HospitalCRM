@@ -1,9 +1,11 @@
 import MedicineMaster from '../models/MedicineMaster.js';
 import PharmacyInventory from '../models/PharmacyInventory.js';
 
+const MED_SORTABLE = ['createdAt', 'name', 'genericName', 'category', 'reorderLevel'];
+
 export const listMedicines = async (req, res, next) => {
   try {
-    const { search } = req.query;
+    const { page = 1, limit = 20, search, sortBy, sortOrder, category } = req.query;
     const query = { isActive: true };
     if (search) {
       query.$or = [
@@ -11,8 +13,15 @@ export const listMedicines = async (req, res, next) => {
         { genericName: new RegExp(search, 'i') },
       ];
     }
-    const medicines = await MedicineMaster.find(query).sort({ name: 1 });
-    res.json({ medicines });
+    if (category) query.category = category;
+    const sortField = MED_SORTABLE.includes(sortBy) ? sortBy : 'name';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
+    const total = await MedicineMaster.countDocuments(query);
+    const medicines = await MedicineMaster.find(query)
+      .sort({ [sortField]: sortDir })
+      .limit(Number(limit))
+      .skip((page - 1) * Number(limit));
+    res.json({ medicines, total, page: Number(page), totalPages: Math.ceil(total / limit) });
   } catch (error) { next(error); }
 };
 
@@ -23,9 +32,11 @@ export const createMedicine = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+const INV_SORTABLE = ['createdAt', 'expiryDate', 'quantity', 'mrp'];
+
 export const listInventory = async (req, res, next) => {
   try {
-    const { medicineId, lowStock } = req.query;
+    const { page = 1, limit = 20, search, sortBy, sortOrder, medicineId, lowStock } = req.query;
     const query = {};
     if (medicineId) query.medicine = medicineId;
     if (lowStock === 'true') {
@@ -33,10 +44,15 @@ export const listInventory = async (req, res, next) => {
       const medIds = meds.filter(m => m.reorderLevel > 0).map(m => m._id);
       query.medicine = { $in: medIds };
     }
+    const sortField = INV_SORTABLE.includes(sortBy) ? sortBy : 'expiryDate';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
+    const total = await PharmacyInventory.countDocuments(query);
     const inventory = await PharmacyInventory.find(query)
       .populate('medicine', 'name genericName unit reorderLevel')
-      .sort({ expiryDate: 1 });
-    res.json({ inventory });
+      .sort({ [sortField]: sortDir })
+      .limit(Number(limit))
+      .skip((page - 1) * Number(limit));
+    res.json({ inventory, total, page: Number(page), totalPages: Math.ceil(total / limit) });
   } catch (error) { next(error); }
 };
 

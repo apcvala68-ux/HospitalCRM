@@ -11,8 +11,7 @@ export function useMedicines(search) {
 
 export function useInventory(filters = {}) {
   const qs = new URLSearchParams();
-  if (filters.medicineId) qs.set('medicineId', filters.medicineId);
-  if (filters.lowStock) qs.set('lowStock', 'true');
+  Object.entries(filters).forEach(([k, v]) => { if (v) qs.set(k, v); });
   return useQuery({
     queryKey: ['pharmacy', 'inventory', filters],
     queryFn: () => api.get(`/pharmacy/inventory?${qs.toString()}`),

@@ -1,21 +1,32 @@
 import BloodBank from '../models/BloodBank.js';
 
+const SORTABLE_FIELDS = ['createdAt', 'entryNo', 'bloodGroup', 'status', 'type', 'quantity'];
+
 export const list = async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, bloodGroup, status, type } = req.query;
+    const { page = 1, limit = 20, search, sortBy, sortOrder, bloodGroup, status, type } = req.query;
     const query = {};
+    if (search) {
+      query.$or = [
+        { entryNo: new RegExp(search, 'i') },
+        { donorName: new RegExp(search, 'i') },
+        { donorPhone: new RegExp(search, 'i') },
+      ];
+    }
     if (bloodGroup) query.bloodGroup = bloodGroup;
     if (status) query.status = status;
     if (type) query.type = type;
+    const sortField = SORTABLE_FIELDS.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
     const entries = await BloodBank.find(query)
       .populate('patient', 'firstName lastName uhid')
       .populate('issuedTo', 'user')
       .populate('createdBy', 'name')
-      .sort({ createdAt: -1 })
+      .sort({ [sortField]: sortDir })
       .limit(limit * 1)
       .skip((page - 1) * limit);
     const total = await BloodBank.countDocuments(query);
-    res.json({ entries, total, page: +page, pages: Math.ceil(total / limit) });
+    res.json({ entries, total, page: +page, pages: Math.ceil(total / limit), totalPages: Math.ceil(total / limit) });
   } catch (error) { next(error); }
 };
 

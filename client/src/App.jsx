@@ -18,7 +18,11 @@ import { PharmacyPage } from './pages/pharmacy/PharmacyPage';
 import { AttendancePage } from './pages/attendance/AttendancePage';
 import { AnalyticsPage } from './pages/analytics/AnalyticsPage';
 import { DoctorsListPage } from './pages/doctors/DoctorsListPage';
-import { DepartmentsPage } from './pages/departments/DepartmentsPage';
+import { DoctorDetailPage } from './pages/doctors/DoctorDetailPage';
+import { DoctorFormPage } from './pages/doctors/DoctorFormPage';
+import { DepartmentListPage } from './pages/departments/DepartmentListPage';
+import { DepartmentFormPage } from './pages/departments/DepartmentFormPage';
+import { DepartmentDetailPage } from './pages/departments/DepartmentDetailPage';
 import { AppointmentsPage } from './pages/appointments/AppointmentsPage';
 import { GoogleCallback } from './pages/GoogleCallback';
 import { LabOrdersPage } from './pages/lab/LabOrdersPage';
@@ -80,7 +84,13 @@ function AppRoutes() {
         <Route path="doctor" element={<DoctorDashboard />} />
         <Route path="consultation/:tokenId" element={<ConsultationPage />} />
         <Route path="doctors" element={<DoctorsListPage />} />
-        <Route path="departments" element={<DepartmentsPage />} />
+        <Route path="doctors/new" element={<DoctorFormPage />} />
+        <Route path="doctors/:id" element={<DoctorDetailPage />} />
+        <Route path="doctors/:id/edit" element={<DoctorFormPage />} />
+        <Route path="departments" element={<DepartmentListPage />} />
+        <Route path="departments/new" element={<DepartmentFormPage />} />
+        <Route path="departments/:id" element={<DepartmentDetailPage />} />
+        <Route path="departments/:id/edit" element={<DepartmentFormPage />} />
         <Route path="appointments" element={<AppointmentsPage />} />
         <Route path="billing" element={<BillingListPage />} />
         <Route path="billing/new" element={<NewInvoicePage />} />

@@ -1,20 +1,30 @@
 import InsuranceClaim from '../models/InsuranceClaim.js';
 
+const SORTABLE_FIELDS = ['createdAt', 'claimNo', 'status', 'claimAmount', 'approvedAmount', 'tpaName'];
+
 export const list = async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, status, tpaName, patient } = req.query;
+    const { page = 1, limit = 20, search, sortBy, sortOrder, status, tpaName, patient } = req.query;
     const query = {};
+    if (search) {
+      query.$or = [
+        { claimNo: new RegExp(search, 'i') },
+        { tpaName: new RegExp(search, 'i') },
+      ];
+    }
     if (status) query.status = status;
     if (tpaName) query.tpaName = new RegExp(tpaName, 'i');
     if (patient) query.patient = patient;
+    const sortField = SORTABLE_FIELDS.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
     const claims = await InsuranceClaim.find(query)
       .populate('patient', 'firstName lastName uhid phone')
       .populate('billing', 'invoiceNo total')
-      .sort({ createdAt: -1 })
+      .sort({ [sortField]: sortDir })
       .limit(limit * 1)
       .skip((page - 1) * limit);
     const total = await InsuranceClaim.countDocuments(query);
-    res.json({ claims, total, page: +page, pages: Math.ceil(total / limit) });
+    res.json({ claims, total, page: +page, pages: Math.ceil(total / limit), totalPages: Math.ceil(total / limit) });
   } catch (error) { next(error); }
 };
 

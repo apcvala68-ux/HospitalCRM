@@ -1,17 +1,29 @@
 import Mortuary from '../models/Mortuary.js';
 
+const SORTABLE_FIELDS = ['createdAt', 'patient', 'status', 'deathCertificateNo'];
+
 export const list = async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, status } = req.query;
+    const { page = 1, limit = 20, search, sortBy, sortOrder, status } = req.query;
     const query = {};
+    if (search) {
+      query.$or = [
+        { 'patient': new RegExp(search, 'i') },
+        { deathCertificateNo: new RegExp(search, 'i') },
+        { causeOfDeath: new RegExp(search, 'i') },
+      ];
+    }
+    if (status) query.status = status;
+    const sortField = SORTABLE_FIELDS.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
     const records = await Mortuary.find(query)
       .populate('patient', 'firstName lastName uhid')
       .populate('declaredBy', 'user')
-      .sort({ createdAt: -1 })
+      .sort({ [sortField]: sortDir })
       .limit(limit * 1)
       .skip((page - 1) * limit);
     const total = await Mortuary.countDocuments(query);
-    res.json({ records, total, page: +page, pages: Math.ceil(total / limit) });
+    res.json({ records, total, page: +page, pages: Math.ceil(total / limit), totalPages: Math.ceil(total / limit) });
   } catch (error) { next(error); }
 };
 

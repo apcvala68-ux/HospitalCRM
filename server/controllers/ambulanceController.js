@@ -1,19 +1,30 @@
 import Ambulance from '../models/Ambulance.js';
 
+const SORTABLE_FIELDS = ['createdAt', 'patient', 'status', 'emergencyType', 'hospital'];
+
 export const list = async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, status, emergencyType } = req.query;
+    const { page = 1, limit = 20, search, sortBy, sortOrder, status, emergencyType } = req.query;
     const query = {};
+    if (search) {
+      query.$or = [
+        { patient: new RegExp(search, 'i') },
+        { hospital: new RegExp(search, 'i') },
+        { driver: new RegExp(search, 'i') },
+      ];
+    }
     if (status) query.status = status;
     if (emergencyType) query.emergencyType = emergencyType;
+    const sortField = SORTABLE_FIELDS.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
     const records = await Ambulance.find(query)
       .populate('patient', 'firstName lastName uhid')
       .populate('driver paramedic', 'name phone')
-      .sort({ createdAt: -1 })
+      .sort({ [sortField]: sortDir })
       .limit(limit * 1)
       .skip((page - 1) * limit);
     const total = await Ambulance.countDocuments(query);
-    res.json({ records, total, page: +page, pages: Math.ceil(total / limit) });
+    res.json({ records, total, page: +page, pages: Math.ceil(total / limit), totalPages: Math.ceil(total / limit) });
   } catch (error) { next(error); }
 };
 

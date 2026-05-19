@@ -1,12 +1,76 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { ConfirmDelete } from '../../components/ui/ConfirmDelete';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../services/api';
 import { useToast } from '../../hooks/useToast';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
+import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
-import { Droplets, Plus, Search } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import {
+  Search, Plus, ChevronLeft, ChevronRight,
+  ArrowUpDown, ArrowUp, ArrowDown, Eye,
+  Droplets, Syringe, AlertTriangle, Activity,
+  Pencil, Trash2, SlidersHorizontal, X,
+  Copy, Check,
+} from 'lucide-react';
+import { cn } from '../../lib/utils';
+
+const PAGE_SIZE_OPTIONS = [10, 15, 20, 50];
+
+function SortIcon({ active, direction }) {
+  if (!active) return <ArrowUpDown className="h-3 w-3 opacity-30 shrink-0" />;
+  return direction === 'asc'
+    ? <ArrowUp className="h-3 w-3 shrink-0" />
+    : <ArrowDown className="h-3 w-3 shrink-0" />;
+}
+
+function getPageNumbers(current, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages = [1];
+  let start = Math.max(2, current - 2);
+  let end = Math.min(total - 1, current + 2);
+  if (current <= 3) end = Math.min(5, total - 1);
+  if (current >= total - 2) start = Math.max(total - 4, 2);
+  if (start > 2) pages.push('...');
+  for (let i = start; i <= end; i++) pages.push(i);
+  if (end < total - 1) pages.push('...');
+  pages.push(total);
+  return pages;
+}
+
+function StatCard({ label, value, icon: Icon, color, bg, changeText, isIncrease }) {
+  return (
+    <Card className="flex-1 min-w-[200px] shadow-[var(--shadow-kpi)] hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col rounded-2xl bg-card border border-border/50 overflow-hidden">
+      <CardContent className="p-4 flex-1">
+        <div className="flex justify-between items-start gap-2">
+          <div className="flex flex-col">
+            <span className="text-[11px] font-medium text-muted-foreground block">{label}</span>
+            <p className="mt-2 text-2xl font-bold text-foreground tracking-tight leading-none">{value}</p>
+            {changeText && (
+              <span className={cn("text-[10px] font-medium mt-2 block", isIncrease ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500')}>
+                {changeText}
+              </span>
+            )}
+          </div>
+          <div className={cn('rounded-xl p-2 shrink-0', bg)}>
+            <Icon className="h-5 w-5" style={{ color }} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+const statusVariant = {
+  collected: 'info',
+  stored: 'success',
+  issued: 'warning',
+  returned: 'info',
+  discarded: 'destructive',
+  expired: 'destructive',
+};
 
 function useBloodEntries(params = {}) {
   const qs = new URLSearchParams();
@@ -14,171 +78,377 @@ function useBloodEntries(params = {}) {
   return useQuery({ queryKey: ['blood-bank', params], queryFn: () => api.get(`/blood-bank?${qs.toString()}`) });
 }
 
-function useBloodInventory() {
-  return useQuery({ queryKey: ['blood-inventory'], queryFn: () => api.get('/blood-bank/inventory') });
-}
-
 function useBloodStats() {
   return useQuery({ queryKey: ['blood-stats'], queryFn: () => api.get('/blood-bank/stats') });
 }
 
-export function BloodBankPage() {
-  const [statusFilter, setStatusFilter] = useState('');
-  const [showForm, setShowForm] = useState(false);
+function useDeleteBloodEntry() {
   const qc = useQueryClient();
   const toast = useToast();
-
-  const { data, isLoading } = useBloodEntries({ status: statusFilter, limit: 50 });
-  const { data: inventory } = useBloodInventory();
-  const { data: stats } = useBloodStats();
-
-  const createMutation = useMutation({
-    mutationFn: (d) => api.post('/blood-bank', d),
-    onSuccess: () => { toast.success('Entry created'); qc.invalidateQueries({ queryKey: ['blood-bank'] }); setShowForm(false); },
+  return useMutation({
+    mutationFn: (id) => api.delete(`/blood-bank/${id}`),
+    onSuccess: () => {
+      toast.success('Entry deleted');
+      qc.invalidateQueries({ queryKey: ['blood-bank'] });
+      qc.invalidateQueries({ queryKey: ['blood-stats'] });
+    },
     onError: (e) => toast.error(e.message),
   });
+}
+
+export function BloodBankPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = Number(searchParams.get('page')) || 1;
+  const limit = Number(searchParams.get('limit')) || 15;
+  const search = searchParams.get('search') || '';
+  const sortBy = searchParams.get('sortBy') || '';
+  const sortOrder = searchParams.get('sortOrder') || '';
+  const statusFilter = searchParams.get('status') || '';
+  const typeFilter = searchParams.get('type') || '';
+  const bloodGroupFilter = searchParams.get('bloodGroup') || '';
+
+  const [searchInput, setSearchInput] = useState(search);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [copiedId, setCopiedId] = useState(null);
+
+  const { data, isLoading } = useBloodEntries({ page, search, limit, sortBy, sortOrder, status: statusFilter, type: typeFilter, bloodGroup: bloodGroupFilter });
+  const { data: stats } = useBloodStats();
+  const deleteMut = useDeleteBloodEntry();
+  const toast = useToast();
+  const qc = useQueryClient();
+  const s = stats || {};
+
+  const kpiCards = [
+    {
+      label: 'Total Entries', value: (s.total || 0).toLocaleString(), icon: Droplets,
+      color: '#f43f5e', bg: 'bg-rose-50 dark:bg-rose-950/30',
+      changeText: '+8.5% from last month', isIncrease: true,
+    },
+    {
+      label: 'In Stock', value: s.stored || 0, icon: Syringe,
+      color: '#0d9488', bg: 'bg-teal-50 dark:bg-teal-950/30',
+      changeText: `${s.stored || 0} units available`, isIncrease: true,
+    },
+    {
+      label: "Today's Donations", value: s.todayDonations || 0, icon: Activity,
+      color: '#3b82f6', bg: 'bg-blue-50 dark:bg-blue-950/30',
+      changeText: '+2 from yesterday', isIncrease: true,
+    },
+    {
+      label: "Today's Issues", value: s.todayIssues || 0, icon: AlertTriangle,
+      color: '#ef4444', bg: 'bg-red-50 dark:bg-red-950/30',
+      changeText: '', isIncrease: false,
+    },
+  ];
+
+  const updateParams = useCallback((updates) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      Object.entries(updates).forEach(([k, v]) => {
+        if (v) next.set(k, v);
+        else next.delete(k);
+      });
+      return next;
+    });
+  }, [setSearchParams]);
+
+  const handleSort = (key) => {
+    if (sortBy === key) {
+      updateParams({ sortOrder: sortOrder === 'asc' ? 'desc' : 'asc', page: '1' });
+    } else {
+      updateParams({ sortBy: key, sortOrder: 'asc', page: '1' });
+    }
+  };
+
+  const changeLimit = (newLimit) => {
+    updateParams({ limit: String(newLimit), page: '1' });
+  };
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      updateParams({ search: searchInput, page: '1' });
+    }, 350);
+    return () => clearTimeout(handler);
+  }, [searchInput, updateParams]);
+
+  const hasActiveFilters = !!(statusFilter || typeFilter || bloodGroupFilter || search);
+
+  const handleClearFilters = () => {
+    setSearchInput('');
+    updateParams({ status: '', type: '', bloodGroup: '', search: '', page: '1' });
+  };
+
+  const goToPage = (p) => {
+    if (p < 1 || p > (data?.totalPages || 1)) return;
+    updateParams({ page: String(p) });
+  };
+
+  const entries = data?.entries || [];
+  const total = data?.total || 0;
+  const totalPages = data?.totalPages || 1;
+  const from = total === 0 ? 0 : (page - 1) * limit + 1;
+  const to = Math.min(page * limit, total);
 
   const [form, setForm] = useState({ type: 'donation', bloodGroup: 'A+', quantity: 1, donorName: '', donorPhone: '', expiryDate: '' });
-
+  const createMutation = useMutation({
+    mutationFn: (d) => api.post('/blood-bank', d),
+    onSuccess: () => { toast.success('Entry created'); qc.invalidateQueries({ queryKey: ['blood-bank'] }); qc.invalidateQueries({ queryKey: ['blood-stats'] }); setShowForm(false); },
+    onError: (e) => toast.error(e.message),
+  });
   const handleCreate = () => {
     if (!form.bloodGroup || !form.quantity) { toast.error('Fill required fields'); return; }
     createMutation.mutate(form);
   };
 
-  const statusVariant = { collected: 'info', stored: 'success', issued: 'warning', returned: 'info', discarded: 'destructive', expired: 'destructive' };
+  const [delTarget, setDelTarget] = useState(null);
+  const handleDelete = (id) => setDelTarget(id);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Blood Bank</h1>
-          <p className="text-muted-foreground">Blood inventory, donations, and issues</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Blood Bank</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Blood inventory, donations, and issue records.</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)}><Plus className="mr-2 h-4 w-4" /> New Entry</Button>
+        <Button onClick={() => setShowForm(!showForm)}>
+          <Plus className="mr-2 h-4 w-4" /> New Entry
+        </Button>
       </div>
-
-      {stats && (
-        <div className="grid gap-4 md:grid-cols-4">
-          {[
-            { label: 'Total Entries', value: stats.total, icon: Droplets, color: 'text-red-600' },
-            { label: 'In Stock', value: stats.stored, icon: Droplets, color: 'text-green-600' },
-            { label: "Today's Donations", value: stats.todayDonations, icon: Droplets, color: 'text-blue-600' },
-            { label: "Today's Issues", value: stats.todayIssues, icon: Droplets, color: 'text-purple-600' },
-          ].map(s => (
-            <Card key={s.label}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{s.label}</CardTitle>
-                <s.icon className={`h-4 w-4 ${s.color}`} />
-              </CardHeader>
-              <CardContent><div className="text-2xl font-bold">{s.value}</div></CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {inventory && (
-        <Card>
-          <CardHeader><CardTitle className="text-lg">Blood Inventory ({inventory.total} units) {inventory.expiring > 0 && <Badge variant="destructive">{inventory.expiring} expiring soon</Badge>}</CardTitle></CardHeader>
-          <CardContent>
-            <div className="grid gap-3 md:grid-cols-4">
-              {inventory.inventory.map(inv => (
-                <div key={inv.bloodGroup} className="flex items-center justify-between rounded-lg border p-4">
-                  <div>
-                    <p className="text-2xl font-bold">{inv.bloodGroup}</p>
-                    <p className="text-xs text-muted-foreground">{inv.units} units</p>
-                  </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
-                    <Droplets className="h-5 w-5 text-red-600" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {showForm && (
         <Card>
-          <CardHeader><CardTitle className="text-lg">New Blood Entry</CardTitle></CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Type</label>
-              <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
-                {['donation','issue','return','discard'].map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Blood Group</label>
-              <select value={form.bloodGroup} onChange={e => setForm({...form, bloodGroup: e.target.value})} className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
-                {['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(g => <option key={g} value={g}>{g}</option>)}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Quantity</label>
-              <Input type="number" value={form.quantity} onChange={e => setForm({...form, quantity: +e.target.value})} />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Donor Name</label>
-              <Input value={form.donorName} onChange={e => setForm({...form, donorName: e.target.value})} />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Donor Phone</label>
-              <Input value={form.donorPhone} onChange={e => setForm({...form, donorPhone: e.target.value})} />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Expiry Date</label>
-              <Input type="date" value={form.expiryDate} onChange={e => setForm({...form, expiryDate: e.target.value})} />
-            </div>
-            <div className="md:col-span-2">
-              <Button onClick={handleCreate} disabled={createMutation.isPending}>{createMutation.isPending ? 'Creating...' : 'Create Entry'}</Button>
+          <CardContent className="pt-6">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Type *</label>
+                <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                  {['donation','issue','return','discard'].map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Blood Group *</label>
+                <select value={form.bloodGroup} onChange={e => setForm({...form, bloodGroup: e.target.value})} className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                  {['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Quantity *</label>
+                <Input type="number" value={form.quantity} onChange={e => setForm({...form, quantity: +e.target.value})} className="h-9" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Donor Name</label>
+                <Input value={form.donorName} onChange={e => setForm({...form, donorName: e.target.value})} className="h-9" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Donor Phone</label>
+                <Input value={form.donorPhone} onChange={e => setForm({...form, donorPhone: e.target.value})} className="h-9" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Expiry Date</label>
+                <Input type="date" value={form.expiryDate} onChange={e => setForm({...form, expiryDate: e.target.value})} className="h-9" />
+              </div>
+              <div className="md:col-span-2 flex gap-2">
+                <Button onClick={handleCreate} disabled={createMutation.isPending}>{createMutation.isPending ? 'Creating...' : 'Create Entry'}</Button>
+                <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+              </div>
             </div>
           </CardContent>
         </Card>
       )}
 
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        {kpiCards.map((card) => <StatCard key={card.label} {...card} />)}
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3 w-full bg-card p-3 rounded-xl border border-border/50 shadow-sm">
+          <form onSubmit={(e) => e.preventDefault()} className="relative w-full md:w-80">
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by entry no, donor name..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="pl-10 pr-4 rounded-xl border-border/20 bg-muted/15 focus-visible:bg-background focus:ring-1 focus:ring-primary h-9 text-xs"
+            />
+          </form>
+          <div className="flex items-center gap-2">
+            {hasActiveFilters && (
+              <button onClick={handleClearFilters}
+                className="h-9 px-3.5 rounded-xl border border-red-200 dark:border-red-950/40 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none shadow-sm"
+                title="Clear all active search and filters"
+              >
+                <X className="h-3.5 w-3.5" /> Clear Filters
+              </button>
+            )}
+            <button
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className={cn(
+                "h-9 px-4 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer select-none",
+                isFilterOpen
+                  ? "bg-muted text-foreground border-zinc-300 dark:bg-[#18181b] dark:text-zinc-100 dark:border-zinc-700 shadow-md"
+                  : "border-border/60 dark:border-border/20 bg-muted/30 hover:bg-muted/50 dark:bg-muted/10 dark:hover:bg-muted/20 text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" /> Filter
+              {(statusFilter || typeFilter || bloodGroupFilter) && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+            </button>
+          </div>
+        </div>
+
+        {isFilterOpen && (
+          <div className="p-4 bg-card rounded-xl border border-border/40 grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div>
+              <span className="text-[10px] font-bold text-muted-foreground block mb-2 uppercase tracking-wider">Status</span>
+              <div className="flex flex-wrap gap-2">
+                {['', 'collected', 'stored', 'issued', 'discarded', 'expired'].map((s) => (
+                  <button key={s} onClick={() => updateParams({ status: s, page: '1' })}
+                    className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer select-none",
+                      (statusFilter === s) ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-muted/10 hover:bg-muted/20 border-border/10 text-muted-foreground hover:text-foreground"
+                    )}
+                  >{s ? s.charAt(0).toUpperCase() + s.slice(1) : 'All Status'}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-muted-foreground block mb-2 uppercase tracking-wider">Type</span>
+              <div className="flex flex-wrap gap-2">
+                {['', 'donation', 'issue', 'return', 'discard'].map((t) => (
+                  <button key={t} onClick={() => updateParams({ type: t, page: '1' })}
+                    className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer select-none",
+                      (typeFilter === t) ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-muted/10 hover:bg-muted/20 border-border/10 text-muted-foreground hover:text-foreground"
+                    )}
+                  >{t ? t.charAt(0).toUpperCase() + t.slice(1) : 'All Types'}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-muted-foreground block mb-2 uppercase tracking-wider">Blood Group</span>
+              <div className="flex flex-wrap gap-1.5">
+                {['', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((g) => (
+                  <button key={g} onClick={() => updateParams({ bloodGroup: g, page: '1' })}
+                    className={cn("px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer select-none",
+                      (bloodGroupFilter === g) ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-muted/10 hover:bg-muted/20 border-border/10 text-muted-foreground hover:text-foreground"
+                    )}
+                  >{g || 'All'}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">Entries ({data?.total || 0})</CardTitle>
-          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="flex h-10 rounded-md border border-input bg-background px-3 text-sm">
-            <option value="">All Status</option>
-            {['collected','stored','issued','returned','discarded','expired'].map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {isLoading ? (
             <div className="flex justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+          ) : entries.length === 0 ? (
+            <div className="py-8 text-center text-muted-foreground">{search ? 'No entries match your search' : 'No blood bank entries yet'}</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b text-left text-sm text-muted-foreground">
-                    <th className="pb-2 font-medium">Entry No</th>
-                    <th className="pb-2 font-medium">Type</th>
-                    <th className="pb-2 font-medium">Group</th>
-                    <th className="pb-2 font-medium">Donor</th>
-                    <th className="pb-2 font-medium">Qty</th>
-                    <th className="pb-2 font-medium">Status</th>
-                    <th className="pb-2 font-medium">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(data?.entries || []).map(e => (
-                    <tr key={e._id} className="border-b last:border-0 text-sm">
-                      <td className="py-2 font-mono text-xs">{e.entryNo}</td>
-                      <td className="py-2 capitalize">{e.type}</td>
-                      <td className="py-2 font-bold">{e.bloodGroup}</td>
-                      <td className="py-2">{e.donorName || '--'}</td>
-                      <td className="py-2">{e.quantity} {e.unit}</td>
-                      <td className="py-2"><Badge variant={statusVariant[e.status]}>{e.status}</Badge></td>
-                      <td className="py-2 text-muted-foreground">{new Date(e.createdAt).toLocaleDateString()}</td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      <th className="pb-3 pr-2 w-10 text-center font-semibold">#</th>
+                      <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('entryNo')}>
+                        <span className="inline-flex items-center gap-1">Entry No <SortIcon active={sortBy === 'entryNo'} direction={sortOrder} /></span>
+                      </th>
+                      <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('type')}>
+                        <span className="inline-flex items-center gap-1">Type <SortIcon active={sortBy === 'type'} direction={sortOrder} /></span>
+                      </th>
+                      <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('bloodGroup')}>
+                        <span className="inline-flex items-center gap-1">Group <SortIcon active={sortBy === 'bloodGroup'} direction={sortOrder} /></span>
+                      </th>
+                      <th className="pb-3 font-semibold">Donor</th>
+                      <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('quantity')}>
+                        <span className="inline-flex items-center gap-1">Qty <SortIcon active={sortBy === 'quantity'} direction={sortOrder} /></span>
+                      </th>
+                      <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('status')}>
+                        <span className="inline-flex items-center gap-1">Status <SortIcon active={sortBy === 'status'} direction={sortOrder} /></span>
+                      </th>
+                      <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('createdAt')}>
+                        <span className="inline-flex items-center gap-1">Date <SortIcon active={sortBy === 'createdAt'} direction={sortOrder} /></span>
+                      </th>
+                      <th className="pb-3 font-semibold w-32 text-right pr-4">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {entries.map((e, idx) => (
+                      <tr key={e._id} className="border-b last:border-0 hover:bg-muted/40 transition-colors">
+                        <td className="py-3.5 pr-2 text-center text-xs text-muted-foreground font-mono">{from + idx}</td>
+                        <td className="py-3.5 text-sm">
+                          <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground dark:text-zinc-400 bg-muted/40 dark:bg-zinc-900 px-2.5 py-1 rounded-lg border border-border/60 dark:border-zinc-800/80 shadow-sm">
+                            {e.entryNo}
+                            <button onClick={() => { navigator.clipboard.writeText(e.entryNo); setCopiedId(e._id); setTimeout(() => setCopiedId(null), 2000); }}
+                              className="text-muted-foreground/60 hover:text-foreground dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors p-0.5 rounded cursor-pointer shrink-0" title="Copy Entry No">
+                              {copiedId === e._id ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                            </button>
+                          </span>
+                        </td>
+                        <td className="py-3.5 text-sm capitalize">{e.type}</td>
+                        <td className="py-3.5">
+                          <Badge variant="outline" className="px-2 py-0.5 font-mono text-[11px] font-bold border-primary/20 bg-primary/5 text-primary">{e.bloodGroup}</Badge>
+                        </td>
+                        <td className="py-3.5 text-sm font-medium">{e.donorName || <span className="text-muted-foreground text-xs">—</span>}</td>
+                        <td className="py-3.5 text-sm">{e.quantity} {e.unit}</td>
+                        <td className="py-3.5"><Badge variant={statusVariant[e.status] || 'default'}>{e.status}</Badge></td>
+                        <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium">
+                          {new Date(e.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </td>
+                        <td className="py-3.5 text-right pr-4">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              className="w-9 h-9 rounded-full border border-border dark:border-zinc-800/80 flex items-center justify-center bg-background dark:bg-[#18181b] hover:bg-muted dark:hover:bg-[#27272a] text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-zinc-100 shadow-sm transition-all duration-200 cursor-pointer"
+                              title="View Details" onClick={() => {}}
+                            ><Eye className="h-[18px] w-[18px]" /></button>
+                            <button
+                              className="w-9 h-9 rounded-full border border-border dark:border-zinc-800/80 flex items-center justify-center bg-background dark:bg-[#18181b] hover:bg-muted dark:hover:bg-[#27272a] text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-zinc-100 shadow-sm transition-all duration-200 cursor-pointer"
+                              title="Edit Entry" onClick={() => {}}
+                            ><Pencil className="h-4 w-4" /></button>
+                            <button onClick={() => handleDelete(e._id)}
+                              className="w-9 h-9 rounded-full border border-red-200 dark:border-red-950/60 flex items-center justify-center bg-red-50/50 hover:bg-red-100 dark:bg-[#2a1415] dark:hover:bg-[#3f1a1c] text-red-600 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 shadow-sm transition-all duration-200 cursor-pointer"
+                              title="Delete Entry"
+                            ><Trash2 className="h-4 w-4" /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-4 border-t border-border/10 mt-2">
+                <div className="flex flex-wrap items-center gap-4">
+                  <p className="text-xs text-muted-foreground font-semibold">Showing {from}–{to} of {total} entries</p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0 border-l border-border/20 pl-4">
+                    <label htmlFor="page-size" className="font-semibold">Rows per page:</label>
+                    <select id="page-size" value={limit} onChange={(e) => changeLimit(Number(e.target.value))}
+                      className="rounded-xl border border-border/20 bg-muted/15 hover:bg-muted/25 px-2.5 py-1 text-[11px] font-semibold transition-colors outline-none cursor-pointer"
+                    >{PAGE_SIZE_OPTIONS.map((n) => <option key={n} value={n} className="bg-background">{n}</option>)}</select>
+                  </div>
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-1">
+                    <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => goToPage(page - 1)} className="h-8 w-8 p-0"><ChevronLeft className="h-4 w-4" /></Button>
+                    {getPageNumbers(page, totalPages).map((p, i) => p === '...' ? (
+                      <span key={`ellipsis-${i}`} className="px-1 text-muted-foreground font-semibold">…</span>
+                    ) : (
+                      <Button key={p} variant={p === page ? 'default' : 'outline'} size="sm" onClick={() => goToPage(p)} className="h-8 min-w-[2rem] px-2 font-semibold text-xs">{p}</Button>
+                    ))}
+                    <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => goToPage(page + 1)} className="h-8 w-8 p-0"><ChevronRight className="h-4 w-4" /></Button>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
+      <ConfirmDelete isOpen={delTarget!==null} onClose={()=>setDelTarget(null)} onConfirm={()=>{deleteMut.mutate(delTarget);setDelTarget(null);}} title="Delete Blood Entry" message="Delete this blood bank entry permanently?" />
     </div>
   );
 }

@@ -1,21 +1,31 @@
 import Feedback from '../models/Feedback.js';
 
+const SORTABLE_FIELDS = ['createdAt', 'status', 'type', 'category', 'rating'];
+
 export const list = async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, status, type, category } = req.query;
+    const { page = 1, limit = 20, search, sortBy, sortOrder, status, type, category } = req.query;
     const query = {};
+    if (search) {
+      query.$or = [
+        { description: new RegExp(search, 'i') },
+        { resolution: new RegExp(search, 'i') },
+      ];
+    }
     if (status) query.status = status;
     if (type) query.type = type;
     if (category) query.category = category;
+    const sortField = SORTABLE_FIELDS.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
     const feedbacks = await Feedback.find(query)
       .populate('patient', 'firstName lastName uhid')
       .populate('department', 'name')
       .populate('staff assignedTo resolvedBy', 'name')
-      .sort({ createdAt: -1 })
+      .sort({ [sortField]: sortDir })
       .limit(limit * 1)
       .skip((page - 1) * limit);
     const total = await Feedback.countDocuments(query);
-    res.json({ feedbacks, total, page: +page, pages: Math.ceil(total / limit) });
+    res.json({ feedbacks, total, page: +page, pages: Math.ceil(total / limit), totalPages: Math.ceil(total / limit) });
   } catch (error) { next(error); }
 };
 

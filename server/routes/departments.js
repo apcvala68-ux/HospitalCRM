@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { list, getById, create, update, remove } from '../controllers/departmentController.js';
+import { list, getById, create, update, remove, assignDoctor, removeDoctor } from '../controllers/departmentController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
 const router = Router();
@@ -9,6 +9,8 @@ router.get('/', list);
 router.get('/:id', getById);
 router.post('/', authorize('admin'), create);
 router.put('/:id', authorize('admin'), update);
+router.put('/:id/assign-doctor', authorize('admin'), assignDoctor);
+router.put('/:id/remove-doctor', authorize('admin'), removeDoctor);
 router.delete('/:id', authorize('admin'), remove);
 
 export default router;

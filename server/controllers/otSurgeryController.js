@@ -1,20 +1,31 @@
 import OTSurgery from '../models/OTSurgery.js';
 
+const SORTABLE_FIELDS = ['createdAt', 'surgeryNo', 'status', 'procedure', 'otRoom', 'scheduledDate'];
+
 export const list = async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, status, date } = req.query;
+    const { page = 1, limit = 20, search, sortBy, sortOrder, status, date } = req.query;
     const query = {};
+    if (search) {
+      query.$or = [
+        { surgeryNo: new RegExp(search, 'i') },
+        { procedure: new RegExp(search, 'i') },
+        { otRoom: new RegExp(search, 'i') },
+      ];
+    }
     if (status) query.status = status;
     if (date) query.scheduledDate = { $gte: new Date(date), $lt: new Date(new Date(date).getTime() + 86400000) };
+    const sortField = SORTABLE_FIELDS.includes(sortBy) ? sortBy : 'scheduledDate';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
     const surgeries = await OTSurgery.find(query)
       .populate('patient', 'firstName lastName uhid')
       .populate('surgeon assistantSurgeons anesthetist', 'user')
       .populate('nurses', 'name')
-      .sort({ scheduledDate: 1 })
+      .sort({ [sortField]: sortDir })
       .limit(limit * 1)
       .skip((page - 1) * limit);
     const total = await OTSurgery.countDocuments(query);
-    res.json({ surgeries, total, page: +page, pages: Math.ceil(total / limit) });
+    res.json({ surgeries, total, page: +page, pages: Math.ceil(total / limit), totalPages: Math.ceil(total / limit) });
   } catch (error) { next(error); }
 };
 

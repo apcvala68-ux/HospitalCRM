@@ -1,22 +1,32 @@
 import StaffRoster from '../models/StaffRoster.js';
 
+const SORTABLE_FIELDS = ['date', 'shift', 'status', 'department'];
+
 export const list = async (req, res, next) => {
   try {
-    const { page = 1, limit = 50, date, department, shift, status } = req.query;
+    const { page = 1, limit = 20, search, sortBy, sortOrder, date, department, shift, status } = req.query;
     const query = {};
+    if (search) {
+      query.$or = [
+        { shift: new RegExp(search, 'i') },
+        { notes: new RegExp(search, 'i') },
+      ];
+    }
     if (date) query.date = { $gte: new Date(date), $lt: new Date(new Date(date).getTime() + 86400000) };
     if (department) query.department = department;
     if (shift) query.shift = shift;
     if (status) query.status = status;
+    const sortField = SORTABLE_FIELDS.includes(sortBy) ? sortBy : 'date';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
     const roster = await StaffRoster.find(query)
       .populate('staff', 'name email phone role')
       .populate('department', 'name')
       .populate('swappedWith', 'name')
-      .sort({ date: 1, shift: 1 })
+      .sort({ [sortField]: sortDir })
       .limit(limit * 1)
       .skip((page - 1) * limit);
     const total = await StaffRoster.countDocuments(query);
-    res.json({ roster, total, page: +page, pages: Math.ceil(total / limit) });
+    res.json({ roster, total, page: +page, pages: Math.ceil(total / limit), totalPages: Math.ceil(total / limit) });
   } catch (error) { next(error); }
 };
 

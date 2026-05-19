@@ -1,21 +1,32 @@
 import Allergy from '../models/Allergy.js';
 
+const SORTABLE_FIELDS = ['createdAt', 'type', 'severity', 'substance', 'reaction'];
+
 export const list = async (req, res, next) => {
   try {
-    const { page = 1, limit = 50, patient, type, severity } = req.query;
+    const { page = 1, limit = 20, search, sortBy, sortOrder, patient, type, severity } = req.query;
     const query = {};
+    if (search) {
+      query.$or = [
+        { substance: new RegExp(search, 'i') },
+        { reaction: new RegExp(search, 'i') },
+        { type: new RegExp(search, 'i') },
+      ];
+    }
     if (patient) query.patient = patient;
     if (type) query.type = type;
     if (severity) query.severity = severity;
     query.isActive = true;
+    const sortField = SORTABLE_FIELDS.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
     const allergies = await Allergy.find(query)
       .populate('patient', 'firstName lastName uhid')
       .populate('diagnosedBy', 'user')
-      .sort({ createdAt: -1 })
+      .sort({ [sortField]: sortDir })
       .limit(limit * 1)
       .skip((page - 1) * limit);
     const total = await Allergy.countDocuments(query);
-    res.json({ allergies, total, page: +page, pages: Math.ceil(total / limit) });
+    res.json({ allergies, total, page: +page, pages: Math.ceil(total / limit), totalPages: Math.ceil(total / limit) });
   } catch (error) { next(error); }
 };
 

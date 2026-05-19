@@ -1,20 +1,42 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { useCalendarEvents, useAppointments, useCancelAppointment } from '../../hooks/useAppointments';
+import { useCalendarEvents, useAppointments, useCancelAppointment, useCreateAppointment } from '../../hooks/useAppointments';
 import { useDoctors } from '../../hooks/useDoctor';
 import { usePatientSearch } from '../../hooks/usePatients';
-import { useCreateAppointment } from '../../hooks/useAppointments';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { useToast } from '../../hooks/useToast';
-import { Calendar, Plus, X, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import {
+  Calendar, Plus, X, ChevronLeft, ChevronRight, Search, SlidersHorizontal,
+  Clock, CheckCircle, CalendarX2, ArrowUpDown, ArrowUp, ArrowDown, Eye,
+} from 'lucide-react';
+import { cn } from '../../lib/utils';
+
+const PAGE_SIZE_OPTIONS = [10, 15, 20, 50];
+const GRADIENTS = ['linear-gradient(135deg, #a78bfa 0%, #ec4899 100%)','linear-gradient(135deg, #f472b6 0%, #f43f5e 100%)','linear-gradient(135deg, #38bdf8 0%, #3b82f6 100%)','linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%)','linear-gradient(135deg, #fb923c 0%, #f97316 100%)','linear-gradient(135deg, #a78bfa 0%, #6366f1 100%)','linear-gradient(135deg, #f472b6 0%, #a855f7 100%)','linear-gradient(135deg, #34d399 0%, #059669 100%)'];
+const getGradient = (id) => { if (!id) return GRADIENTS[0]; let h=0; for(let i=0;i<id.length;i++) h=id.charCodeAt(i)+((h<<5)-h); return GRADIENTS[Math.abs(h)%GRADIENTS.length]; };
+function SortIcon({ active, direction }) { if(!active) return <ArrowUpDown className="h-3 w-3 opacity-30 shrink-0" />; return direction==='asc' ? <ArrowUp className="h-3 w-3 shrink-0" /> : <ArrowDown className="h-3 w-3 shrink-0" />; }
+function getPageNumbers(c,t){if(t<=7)return Array.from({length:t},(_,i)=>i+1);const p=[1];let s=Math.max(2,c-2),e=Math.min(t-1,c+2);if(c<=3)e=Math.min(5,t-1);if(c>=t-2)s=Math.max(t-4,2);if(s>2)p.push('...');for(let i=s;i<=e;i++)p.push(i);if(e<t-1)p.push('...');p.push(t);return p;}
+function StatCard({ label, value, icon:Icon, color, bg, changeText, isIncrease }){return(<Card className="flex-1 min-w-[200px] shadow-[var(--shadow-kpi)] hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col rounded-2xl bg-card border border-border/50 overflow-hidden"><CardContent className="p-4 flex-1"><div className="flex justify-between items-start gap-2"><div className="flex flex-col"><span className="text-[11px] font-medium text-muted-foreground block">{label}</span><p className="mt-2 text-2xl font-bold text-foreground tracking-tight leading-none">{value}</p>{changeText&&<span className={cn("text-[10px] font-medium mt-2 block",isIncrease?'text-emerald-600 dark:text-emerald-400':'text-rose-500')}>{changeText}</span>}</div><div className={cn('rounded-xl p-2 shrink-0',bg)}><Icon className="h-5 w-5" style={{color}}/></div></div></CardContent></Card>);}
+const statusVariant = { scheduled:'warning', confirmed:'info', completed:'success', cancelled:'destructive', 'checked-in':'info' };
 
 export function AppointmentsPage() {
+  const [sp, setSp] = useSearchParams();
+  const page = Number(sp.get('page')) || 1;
+  const limit = Number(sp.get('limit')) || 15;
+  const search = sp.get('search') || '';
+  const sortBy = sp.get('sortBy') || '';
+  const sortOrder = sp.get('sortOrder') || '';
+  const statusFilter = sp.get('status') || '';
+
+  const [searchInput, setSearchInput] = useState(search);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [view, setView] = useState('calendar');
   const calendarRef = useRef(null);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
@@ -27,7 +49,7 @@ export function AppointmentsPage() {
   const [reason, setReason] = useState('');
 
   const { data: eventsData } = useCalendarEvents(dateRange.start, dateRange.end);
-  const { data: listData, isLoading: listLoading } = useAppointments({ limit: 50 });
+  const { data: listData, isLoading: listLoading } = useAppointments({ page, limit, search, sortBy, sortOrder, status: statusFilter });
   const { data: doctorsData } = useDoctors();
   const { data: searchResults } = usePatientSearch(patientSearch);
   const createAppointment = useCreateAppointment();
@@ -36,101 +58,89 @@ export function AppointmentsPage() {
 
   const doctors = doctorsData?.doctors || [];
   const appointments = listData?.appointments || [];
+  const total = listData?.total || 0;
+  const totalPages = listData?.totalPages || 1;
+  const from = total === 0 ? 0 : (page - 1) * limit + 1;
+  const to = Math.min(page * limit, total);
 
-  const handleDatesSet = (arg) => {
-    setDateRange({ start: arg.start.toISOString(), end: arg.end.toISOString() });
-  };
+  const up = useCallback((u) => {
+    setSp(p => { const n = new URLSearchParams(p); Object.entries(u).forEach(([k, v]) => { if (v) n.set(k, v); else n.delete(k); }); return n; });
+  }, [setSp]);
+  const hs = (k) => { if (sortBy === k) up({ sortOrder: sortOrder === 'asc' ? 'desc' : 'asc', page: '1' }); else up({ sortBy: k, sortOrder: 'asc', page: '1' }); };
+  const cl = (n) => { up({ limit: String(n), page: '1' }); };
+  useEffect(() => { const h = setTimeout(() => { up({ search: searchInput, page: '1' }); }, 350); return () => clearTimeout(h); }, [searchInput, up]);
+  const haf = !!(statusFilter || search);
+  const hcf = () => { setSearchInput(''); up({ status: '', search: '', page: '1' }); };
 
-  const handleDateClick = (arg) => {
-    setSelectedDate(arg.dateStr);
-    setShowBook(true);
-  };
-
-  const handleEventClick = (arg) => {
-    const event = arg.event;
-    toast.info(`${event.title} — ${event.extendedProps?.status}`);
-  };
-
+  const handleDatesSet = (arg) => { setDateRange({ start: arg.start.toISOString(), end: arg.end.toISOString() }); };
+  const handleDateClick = (arg) => { setSelectedDate(arg.dateStr); setShowBook(true); };
+  const handleEventClick = (arg) => { toast.info(`${arg.event.title} — ${arg.event.extendedProps?.status}`); };
   const handleBook = async () => {
-    if (!selectedPatient || !selectedDoctor || !selectedDate) {
-      toast.error('Select patient, doctor, and date');
-      return;
-    }
-    const endTime = selectedSlot;
-    const [h, m] = endTime.split(':').map(Number);
+    if (!selectedPatient || !selectedDoctor || !selectedDate) { toast.error('Select patient, doctor, and date'); return; }
+    const [h, m] = selectedSlot.split(':').map(Number);
     const end = `${String(h + (m + 15 >= 60 ? 1 : 0)).padStart(2, '0')}:${String((m + 15) % 60).padStart(2, '0')}`;
     try {
-      await createAppointment.mutateAsync({
-        patient: selectedPatient._id,
-        doctor: selectedDoctor,
-        date: selectedDate,
-        timeSlot: { start: selectedSlot, end },
-        reason,
-        status: 'scheduled',
-      });
-      setShowBook(false);
-      setSelectedPatient(null);
-      setPatientSearch('');
-      setReason('');
-    } catch (err) {
-      // handled by hook
-    }
+      await createAppointment.mutateAsync({ patient: selectedPatient._id, doctor: selectedDoctor, date: selectedDate, timeSlot: { start: selectedSlot, end }, reason, status: 'scheduled' });
+      setShowBook(false); setSelectedPatient(null); setPatientSearch(''); setReason('');
+    } catch { /* hook handles errors via onError */ }
   };
+  const gp = (p) => { if (p < 1 || p > totalPages) return; up({ page: String(p) }); };
+  const goToPage = gp;
 
-  const events = (eventsData?.events || []).map(e => ({
-    ...e,
-    start: e.start,
-    end: e.end,
-  }));
-
-  const statusVariant = { scheduled: 'warning', confirmed: 'info', completed: 'success', cancelled: 'destructive', 'checked-in': 'info' };
+  const events = (eventsData?.events || []).map(e => ({ ...e, start: e.start, end: e.end }));
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayCount = appointments.filter(a => a.date?.startsWith(todayStr)).length;
+  const scheduledCount = appointments.filter(a => a.status === 'scheduled').length;
+  const completedCount = appointments.filter(a => a.status === 'completed').length;
+  const cancelledCount = appointments.filter(a => a.status === 'cancelled').length;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Appointments</h1>
-          <p className="text-muted-foreground">Schedule and manage patient appointments</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Appointments</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Schedule, view, and manage patient appointments.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant={view === 'calendar' ? 'default' : 'outline'} size="sm" onClick={() => setView('calendar')}>
-            <Calendar className="mr-1 h-4 w-4" /> Calendar
-          </Button>
-          <Button variant={view === 'list' ? 'default' : 'outline'} size="sm" onClick={() => setView('list')}>
-            List
-          </Button>
-          <Button onClick={() => setShowBook(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Book
-          </Button>
+        <div className="flex items-center gap-2">
+          <Button variant={view === 'calendar' ? 'default' : 'outline'} size="sm" onClick={() => setView('calendar')}><Calendar className="mr-1 h-4 w-4" /> Calendar</Button>
+          <Button variant={view === 'list' ? 'default' : 'outline'} size="sm" onClick={() => setView('list')}>List</Button>
+          <Button onClick={() => setShowBook(true)}><Plus className="mr-2 h-4 w-4" /> Book</Button>
         </div>
+      </div>
+
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Today's Appointments" value={todayCount} icon={Calendar} color="#3b82f6" bg="bg-blue-50 dark:bg-blue-950/30" changeText={`of ${total} total`} isIncrease />
+        <StatCard label="Scheduled" value={scheduledCount} icon={Clock} color="#f59e0b" bg="bg-amber-50 dark:bg-amber-950/30" changeText="Awaiting" isIncrease />
+        <StatCard label="Completed" value={completedCount} icon={CheckCircle} color="#0d9488" bg="bg-teal-50 dark:bg-teal-950/30" changeText="Done today" isIncrease />
+        <StatCard label="Cancelled" value={cancelledCount} icon={CalendarX2} color="#ef4444" bg="bg-red-50 dark:bg-red-950/30" changeText={cancelledCount > 0 ? `${cancelledCount} cancelled` : ''} isIncrease={false} />
       </div>
 
       {showBook && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Book Appointment</CardTitle>
-            <Button variant="ghost" size="icon" onClick={() => setShowBook(false)}>
-              <X className="h-4 w-4" />
-            </Button>
+            <CardTitle className="text-lg font-semibold">Book Appointment</CardTitle>
+            <button onClick={() => setShowBook(false)} className="w-8 h-8 rounded-full border border-border dark:border-zinc-800/80 flex items-center justify-center bg-background dark:bg-[#18181b] hover:bg-muted dark:hover:bg-[#27272a] text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-zinc-100 shadow-sm transition-all duration-200 cursor-pointer"><X className="h-4 w-4" /></button>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Patient</label>
+              <label className="text-sm font-semibold text-foreground">Patient</label>
               {selectedPatient ? (
-                <div className="flex items-center justify-between rounded-lg border p-2">
-                  <span className="text-sm">{selectedPatient.firstName} {selectedPatient.lastName} — {selectedPatient.uhid}</span>
-                  <Button variant="ghost" size="icon" onClick={() => { setSelectedPatient(null); setPatientSearch(''); }}>
-                    <X className="h-4 w-4" />
-                  </Button>
+                <div className="flex items-center justify-between rounded-xl border border-border/60 dark:border-zinc-800/80 p-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-xs shadow-md" style={{ background: getGradient(selectedPatient._id) }}>{selectedPatient.firstName?.charAt(0)}{selectedPatient.lastName?.charAt(0)}</div>
+                    <div><p className="text-sm font-semibold">{selectedPatient.firstName} {selectedPatient.lastName}</p><p className="text-[11px] text-muted-foreground font-mono">{selectedPatient.uhid}</p></div>
+                  </div>
+                  <button onClick={() => { setSelectedPatient(null); setPatientSearch(''); }} className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground cursor-pointer"><X className="h-3.5 w-3.5" /></button>
                 </div>
               ) : (
                 <div>
-                  <Input placeholder="Search patient..." value={patientSearch} onChange={(e) => setPatientSearch(e.target.value)} />
+                  <Input placeholder="Search patient by name or ID..." value={patientSearch} onChange={e => setPatientSearch(e.target.value)} className="rounded-xl border-border/20 bg-muted/15 h-9 text-xs" />
                   {searchResults?.patients?.length > 0 && (
-                    <div className="mt-1 max-h-32 overflow-y-auto rounded-lg border">
-                      {searchResults.patients.map((p) => (
-                        <button key={p._id} type="button" onClick={() => { setSelectedPatient(p); setPatientSearch(''); }} className="w-full px-3 py-2 text-left text-sm hover:bg-accent">
-                          {p.firstName} {p.lastName} — {p.uhid}
+                    <div className="mt-1 max-h-40 overflow-y-auto rounded-xl border border-border/40 bg-card shadow-lg">
+                      {searchResults.patients.map(p => (
+                        <button key={p._id} type="button" onClick={() => { setSelectedPatient(p); setPatientSearch(''); }} className="w-full px-3 py-2.5 text-left text-sm hover:bg-muted/50 border-b last:border-0 border-border/10 flex items-center gap-2 cursor-pointer">
+                          <div className="w-7 h-7 rounded-full flex items-center justify-center text-white font-black text-[10px] shadow-sm shrink-0" style={{ background: getGradient(p._id) }}>{p.firstName?.charAt(0)}{p.lastName?.charAt(0)}</div>
+                          <div><p className="font-medium text-sm">{p.firstName} {p.lastName}</p><p className="text-[10px] text-muted-foreground font-mono">{p.uhid}</p></div>
                         </button>
                       ))}
                     </div>
@@ -139,34 +149,28 @@ export function AppointmentsPage() {
               )}
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Doctor</label>
-              <select value={selectedDoctor} onChange={(e) => setSelectedDoctor(e.target.value)} className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+              <label className="text-sm font-semibold text-foreground">Doctor</label>
+              <select value={selectedDoctor} onChange={e => setSelectedDoctor(e.target.value)} className="flex h-9 w-full rounded-xl border border-border/20 bg-muted/15 px-3 text-xs outline-none cursor-pointer">
                 <option value="">Select doctor</option>
-                {doctors.map((d) => (
-                  <option key={d._id} value={d._id}>{d.user?.name} — {d.specialization}</option>
-                ))}
+                {doctors.map(d => <option key={d._id} value={d._id}>{d.user?.name} — {d.specialization}</option>)}
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Date</label>
-              <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
+              <label className="text-sm font-semibold text-foreground">Date</label>
+              <Input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="h-9 rounded-xl" />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Time</label>
-              <select value={selectedSlot} onChange={(e) => setSelectedSlot(e.target.value)} className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
-                {Array.from({ length: 16 }, (_, i) => `${String(9 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`).map(t => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
+              <label className="text-sm font-semibold text-foreground">Time</label>
+              <select value={selectedSlot} onChange={e => setSelectedSlot(e.target.value)} className="flex h-9 w-full rounded-xl border border-border/20 bg-muted/15 px-3 text-xs outline-none cursor-pointer">
+                {Array.from({ length: 16 }, (_, i) => `${String(9 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`).map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium">Reason</label>
-              <Input placeholder="Reason for visit..." value={reason} onChange={(e) => setReason(e.target.value)} />
+              <label className="text-sm font-semibold text-foreground">Reason</label>
+              <Input placeholder="Reason for visit..." value={reason} onChange={e => setReason(e.target.value)} className="rounded-xl border-border/20 bg-muted/15 h-9 text-xs" />
             </div>
             <div className="md:col-span-2">
-              <Button onClick={handleBook} disabled={createAppointment.isPending}>
-                {createAppointment.isPending ? 'Booking...' : 'Book Appointment'}
-              </Button>
+              <Button onClick={handleBook} disabled={createAppointment.isPending} className="rounded-xl">{createAppointment.isPending ? 'Booking...' : 'Book Appointment'}</Button>
             </div>
           </CardContent>
         </Card>
@@ -179,11 +183,7 @@ export function AppointmentsPage() {
               ref={calendarRef}
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               initialView="dayGridMonth"
-              headerToolbar={{
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay',
-              }}
+              headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
               events={events}
               datesSet={handleDatesSet}
               dateClick={handleDateClick}
@@ -196,49 +196,101 @@ export function AppointmentsPage() {
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <CardHeader><CardTitle className="text-lg">All Appointments ({appointments.length})</CardTitle></CardHeader>
-          <CardContent>
-            {listLoading ? (
-              <div className="flex justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
-            ) : appointments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No appointments</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b text-left text-sm text-muted-foreground">
-                      <th className="pb-2 font-medium">Patient</th>
-                      <th className="pb-2 font-medium">Doctor</th>
-                      <th className="pb-2 font-medium">Date</th>
-                      <th className="pb-2 font-medium">Time</th>
-                      <th className="pb-2 font-medium">Status</th>
-                      <th className="pb-2 font-medium"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {appointments.map((a) => (
-                      <tr key={a._id} className="border-b last:border-0 text-sm">
-                        <td className="py-2 font-medium">{a.patient?.firstName} {a.patient?.lastName}</td>
-                        <td className="py-2">{a.doctor?.user?.name}</td>
-                        <td className="py-2">{new Date(a.date).toLocaleDateString()}</td>
-                        <td className="py-2">{a.timeSlot?.start} - {a.timeSlot?.end}</td>
-                        <td className="py-2">
-                          <Badge variant={statusVariant[a.status]}>{a.status}</Badge>
-                        </td>
-                        <td className="py-2">
-                          {a.status !== 'cancelled' && a.status !== 'completed' && (
-                            <Button size="sm" variant="ghost" onClick={() => cancelAppointment.mutate(a._id)}>Cancel</Button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        <>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3 w-full bg-card p-3 rounded-xl border border-border/50 shadow-sm">
+              <form onSubmit={e => e.preventDefault()} className="relative w-full md:w-80">
+                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input placeholder="Search by reason..." value={searchInput} onChange={e => setSearchInput(e.target.value)} className="pl-10 pr-4 rounded-xl border-border/20 bg-muted/15 focus-visible:bg-background focus:ring-1 focus:ring-primary h-9 text-xs" />
+              </form>
+              <div className="flex items-center gap-2">
+                {haf && <button onClick={hcf} className="h-9 px-3.5 rounded-xl border border-red-200 dark:border-red-950/40 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none shadow-sm"><X className="h-3.5 w-3.5" /> Clear Filters</button>}
+                <button onClick={() => setIsFilterOpen(!isFilterOpen)} className={cn("h-9 px-4 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer select-none", isFilterOpen ? "bg-muted text-foreground border-zinc-300 dark:bg-[#18181b] dark:text-zinc-100 dark:border-zinc-700 shadow-md" : "border-border/60 dark:border-border/20 bg-muted/30 hover:bg-muted/50 dark:bg-muted/10 dark:hover:bg-muted/20 text-muted-foreground hover:text-foreground")}>
+                  <SlidersHorizontal className="h-3.5 w-3.5" /> Filter{statusFilter && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                </button>
+              </div>
+            </div>
+            {isFilterOpen && (
+              <div className="p-4 bg-card rounded-xl border border-border/40 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div><span className="text-[10px] font-bold text-muted-foreground block mb-2 uppercase tracking-wider">Status</span><div className="flex flex-wrap gap-2">{['', 'scheduled', 'confirmed', 'checked-in', 'completed', 'cancelled'].map(s => <button key={s} onClick={() => up({ status: s, page: '1' })} className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer select-none", (statusFilter === s) ? "bg-primary text-primary-foreground border-primary" : "bg-muted/10 hover:bg-muted/20 border-border/10 text-muted-foreground hover:text-foreground")}>{s ? s.charAt(0).toUpperCase() + s.slice(1).replace('-', ' ') : 'All'}</button>)}</div></div>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+
+          <Card>
+            <CardContent className="pt-6">
+              {listLoading ? (
+                <div className="flex justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+              ) : appointments.length === 0 ? (
+                <div className="py-8 text-center text-muted-foreground">{search || statusFilter ? 'No appointments match your filters' : 'No appointments yet'}</div>
+              ) : (
+                <>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                          <th className="pb-3 pr-2 w-10 text-center font-semibold">#</th>
+                          <th className="pb-3 font-semibold">Patient</th>
+                          <th className="pb-3 font-semibold">Doctor</th>
+                          <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => hs('date')}><span className="inline-flex items-center gap-1">Date <SortIcon active={sortBy === 'date'} direction={sortOrder} /></span></th>
+                          <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => hs('timeSlot.start')}><span className="inline-flex items-center gap-1">Time <SortIcon active={sortBy === 'timeSlot.start'} direction={sortOrder} /></span></th>
+                          <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => hs('status')}><span className="inline-flex items-center gap-1">Status <SortIcon active={sortBy === 'status'} direction={sortOrder} /></span></th>
+                          <th className="pb-3 font-semibold cursor-pointer select-none" onClick={() => hs('createdAt')}><span className="inline-flex items-center gap-1">Created <SortIcon active={sortBy === 'createdAt'} direction={sortOrder} /></span></th>
+                          <th className="pb-3 font-semibold w-32 text-right pr-4">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {appointments.map((a, idx) => (
+                          <tr key={a._id} className="border-b last:border-0 hover:bg-muted/40 transition-colors">
+                            <td className="py-3.5 pr-2 text-center text-xs text-muted-foreground font-mono">{from + idx}</td>
+                            <td className="py-3.5">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-white font-black text-xs shadow-md border border-white/10" style={{ background: getGradient(a.patient?._id || a._id) }}>
+                                  {a.patient?.firstName?.charAt(0)}{a.patient?.lastName?.charAt(0)}
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="font-semibold text-sm">{a.patient?.firstName} {a.patient?.lastName}</span>
+                                  <span className="text-xs text-muted-foreground font-mono">{a.patient?.uhid || ''}</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3.5"><span className="text-sm font-medium">{a.doctor?.user?.name || <span className="text-muted-foreground">—</span>}</span><span className="block text-[10px] text-muted-foreground">{a.doctor?.specialization}</span></td>
+                            <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium">{a.date ? new Date(a.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
+                            <td className="py-3.5 text-sm font-medium">{a.timeSlot?.start}–{a.timeSlot?.end}</td>
+                            <td className="py-3.5"><Badge variant={statusVariant[a.status] || 'default'} className="capitalize">{a.status}</Badge></td>
+                            <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium">{new Date(a.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                            <td className="py-3.5 text-right pr-4">
+                              <div className="flex items-center justify-end gap-2">
+                                <button className="w-9 h-9 rounded-full border border-border dark:border-zinc-800/80 flex items-center justify-center bg-background dark:bg-[#18181b] hover:bg-muted dark:hover:bg-[#27272a] text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-zinc-100 shadow-sm transition-all duration-200 cursor-pointer" title="View"><Eye className="h-[18px] w-[18px]" /></button>
+                                {a.status !== 'cancelled' && a.status !== 'completed' && (
+                                  <button onClick={() => cancelAppointment.mutate(a._id)} className="w-9 h-9 rounded-full border border-red-200 dark:border-red-950/60 flex items-center justify-center bg-red-50/50 hover:bg-red-100 dark:bg-[#2a1415] dark:hover:bg-[#3f1a1c] text-red-600 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 shadow-sm transition-all duration-200 cursor-pointer" title="Cancel"><X className="h-4 w-4" /></button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-4 border-t border-border/10 mt-2">
+                    <div className="flex flex-wrap items-center gap-4">
+                      <p className="text-xs text-muted-foreground font-semibold">Showing {from}–{to} of {total} appointments</p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0 border-l border-border/20 pl-4">
+                        <label htmlFor="page-size" className="font-semibold">Rows per page:</label>
+                        <select id="page-size" value={limit} onChange={e => cl(Number(e.target.value))} className="rounded-xl border border-border/20 bg-muted/15 hover:bg-muted/25 px-2.5 py-1 text-[11px] font-semibold transition-colors outline-none cursor-pointer">{PAGE_SIZE_OPTIONS.map(n => <option key={n} value={n} className="bg-background">{n}</option>)}</select>
+                      </div>
+                    </div>
+                    {totalPages > 1 && <div className="flex items-center gap-1">
+                      <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => goToPage(page - 1)} className="h-8 w-8 p-0"><ChevronLeft className="h-4 w-4" /></Button>
+                      {getPageNumbers(page, totalPages).map((p, i) => p === '...' ? <span key={`e-${i}`} className="px-1 text-muted-foreground font-semibold">…</span> : <Button key={p} variant={p === page ? 'default' : 'outline'} size="sm" onClick={() => goToPage(p)} className="h-8 min-w-[2rem] px-2 font-semibold text-xs">{p}</Button>)}
+                      <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => goToPage(page + 1)} className="h-8 w-8 p-0"><ChevronRight className="h-4 w-4" /></Button>
+                    </div>}
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );

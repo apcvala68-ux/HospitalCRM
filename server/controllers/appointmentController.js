@@ -1,9 +1,16 @@
 import Appointment from '../models/Appointment.js';
 
+const SORTABLE_FIELDS = ['createdAt', 'date', 'status', 'timeSlot.start'];
+
 export const list = async (req, res, next) => {
   try {
-    const { page = 1, limit = 30, status, doctor, patient, date } = req.query;
+    const { page = 1, limit = 20, search, sortBy, sortOrder, status, doctor, patient, date } = req.query;
     const query = {};
+    if (search) {
+      query.$or = [
+        { reason: new RegExp(search, 'i') },
+      ];
+    }
     if (status) query.status = status;
     if (doctor) query.doctor = doctor;
     if (patient) query.patient = patient;
@@ -14,12 +21,14 @@ export const list = async (req, res, next) => {
       next.setDate(next.getDate() + 1);
       query.date = { $gte: d, $lt: next };
     }
+    const sortField = SORTABLE_FIELDS.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
     const total = await Appointment.countDocuments(query);
     const appointments = await Appointment.find(query)
       .populate('patient', 'firstName lastName uhid phone gender')
       .populate({ path: 'doctor', populate: { path: 'user', select: 'name' }, select: 'specialization' })
-      .sort({ date: -1, 'timeSlot.start': -1 })
-      .skip((page - 1) * limit)
+      .sort({ [sortField]: sortDir })
+      .skip((page - 1) * Number(limit))
       .limit(Number(limit));
     res.json({ appointments, total, page: Number(page), totalPages: Math.ceil(total / limit) });
   } catch (error) { next(error); }

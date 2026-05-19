@@ -1,18 +1,28 @@
 import PurchaseOrder from '../models/PurchaseOrder.js';
 
+const SORTABLE_FIELDS = ['createdAt', 'orderNo', 'status', 'vendor.name', 'total', 'orderDate'];
+
 export const list = async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, status, vendor } = req.query;
+    const { page = 1, limit = 20, search, sortBy, sortOrder, status, vendor } = req.query;
     const query = {};
+    if (search) {
+      query.$or = [
+        { orderNo: new RegExp(search, 'i') },
+        { 'vendor.name': new RegExp(search, 'i') },
+      ];
+    }
     if (status) query.status = status;
     if (vendor) query['vendor.name'] = new RegExp(vendor, 'i');
+    const sortField = SORTABLE_FIELDS.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
     const orders = await PurchaseOrder.find(query)
       .populate('createdBy receivedBy', 'name')
-      .sort({ createdAt: -1 })
+      .sort({ [sortField]: sortDir })
       .limit(limit * 1)
       .skip((page - 1) * limit);
     const total = await PurchaseOrder.countDocuments(query);
-    res.json({ orders, total, page: +page, pages: Math.ceil(total / limit) });
+    res.json({ orders, total, page: +page, pages: Math.ceil(total / limit), totalPages: Math.ceil(total / limit) });
   } catch (error) { next(error); }
 };
 

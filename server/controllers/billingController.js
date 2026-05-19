@@ -13,9 +13,11 @@ const generateInvoiceNo = async () => {
   return `${prefix}${String(next).padStart(5, '0')}`;
 };
 
+const SORTABLE_FIELDS = ['createdAt', 'invoiceNo', 'total', 'amountPaid', 'status'];
+
 export const list = async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, status, search } = req.query;
+    const { page = 1, limit = 20, search, sortBy, sortOrder, status } = req.query;
     const query = {};
     if (status) query.status = status;
     if (search) {
@@ -23,12 +25,14 @@ export const list = async (req, res, next) => {
         { invoiceNo: new RegExp(search, 'i') },
       ];
     }
+    const sortField = SORTABLE_FIELDS.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
     const total = await Billing.countDocuments(query);
     const bills = await Billing.find(query)
       .populate('patient', 'firstName lastName uhid phone')
       .populate('createdBy', 'name')
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
+      .sort({ [sortField]: sortDir })
+      .skip((page - 1) * Number(limit))
       .limit(Number(limit));
     res.json({ bills, total, page: Number(page), totalPages: Math.ceil(total / limit) });
   } catch (error) {

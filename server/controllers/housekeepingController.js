@@ -1,21 +1,31 @@
 import Housekeeping from '../models/Housekeeping.js';
 
+const SORTABLE_FIELDS = ['createdAt', 'status', 'type', 'priority', 'location'];
+
 export const list = async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, status, type, priority } = req.query;
+    const { page = 1, limit = 20, search, sortBy, sortOrder, status, type, priority } = req.query;
     const query = {};
+    if (search) {
+      query.$or = [
+        { location: new RegExp(search, 'i') },
+        { description: new RegExp(search, 'i') },
+      ];
+    }
     if (status) query.status = status;
     if (type) query.type = type;
     if (priority) query.priority = priority;
+    const sortField = SORTABLE_FIELDS.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
     const tickets = await Housekeeping.find(query)
       .populate('ward', 'name')
       .populate('bed', 'bedNo roomNo')
       .populate('assignedTo assignedBy', 'name')
-      .sort({ createdAt: -1 })
+      .sort({ [sortField]: sortDir })
       .limit(limit * 1)
       .skip((page - 1) * limit);
     const total = await Housekeeping.countDocuments(query);
-    res.json({ tickets, total, page: +page, pages: Math.ceil(total / limit) });
+    res.json({ tickets, total, page: +page, pages: Math.ceil(total / limit), totalPages: Math.ceil(total / limit) });
   } catch (error) { next(error); }
 };
 

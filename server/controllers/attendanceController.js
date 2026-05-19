@@ -48,20 +48,31 @@ export const todayAttendance = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+const AT_SORTABLE = ['date', 'checkIn', 'checkOut', 'status', 'shift'];
+
 export const list = async (req, res, next) => {
   try {
-    const { date, userId, page = 1, limit = 50 } = req.query;
+    const { date, userId, search, sortBy, sortOrder, page = 1, limit = 20 } = req.query;
     const query = {};
+    if (search) {
+      query.$or = [
+        { status: new RegExp(search, 'i') },
+        { shift: new RegExp(search, 'i') },
+        { notes: new RegExp(search, 'i') },
+      ];
+    }
     if (date) {
       const d = new Date(date);
       d.setHours(0, 0, 0, 0);
       query.date = d;
     }
     if (userId) query.user = userId;
+    const sortField = AT_SORTABLE.includes(sortBy) ? sortBy : 'date';
+    const sortDir = sortOrder === 'asc' ? 1 : -1;
     const records = await Attendance.find(query)
       .populate('user', 'name email role')
-      .sort({ date: -1, checkIn: -1 })
-      .skip((page - 1) * limit)
+      .sort({ [sortField]: sortDir })
+      .skip((page - 1) * Number(limit))
       .limit(Number(limit));
     const total = await Attendance.countDocuments(query);
     res.json({ records, total, page: Number(page), totalPages: Math.ceil(total / limit) });

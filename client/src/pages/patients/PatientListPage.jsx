@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { ConfirmDelete } from '../../components/ui/ConfirmDelete';
 import { Link, useSearchParams } from 'react-router-dom';
 import { usePatients, useDeletePatient } from '../../hooks/usePatients';
 import { Card, CardContent } from '../../components/ui/card';
@@ -95,6 +96,7 @@ export function PatientListPage() {
   const [searchInput, setSearchInput] = useState(search);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
+  const [delTarget, setDelTarget] = useState(null);
 
   const { data, isLoading } = usePatients({ page, search, limit, sortBy, sortOrder, gender, bloodGroup });
   const { data: statsData } = useDashboardStats();
@@ -186,11 +188,7 @@ export function PatientListPage() {
     updateParams({ gender: '', bloodGroup: '', search: '', page: '1' });
   };
 
-  const handleDelete = (id, name) => {
-    if (window.confirm(`Are you sure you want to delete patient "${name}"?`)) {
-      deleteMut.mutate(id);
-    }
-  };
+  const handleDelete = (id) => setDelTarget(id);
 
   const goToPage = (p) => {
     if (p < 1 || p > (data?.totalPages || 1)) return;
@@ -459,7 +457,7 @@ export function PatientListPage() {
 
                             {/* Delete Button */}
                             <button
-                              onClick={() => handleDelete(p._id, `${p.firstName} ${p.lastName}`)}
+                              onClick={() => handleDelete(p._id)}
                               className="w-9 h-9 rounded-full border border-red-200 dark:border-red-950/60 flex items-center justify-center bg-red-50/50 hover:bg-red-100 dark:bg-[#2a1415] dark:hover:bg-[#3f1a1c] text-red-600 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 shadow-sm transition-all duration-200 cursor-pointer"
                               title="Delete Patient"
                             >
@@ -538,6 +536,7 @@ export function PatientListPage() {
           )}
         </CardContent>
       </Card>
+      <ConfirmDelete isOpen={delTarget!==null} onClose={()=>setDelTarget(null)} onConfirm={()=>{deleteMut.mutate(delTarget);setDelTarget(null);}} title="Delete Patient" message="Delete this patient permanently? This action cannot be undone." />
     </div>
   );
 }
