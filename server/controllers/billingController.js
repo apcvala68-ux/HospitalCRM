@@ -43,8 +43,15 @@ export const list = async (req, res, next) => {
 export const getById = async (req, res, next) => {
   try {
     const bill = await Billing.findById(req.params.id)
-      .populate('patient', 'firstName lastName uhid phone address')
-      .populate('createdBy', 'name');
+      .populate('patient', 'firstName lastName uhid phone address dob gender bloodGroup email')
+      .populate('createdBy', 'name')
+      .populate({
+        path: 'doctor',
+        populate: [
+          { path: 'user', select: 'name' },
+          { path: 'department', select: 'name' }
+        ]
+      });
     if (!bill) return res.status(404).json({ message: 'Invoice not found' });
     res.json({ bill });
   } catch (error) {

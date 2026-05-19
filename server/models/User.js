@@ -20,6 +20,8 @@ const userSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   shift: { type: String, enum: ['morning', 'evening', 'night', 'general'], default: 'general' },
   lastLogin: { type: Date },
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
 }, { timestamps: true });
 
 userSchema.index({ role: 1 });

@@ -34,27 +34,27 @@ function StatCard({ label, value, icon: Icon, color, bg, change, sparkline = [] 
   const chartData = sparkline.length > 0 ? sparkline : generateSparkline();
 
   return (
-    <Card className="flex-1 min-w-[160px] shadow-[var(--shadow-kpi)] hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
-      <CardContent className="p-3 pb-1 flex-1">
-        <div className="flex justify-between items-start gap-2">
-          <div className="flex flex-col">
-            <span className="text-[11px] font-medium text-muted-foreground block">{label}</span>
-            <p className="mt-1 text-2xl font-bold text-foreground tracking-tight leading-none">{value}</p>
+    <Card className="flex-1 min-w-[200px] shadow-[var(--shadow-kpi)] hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col rounded-2xl bg-card border border-border/50 overflow-hidden">
+      <CardContent className="py-4 px-5 pb-2 flex-1">
+        <div className="flex justify-between items-center gap-3">
+          <div className="space-y-2">
+            <span className="text-[10px] font-bold tracking-wider text-muted-foreground/70 uppercase block">{label}</span>
+            <p className="text-3xl font-extrabold text-foreground tracking-tight leading-none">{value}</p>
             {change !== 0 && change !== undefined && (
-              <div className="mt-1 h-4 flex items-center">
-                <span className={cn("flex items-center gap-1 text-[10px] font-medium", up ? 'text-emerald-600' : 'text-red-500')}>
-                  {up ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
+              <div className="h-4 flex items-center mt-1">
+                <span className={cn("flex items-center gap-1 text-[10.5px] font-bold", up ? 'text-emerald-500' : 'text-rose-500')}>
+                  {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                   {up ? '+' : ''}{change}%
                 </span>
               </div>
             )}
           </div>
-          <div className={cn('rounded-xl p-2 shrink-0', bg)}>
-            <Icon className="h-4.5 w-4.5" style={{ color }} />
+          <div className={cn('rounded-xl p-3 shrink-0 flex items-center justify-center', bg)}>
+            <Icon className="h-5.5 w-5.5" style={{ color }} />
           </div>
         </div>
       </CardContent>
-      <div className="mt-auto border-t border-border/30 pt-0">
+      <div className="mt-auto border-t border-border/20 pt-0">
         <Sparkline data={chartData} color={color} height={24} />
       </div>
     </Card>

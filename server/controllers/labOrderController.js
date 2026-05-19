@@ -1,4 +1,5 @@
 import LabOrder from '../models/LabOrder.js';
+import Patient from '../models/Patient.js';
 
 export const list = async (req, res, next) => {
   try {
@@ -8,9 +9,33 @@ export const list = async (req, res, next) => {
     if (patient) query.patient = patient;
     if (category) query['tests.category'] = category;
     if (search) {
+      // Find matching patients by firstName, lastName, phone, or uhid
+      const patientQuery = {
+        $or: [
+          { firstName: new RegExp(search, 'i') },
+          { lastName: new RegExp(search, 'i') },
+          { phone: new RegExp(search, 'i') },
+          { uhid: new RegExp(search, 'i') },
+        ]
+      };
+      
+      const parts = search.trim().split(/\s+/);
+      if (parts.length > 1) {
+        patientQuery.$or.push({
+          $and: [
+            { firstName: new RegExp(parts[0], 'i') },
+            { lastName: new RegExp(parts[1], 'i') }
+          ]
+        });
+      }
+
+      const matchingPatients = await Patient.find(patientQuery).select('_id');
+      const patientIds = matchingPatients.map(p => p._id);
+
       query.$or = [
         { orderNo: new RegExp(search, 'i') },
         { 'tests.testName': new RegExp(search, 'i') },
+        { patient: { $in: patientIds } }
       ];
     }
     const orders = await LabOrder.find(query)

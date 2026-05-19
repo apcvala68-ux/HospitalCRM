@@ -17,7 +17,28 @@ const PAGE_SIZE_OPTIONS = [10, 15, 20, 50];
 
 function SortIcon({ active, direction }) { if(!active) return <ArrowUpDown className="h-3 w-3 opacity-30 shrink-0" />; return direction==='asc' ? <ArrowUp className="h-3 w-3 shrink-0" /> : <ArrowDown className="h-3 w-3 shrink-0" />; }
 function getPageNumbers(c,t){if(t<=7)return Array.from({length:t},(_,i)=>i+1);const p=[1];let s=Math.max(2,c-2),e=Math.min(t-1,c+2);if(c<=3)e=Math.min(5,t-1);if(c>=t-2)s=Math.max(t-4,2);if(s>2)p.push('...');for(let i=s;i<=e;i++)p.push(i);if(e<t-1)p.push('...');p.push(t);return p;}
-function StatCard({ label, value, icon:Icon, color, bg, changeText, isIncrease }){return(<Card className="flex-1 min-w-[200px] shadow-[var(--shadow-kpi)] hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col rounded-2xl bg-card border border-border/50 overflow-hidden"><CardContent className="p-4 flex-1"><div className="flex justify-between items-start gap-2"><div className="flex flex-col"><span className="text-[11px] font-medium text-muted-foreground block">{label}</span><p className="mt-2 text-2xl font-bold text-foreground tracking-tight leading-none">{value}</p>{changeText&&<span className={cn("text-[10px] font-medium mt-2 block",isIncrease?'text-emerald-600 dark:text-emerald-400':'text-rose-500')}>{changeText}</span>}</div><div className={cn('rounded-xl p-2 shrink-0',bg)}><Icon className="h-5 w-5" style={{color}}/></div></div></CardContent></Card>);}
+function StatCard({ label, value, icon: Icon, color, bg, changeText, isIncrease }) {
+  return (
+    <Card className="flex-1 min-w-[220px] shadow-[var(--shadow-kpi)] hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col rounded-2xl bg-card border border-border/50 overflow-hidden">
+      <CardContent className="py-4 px-5 flex-1">
+        <div className="flex justify-between items-center gap-4">
+          <div className="space-y-2">
+            <span className="text-[10px] font-bold tracking-wider text-muted-foreground/70 uppercase block">{label}</span>
+            <p className="text-3xl font-extrabold text-foreground tracking-tight leading-none">{value}</p>
+            {changeText && (
+              <span className={cn("text-xs font-semibold block mt-1", isIncrease ? 'text-emerald-500' : 'text-rose-500')}>
+                {changeText}
+              </span>
+            )}
+          </div>
+          <div className={cn('rounded-xl p-3 shrink-0 flex items-center justify-center', bg)}>
+            <Icon className="h-5.5 w-5.5" style={{ color }} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 const statusVariant = { present:'success', absent:'destructive', late:'warning', 'half-day':'info', onLeave:'secondary' };
 
 export function AttendancePage() {

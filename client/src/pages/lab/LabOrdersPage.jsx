@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, Fragment } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../services/api';
 import { useToast } from '../../hooks/useToast';
@@ -7,11 +7,14 @@ import { useDoctors } from '../../hooks/useDoctor';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
+import { Input } from '../../components/ui/input';
 import {
   FlaskConical, Plus, Search, X, CheckCircle, Clock, AlertCircle,
   ChevronDown, ChevronRight, TestTube, User,
   Beaker, Syringe, Microscope, Droplets, Activity,
+  Copy, Check,
 } from 'lucide-react';
+import { cn } from '../../lib/utils';
 
 const AVAILABLE_TESTS = [
   { name: 'CBC (Complete Blood Count)', category: 'hematology' },
@@ -529,11 +532,56 @@ function CreateOrderForm({ onClose }) {
   );
 }
 
+const GRADIENTS = [
+  'linear-gradient(135deg, #a78bfa 0%, #ec4899 100%)', // Violet to Pink
+  'linear-gradient(135deg, #f472b6 0%, #f43f5e 100%)', // Pink to Rose
+  'linear-gradient(135deg, #38bdf8 0%, #3b82f6 100%)', // Cyan to Blue
+  'linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%)', // Teal to Greenish Teal
+  'linear-gradient(135deg, #fb923c 0%, #f97316 100%)', // Orange to Rust
+  'linear-gradient(135deg, #a78bfa 0%, #6366f1 100%)', // Light Purple to Indigo
+  'linear-gradient(135deg, #f472b6 0%, #a855f7 100%)', // Pink to Purple
+  'linear-gradient(135deg, #34d399 0%, #059669 100%)', // Mint to Emerald
+];
+
+const getGradient = (id) => {
+  if (!id) return GRADIENTS[0];
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const idx = Math.abs(hash) % GRADIENTS.length;
+  return GRADIENTS[idx];
+};
+
+function StatCard({ label, value, icon: Icon, color, bg, changeText, isIncrease }) {
+  return (
+    <Card className="flex-1 min-w-[220px] shadow-[var(--shadow-kpi)] hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col rounded-2xl bg-card border border-border/50 overflow-hidden">
+      <CardContent className="py-4 px-5 flex-1">
+        <div className="flex justify-between items-center gap-4">
+          <div className="space-y-2">
+            <span className="text-[10px] font-bold tracking-wider text-muted-foreground/70 uppercase block">{label}</span>
+            <p className="text-3xl font-extrabold text-foreground tracking-tight leading-none">{value}</p>
+            {changeText && (
+              <span className={cn("text-xs font-semibold block mt-1", isIncrease ? 'text-emerald-500' : 'text-rose-500')}>
+                {changeText}
+              </span>
+            )}
+          </div>
+          <div className={cn('rounded-xl p-3 shrink-0 flex items-center justify-center', bg)}>
+            <Icon className="h-5.5 w-5.5" style={{ color }} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function LabOrdersPage() {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
 
   const { data, isLoading } = useLabOrders({ status: activeTab || undefined, search: search || undefined, limit: 100 });
   const { data: stats } = useLabStats();
@@ -544,62 +592,113 @@ export function LabOrdersPage() {
     statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
   });
 
+  const kpiCards = stats ? [
+    {
+      label: 'Total Orders',
+      value: stats.total.toLocaleString(),
+      icon: FlaskConical,
+      color: '#3b82f6',
+      bg: 'bg-blue-50 dark:bg-blue-950/30',
+      changeText: 'All registered requests',
+      isIncrease: true,
+    },
+    {
+      label: 'Pending',
+      value: stats.pending.toLocaleString(),
+      icon: Clock,
+      color: '#fbbf24',
+      bg: 'bg-yellow-50 dark:bg-yellow-950/30',
+      changeText: 'Awaiting collection',
+      isIncrease: false,
+    },
+    {
+      label: 'Today\'s Orders',
+      value: stats.todayOrders.toLocaleString(),
+      icon: Activity,
+      color: '#a855f7',
+      bg: 'bg-purple-50 dark:bg-purple-950/30',
+      changeText: 'Ordered within last 24h',
+      isIncrease: true,
+    },
+    {
+      label: 'Completed',
+      value: stats.completed.toLocaleString(),
+      icon: CheckCircle,
+      color: '#10b981',
+      bg: 'bg-emerald-50 dark:bg-emerald-950/30',
+      changeText: 'Reports fully verified',
+      isIncrease: true,
+    },
+  ] : [];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Laboratory</h1>
-          <p className="text-muted-foreground">Lab test orders and results</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Laboratory
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Lab test orders and results
+          </p>
         </div>
         <Button onClick={() => setShowForm(!showForm)}>
-          <Plus className="mr-2 h-4 w-4" /> {showForm ? 'Close' : 'New Order'}
+          <Plus className="mr-2 h-4 w-4" /> {showForm ? 'Close Form' : 'New Order'}
         </Button>
       </div>
 
+      {/* KPI Cards */}
       {stats && (
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-          {[
-            { label: 'Total Orders', value: stats.total, icon: FlaskConical, color: 'text-blue-600' },
-            { label: 'Pending', value: stats.pending, icon: Clock, color: 'text-yellow-600' },
-            { label: 'Today', value: stats.todayOrders, icon: AlertCircle, color: 'text-purple-600' },
-            { label: 'Completed', value: stats.completed, icon: CheckCircle, color: 'text-green-600' },
-          ].map((s) => (
-            <Card key={s.label}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{s.label}</CardTitle>
-                <s.icon className={`h-4 w-4 ${s.color}`} />
-              </CardHeader>
-              <CardContent><div className="text-2xl font-bold">{s.value}</div></CardContent>
-            </Card>
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          {kpiCards.map((card) => (
+            <StatCard key={card.label} {...card} />
           ))}
         </div>
       )}
 
-      <div className="flex items-center gap-4">
-        <div className="flex gap-1 bg-muted/50 rounded-lg p-1">
-          {TABS.map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => { setActiveTab(tab.value); setExpandedId(null); }}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                activeTab === tab.value ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {tab.label}
-              {tab.value && statusCounts[tab.value] > 0 && (
-                <span className="ml-1.5 text-xs text-muted-foreground">({statusCounts[tab.value]})</span>
-              )}
-            </button>
-          ))}
-        </div>
-        <div className="relative flex-1 max-w-xs ml-auto">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-9 rounded-lg border border-input bg-background pl-9 pr-3 text-sm"
-            placeholder="Search orders..."
-          />
+      {/* Controls Row */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 w-full bg-card p-3 rounded-xl border border-border/50 shadow-sm">
+          {/* Left Side: Search Form */}
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by patient, order no..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 pr-4 rounded-xl border-border/20 bg-muted/15 focus-visible:bg-background focus:ring-1 focus:ring-primary h-9 text-xs"
+            />
+          </div>
+
+          {/* Right Side: Tab-like Buttons for All, Pending, Collected, Processing, Completed */}
+          <div className="flex flex-wrap items-center gap-1.5 bg-muted/30 dark:bg-muted/10 p-1 rounded-xl border border-border/50">
+            {TABS.map((tab) => {
+              const isActive = activeTab === tab.value;
+              const count = tab.value ? statusCounts[tab.value] : null;
+              return (
+                <button
+                  key={tab.value}
+                  onClick={() => { setActiveTab(tab.value); setExpandedId(null); }}
+                  className={cn(
+                    "px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none",
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/20"
+                  )}
+                >
+                  {tab.label}
+                  {count > 0 && (
+                    <span className={cn(
+                      "px-1.5 py-0.5 rounded-md text-[10px] font-bold font-mono",
+                      isActive ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground"
+                    )}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -607,11 +706,9 @@ export function LabOrdersPage() {
         <CreateOrderForm onClose={() => setShowForm(false)} />
       )}
 
+      {/* Orders Table Card */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Orders ({data?.total || 0})</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {isLoading ? (
             <div className="flex justify-center py-8">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -621,50 +718,124 @@ export function LabOrdersPage() {
               {search ? 'No orders match your search' : activeTab ? `No ${activeTab} orders` : 'No lab orders yet'}
             </div>
           ) : (
-            <div className="divide-y">
-              {orders.map((o) => {
-                const isExpanded = expandedId === o._id;
-                const completedCount = o.tests?.filter((t) => (t.status || 'pending') === 'completed').length || 0;
-                const totalTests = o.tests?.length || 0;
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b text-left text-[10px] font-bold text-muted-foreground/55 uppercase tracking-widest">
+                    <th className="pb-3 pr-2 w-10 text-center font-semibold">#</th>
+                    <th className="pb-3 font-semibold">Order No</th>
+                    <th className="pb-3 font-semibold">Patient</th>
+                    <th className="pb-3 font-semibold">Doctor</th>
+                    <th className="pb-3 font-semibold">Tests Status</th>
+                    <th className="pb-3 font-semibold">Status</th>
+                    <th className="pb-3 font-semibold">Ordered Date</th>
+                    <th className="pb-3 font-semibold w-24 text-right pr-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map((o, idx) => {
+                    const isExpanded = expandedId === o._id;
+                    const completedCount = o.tests?.filter((t) => (t.status || 'pending') === 'completed').length || 0;
+                    const totalTests = o.tests?.length || 0;
 
-                return (
-                  <div key={o._id}>
-                    <div
-                      className="flex items-center gap-3 py-3 px-1 hover:bg-muted/30 rounded-lg cursor-pointer transition-colors"
-                      onClick={() => setExpandedId(isExpanded ? null : o._id)}
-                    >
-                      <div className="text-muted-foreground">
-                        {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                      </div>
-                      <div className="flex-1 grid grid-cols-5 gap-2 text-sm items-center min-w-0">
-                        <div>
-                          <p className="font-mono text-xs truncate">{o.orderNo}</p>
-                        </div>
-                        <div className="col-span-2">
-                          <p className="font-medium truncate">{o.patient?.firstName} {o.patient?.lastName}</p>
-                          <p className="text-xs text-muted-foreground font-mono truncate">{o.patient?.uhid}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">
-                            {completedCount}/{totalTests} tests
-                          </p>
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                          <Badge variant={STATUS_CONFIG[o.status]?.color || 'default'} size="sm">
-                            {STATUS_CONFIG[o.status]?.label || o.status}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground shrink-0">
-                            {new Date(o.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    {isExpanded && (
-                      <OrderDetail order={o} onClose={() => setExpandedId(null)} />
-                    )}
-                  </div>
-                );
-              })}
+                    return (
+                      <Fragment key={o._id}>
+                        <tr
+                          className={cn(
+                            "border-b last:border-0 hover:bg-muted/40 transition-colors cursor-pointer",
+                            isExpanded && "bg-muted/20 hover:bg-muted/30 border-b-0"
+                          )}
+                          onClick={() => setExpandedId(isExpanded ? null : o._id)}
+                        >
+                          <td className="py-3.5 pr-2 text-center text-xs text-muted-foreground font-mono">
+                            {idx + 1}
+                          </td>
+                          <td className="py-3.5 text-sm">
+                            <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground dark:text-zinc-400 bg-muted/40 dark:bg-zinc-900 px-2.5 py-1 rounded-lg border border-border/60 dark:border-zinc-800/80 shadow-sm" onClick={(e) => e.stopPropagation()}>
+                              {o.orderNo}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(o.orderNo);
+                                  setCopiedId(o._id);
+                                  setTimeout(() => setCopiedId(null), 2000);
+                                }}
+                                className="text-muted-foreground/60 hover:text-foreground dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors p-0.5 rounded cursor-pointer shrink-0"
+                                title="Copy Order No"
+                              >
+                                {copiedId === o._id ? (
+                                  <Check className="h-3 w-3 text-emerald-500" />
+                                ) : (
+                                  <Copy className="h-3 w-3" />
+                                )}
+                              </button>
+                            </span>
+                          </td>
+                          <td className="py-3.5">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-white font-black text-xs shadow-md border border-white/10"
+                                style={{ background: getGradient(o.patient?._id) }}
+                              >
+                                {o.patient?.firstName?.charAt(0)}{o.patient?.lastName?.charAt(0)}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="font-semibold text-sm hover:text-primary transition-colors">
+                                  {o.patient?.firstName} {o.patient?.lastName}
+                                </span>
+                                <span className="text-xs text-muted-foreground font-mono">{o.patient?.uhid}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3.5">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-semibold text-foreground">{o.doctor?.user?.name || '—'}</span>
+                              <span className="text-xs text-muted-foreground">{o.doctor?.specialization || ''}</span>
+                            </div>
+                          </td>
+                          <td className="py-3.5 text-sm font-medium text-foreground">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-semibold text-foreground">{completedCount}/{totalTests} Completed</span>
+                              <span className="text-[10px] text-muted-foreground font-mono">({totalTests > 0 ? Math.round((completedCount/totalTests)*100) : 0}%)</span>
+                            </div>
+                          </td>
+                          <td className="py-3.5">
+                            <Badge
+                              variant={STATUS_CONFIG[o.status]?.color || 'default'}
+                              className="capitalize px-2 py-0.5 font-semibold text-[11px] border-border/10"
+                            >
+                              {STATUS_CONFIG[o.status]?.label || o.status}
+                            </Badge>
+                          </td>
+                          <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium font-mono">
+                            {new Date(o.createdAt).toLocaleDateString('en-IN', {
+                              day: '2-digit', month: 'short', year: 'numeric',
+                              hour: '2-digit', minute: '2-digit'
+                            })}
+                          </td>
+                          <td className="py-3.5 text-right pr-4">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                className="w-9 h-9 rounded-full border border-border dark:border-zinc-800/80 flex items-center justify-center bg-background dark:bg-[#18181b] hover:bg-muted dark:hover:bg-[#27272a] text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-zinc-100 shadow-sm transition-all duration-200 cursor-pointer"
+                                title="Toggle Expand"
+                              >
+                                {isExpanded ? <ChevronDown className="h-[18px] w-[18px]" /> : <ChevronRight className="h-[18px] w-[18px]" />}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                        {isExpanded && (
+                          <tr>
+                            <td colSpan={8} className="p-0 bg-muted/10 border-b">
+                              <OrderDetail order={o} onClose={() => setExpandedId(null)} />
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </CardContent>

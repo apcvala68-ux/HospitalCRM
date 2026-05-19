@@ -168,3 +168,72 @@ export const getGmailClient = async (user) => {
   client.setCredentials({ access_token: accessToken });
   return client;
 };
+
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+    const user = await User.findOne({ email: email.toLowerCase(), isActive: true });
+    if (!user) {
+      return res.status(404).json({ message: 'No active user found with this email' });
+    }
+
+    // Generate 6-digit code
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetPasswordToken = resetCode;
+    user.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
+
+    // Output code to server console
+    console.log('\n========================================');
+    console.log(`PASSWORD RESET FOR: ${email}`);
+    console.log(`6-DIGIT VERIFICATION CODE: ${resetCode}`);
+    console.log('========================================\n');
+
+    const response = {
+      message: 'Reset verification code sent to your email.'
+    };
+
+    if (process.env.NODE_ENV !== 'production') {
+      response.resetCode = resetCode;
+    }
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { email, code, newPassword } = req.body;
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ message: 'Email, code, and new password are required.' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters.' });
+    }
+
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+      resetPasswordToken: code,
+      resetPasswordExpires: { $gt: new Date() },
+      isActive: true,
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired verification code.' });
+    }
+
+    user.password = newPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.json({ message: 'Password has been successfully updated.' });
+  } catch (error) {
+    next(error);
+  }
+};
