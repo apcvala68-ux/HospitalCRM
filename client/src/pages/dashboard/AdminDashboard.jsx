@@ -118,14 +118,86 @@ const getDeptConfig = (name) => {
 };
 
 const calendarCellCss = `
-.range-calendar-fix button:not([data-slot="nav-button"]):not([data-slot="year-picker-trigger"]) { color: hsl(var(--foreground)) !important; }
-.range-calendar-fix button:not([data-slot="nav-button"]):not([data-slot="year-picker-trigger"]):where([data-selected],[data-range-selection]) { color: hsl(var(--primary-foreground)) !important; }
-.range-calendar-fix [data-slot="cell"] { color: hsl(var(--foreground)) !important; }
-.range-calendar-fix [data-slot="cell-button"] { color: inherit !important; }
-.range-calendar-fix [data-slot="cell"][data-selected] { background: hsl(var(--primary)) !important; color: hsl(var(--primary-foreground)) !important; }
-.range-calendar-fix [data-slot="cell"][data-range-selection] { background: hsl(var(--primary) / 0.15) !important; }
-.range-calendar-fix [data-slot="cell"][data-hover] { background: hsl(var(--accent)) !important; }
+/* ── RangeCalendar UI polish ── */
+
+/* Overall calendar padding */
+.range-calendar-fix [data-slot="range-calendar"] {
+  padding: 12px !important;
+}
+
+/* Grid padding */
+.range-calendar-fix [data-slot="range-calendar-grid"] {
+  padding: 6px 4px !important;
+}
+
+/* Date number cells — visible in both themes */
+.range-calendar-fix .range-calendar__cell-button {
+  color: hsl(var(--foreground)) !important;
+  font-size: 0.8rem !important;
+  font-weight: 500 !important;
+  width: 34px !important;
+  height: 34px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 0.5rem !important;
+  margin: 1px !important;
+}
+
+/* Hover state for unselected dates */
+.range-calendar-fix .range-calendar__cell-button:hover {
+  background: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+}
+
+/* Selected start/end — white text on primary */
+.range-calendar-fix .range-calendar__cell-button[data-selected] {
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Disabled dates */
+.range-calendar-fix .range-calendar__cell-button[data-disabled] {
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
+}
+
+/* Weekday headers: SUN MON… */
+.range-calendar-fix [data-slot="range-calendar-header-cell"] {
+  color: hsl(var(--muted-foreground)) !important;
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  padding: 4px 0 8px !important;
+}
+
+/* Nav < > buttons — bordered pill style */
+.range-calendar-fix [data-slot="range-calendar-nav-button"] {
+  color: hsl(var(--foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important;
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: hsl(var(--card)) !important;
+  transition: background 0.15s, border-color 0.15s !important;
+}
+.range-calendar-fix [data-slot="range-calendar-nav-button"]:hover {
+  background: hsl(var(--accent)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+/* Month/year heading */
+.range-calendar-fix [data-slot="range-calendar-heading"],
+.range-calendar-fix [data-slot="range-calendar-year-picker-trigger"] {
+  color: hsl(var(--foreground)) !important;
+  font-weight: 700 !important;
+  font-size: 0.875rem !important;
+}
 `;
+
 
 export function AdminDashboard() {
   const navigate = useNavigate();
@@ -330,7 +402,7 @@ export function AdminDashboard() {
                     <RangeCalendar.GridBody>
                       {(date) => (
                         <RangeCalendar.Cell date={date}>
-                          <RangeCalendar.CellIndicator />
+                          {({ formattedDate }) => formattedDate}
                         </RangeCalendar.Cell>
                       )}
                     </RangeCalendar.GridBody>

@@ -2,11 +2,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useToast } from './useToast';
 
-export function useMyDoctorProfile() {
+export function useMyDoctorProfile(enabled = true) {
   return useQuery({
     queryKey: ['doctor', 'me'],
     queryFn: () => api.get('/doctors/me'),
     staleTime: 5 * 60 * 1000,
+    enabled,
   });
 }
 
