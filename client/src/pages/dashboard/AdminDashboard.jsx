@@ -117,6 +117,14 @@ const getDeptConfig = (name) => {
   };
 };
 
+const calendarCellCss = `
+[data-slot="cell"] { color: hsl(var(--foreground)) !important; }
+[data-slot="cell"][data-hover] { background: hsl(var(--accent)) !important; }
+[data-slot="cell"][data-selected] { background: hsl(var(--primary)) !important; color: hsl(var(--primary-foreground)) !important; }
+[data-slot="cell"][data-range-selection] { background: hsl(var(--primary) / 0.15) !important; }
+[data-slot="cell-button"] { color: inherit !important; }
+`;
+
 export function AdminDashboard() {
   const navigate = useNavigate();
 
@@ -264,6 +272,7 @@ export function AdminDashboard() {
 
   return (
     <div className="dashboard-wrapper">
+      <style>{calendarCellCss}</style>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
