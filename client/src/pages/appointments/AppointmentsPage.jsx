@@ -65,6 +65,10 @@ const calendarCss = `
 .fc .fc-event { border-radius: 6px !important; border: none !important; padding: 2px 4px !important; font-size: 0.75rem !important; cursor: pointer !important; }
 .fc .fc-event:hover { opacity: 0.85 !important; }
 .fc .fc-day-today { background: hsl(var(--accent)) !important; }
+.fc-day-today.fc-daygrid-day .fc-daygrid-day-frame { position: relative !important; }
+.fc-day-today.fc-daygrid-day .fc-daygrid-day-frame::after { content: '● Today'; position: absolute; top: 2px; right: 2px; font-size: 9px; font-weight: 700; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 1px 6px; border-radius: 4px; line-height: 1.5; letter-spacing: 0.3px; }
+.fc-day-today.fc-timegrid-col .fc-timegrid-col-frame { position: relative !important; }
+.fc-day-today.fc-timegrid-col .fc-timegrid-col-frame::after { content: '● Today'; position: absolute; top: 2px; right: 2px; font-size: 9px; font-weight: 700; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 1px 6px; border-radius: 4px; line-height: 1.5; letter-spacing: 0.3px; z-index: 2; }
 .fc .fc-highlight { background: hsl(var(--primary)) !important; opacity: 0.1 !important; }
 .fc .fc-timegrid-now-indicator-line { border-color: hsl(var(--destructive)) !important; }
 .fc .fc-timegrid-now-indicator-arrow { border-color: hsl(var(--destructive)) !important; color: hsl(var(--destructive)) !important; }
