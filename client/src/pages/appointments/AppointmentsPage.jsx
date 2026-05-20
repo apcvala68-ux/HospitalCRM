@@ -152,7 +152,8 @@ export function AppointmentsPage() {
   const gp = (p) => { if (p < 1 || p > totalPages) return; up({ page: String(p) }); };
   const goToPage = gp;
 
-  const events = (eventsData?.events || []).map(e => ({ ...e, start: e.start, end: e.end }));
+  const statusColors = { scheduled: '#f59e0b', confirmed: '#3b82f6', completed: '#22c55e', cancelled: '#ef4444', 'checked-in': '#3b82f6' };
+  const events = (eventsData?.events || []).map(e => ({ ...e, start: e.start, end: e.end, backgroundColor: statusColors[e.status] || '#3b82f6', borderColor: statusColors[e.status] || '#3b82f6' }));
   const todayStr = new Date().toISOString().split('T')[0];
   const todayCount = appointments.filter(a => a.date?.startsWith(todayStr)).length;
   const scheduledCount = appointments.filter(a => a.status === 'scheduled').length;
