@@ -118,84 +118,20 @@ const getDeptConfig = (name) => {
 };
 
 const calendarCellCss = `
-/* ── RangeCalendar UI polish ── */
-
-/* Overall calendar padding */
-.range-calendar-fix [data-slot="range-calendar"] {
-  padding: 12px !important;
-}
-
-/* Grid padding */
-.range-calendar-fix [data-slot="range-calendar-grid"] {
-  padding: 6px 4px !important;
-}
-
-/* Date number cells — visible in both themes */
-.range-calendar-fix .range-calendar__cell-button {
-  color: hsl(var(--foreground)) !important;
-  font-size: 0.8rem !important;
-  font-weight: 500 !important;
-  width: 34px !important;
-  height: 34px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border-radius: 0.5rem !important;
-  margin: 1px !important;
-}
-
-/* Hover state for unselected dates */
-.range-calendar-fix .range-calendar__cell-button:hover {
-  background: hsl(var(--accent)) !important;
-  color: hsl(var(--accent-foreground)) !important;
-}
-
-/* Selected start/end — white text on primary */
-.range-calendar-fix .range-calendar__cell-button[data-selected] {
-  color: hsl(var(--primary-foreground)) !important;
-}
-
-/* Disabled dates */
-.range-calendar-fix .range-calendar__cell-button[data-disabled] {
-  opacity: 0.35 !important;
-  cursor: not-allowed !important;
-}
-
-/* Weekday headers: SUN MON… */
-.range-calendar-fix [data-slot="range-calendar-header-cell"] {
-  color: hsl(var(--muted-foreground)) !important;
-  font-size: 0.68rem !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.04em !important;
-  padding: 4px 0 8px !important;
-}
-
-/* Nav < > buttons — bordered pill style */
-.range-calendar-fix [data-slot="range-calendar-nav-button"] {
-  color: hsl(var(--foreground)) !important;
-  border: 1px solid hsl(var(--border)) !important;
-  border-radius: 0.5rem !important;
-  width: 28px !important;
-  height: 28px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: hsl(var(--card)) !important;
-  transition: background 0.15s, border-color 0.15s !important;
-}
-.range-calendar-fix [data-slot="range-calendar-nav-button"]:hover {
-  background: hsl(var(--accent)) !important;
-  border-color: hsl(var(--border)) !important;
-}
-
-/* Month/year heading */
-.range-calendar-fix [data-slot="range-calendar-heading"],
-.range-calendar-fix [data-slot="range-calendar-year-picker-trigger"] {
-  color: hsl(var(--foreground)) !important;
-  font-weight: 700 !important;
-  font-size: 0.875rem !important;
-}
+.range-calendar-fix { padding: 4px !important; }
+.range-calendar-fix [data-slot="range-calendar"] { padding: 8px !important; gap: 4px !important; }
+.range-calendar-fix [data-slot="range-calendar-grid"] { padding: 2px !important; gap: 0 !important; }
+.range-calendar-fix [data-slot="cell"] { margin: 0 !important; padding: 0 !important; }
+.range-calendar-fix [data-slot="cell-button"] { color: hsl(var(--foreground)) !important; font-size: 0.8rem !important; font-weight: 500 !important; width: 32px !important; height: 32px !important; display: flex !important; align-items: center !important; justify-content: center !important; border-radius: 0.5rem !important; margin: 1px !important; padding: 0 !important; background: transparent !important; border: none !important; cursor: pointer !important; }
+.range-calendar-fix [data-slot="cell-button"]:hover { background: hsl(var(--accent)) !important; color: hsl(var(--accent-foreground)) !important; }
+.range-calendar-fix [data-slot="cell"][data-selected] [data-slot="cell-button"] { background: hsl(var(--primary)) !important; color: hsl(var(--primary-foreground)) !important; }
+.range-calendar-fix [data-slot="cell"][data-range-selection] { background: hsl(var(--primary) / 0.1) !important; }
+.range-calendar-fix [data-slot="cell"][data-range-selection] [data-slot="cell-button"] { background: transparent !important; }
+.range-calendar-fix [data-slot="cell"][data-disabled] [data-slot="cell-button"] { opacity: 0.3 !important; cursor: not-allowed !important; }
+.range-calendar-fix [data-slot="range-calendar-header-cell"] { color: hsl(var(--muted-foreground)) !important; font-size: 0.65rem !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 0.04em !important; padding: 2px 0 6px !important; }
+.range-calendar-fix [data-slot="range-calendar-nav-button"] { color: hsl(var(--foreground)) !important; border: 1px solid hsl(var(--border)) !important; border-radius: 0.5rem !important; width: 26px !important; height: 26px !important; display: flex !important; align-items: center !important; justify-content: center !important; background: hsl(var(--card)) !important; margin: 0 !important; padding: 0 !important; }
+.range-calendar-fix [data-slot="range-calendar-nav-button"]:hover { background: hsl(var(--accent)) !important; }
+.range-calendar-fix [data-slot="range-calendar-heading"], .range-calendar-fix [data-slot="range-calendar-year-picker-trigger"] { color: hsl(var(--foreground)) !important; font-weight: 700 !important; font-size: 0.85rem !important; padding: 0 !important; margin: 0 !important; }
 `;
 
 
