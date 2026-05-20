@@ -1,10 +1,10 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { useCalendarEvents, useAppointments, useCancelAppointment, useCreateAppointment, useConfirmAppointment } from '../../hooks/useAppointments';
-import { useDoctors, useMyDoctorProfile } from '../../hooks/useDoctor';
+import { useDoctors, useMyDoctorProfile, useDoctor } from '../../hooks/useDoctor';
 import { usePatientSearch } from '../../hooks/usePatients';
 import { useAuth } from '../../context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
@@ -15,7 +15,7 @@ import { useToast } from '../../hooks/useToast';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Calendar, Plus, X, ChevronLeft, ChevronRight, Search, SlidersHorizontal,
-  Clock, CheckCircle, CalendarX2, ArrowUpDown, ArrowUp, ArrowDown, Eye,
+  Clock, CheckCircle, CalendarX2, ArrowUpDown, ArrowUp, ArrowDown, Eye, List,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -46,7 +46,7 @@ function StatCard({ label, value, icon: Icon, color, bg, changeText, isIncrease 
     </Card>
   );
 }
-const statusVariant = { scheduled:'warning', confirmed:'info', completed:'success', cancelled:'destructive', 'checked-in':'info' };
+const statusVariant = { scheduled:'warning', confirmed:'info', completed:'success', cancelled:'destructive', 'checked-in':'info', 'no-show':'destructive' };
 
 const calendarCss = `
 .fc { font-family: inherit !important; }
@@ -110,9 +110,10 @@ export function AppointmentsPage() {
   const myDoctorId = myProfile?.doctor?._id || myProfile?._id;
   const effectiveDoctor = user?.role === 'doctor' ? (myDoctorId || '') : doctorFilter;
 
-  const { data: eventsData } = useCalendarEvents(dateRange.start, dateRange.end, effectiveDoctor);
+  const { data: eventsData, isLoading: eventsLoading } = useCalendarEvents(dateRange.start, dateRange.end, effectiveDoctor);
   const { data: listData, isLoading: listLoading, error: listError } = useAppointments({ page, limit, search, sortBy, sortOrder, status: statusFilter, doctor: effectiveDoctor });
   const { data: doctorsData } = useDoctors();
+  const { data: selectedDoctorData } = useDoctor(selectedDoctor);
   const { data: searchResults } = usePatientSearch(patientSearch);
   const createAppointment = useCreateAppointment();
   const confirmAppointment = useConfirmAppointment();
@@ -128,6 +129,29 @@ export function AppointmentsPage() {
   const totalPages = listData?.totalPages || 1;
   const from = total === 0 ? 0 : (page - 1) * limit + 1;
   const to = Math.min(page * limit, total);
+
+  const maxSlots = selectedDoctorData?.doctor?.maxPatientsPerHour || 2;
+
+  const availabilityByDay = eventsData?.availabilityByDay || [];
+  const todayStr = new Date().toISOString().split('T')[0];
+  const selectedDayAvailability = useMemo(() => {
+    return availabilityByDay.find(d => d.date === selectedDate)?.hours || {};
+  }, [availabilityByDay, selectedDate]);
+
+  const timeSlots = Array.from({ length: 16 }, (_, i) =>
+    `${String(9 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`
+  );
+
+  const slotAvailability = useMemo(() => {
+    if (!selectedDoctor || !selectedDate) return {};
+    const result = {};
+    for (const slot of timeSlots) {
+      const hour = slot.split(':')[0];
+      const info = selectedDayAvailability[hour];
+      result[slot] = info ? { booked: info.booked, max: info.max, full: info.booked >= info.max } : { booked: 0, max: maxSlots, full: false };
+    }
+    return result;
+  }, [selectedDoctor, selectedDate, selectedDayAvailability, timeSlots, maxSlots]);
 
   const up = useCallback((u) => {
     setSp(p => { const n = new URLSearchParams(p); Object.entries(u).forEach(([k, v]) => { if (v) n.set(k, v); else n.delete(k); }); return n; });
@@ -148,18 +172,18 @@ export function AppointmentsPage() {
     try {
       await createAppointment.mutateAsync({ patient: selectedPatient._id, doctor: selectedDoctor, date: selectedDate, timeSlot: { start: selectedSlot, end }, reason, status: 'scheduled' });
       setShowBook(false); setSelectedPatient(null); setPatientSearch(''); setReason('');
-    } catch { /* hook handles errors via onError */ }
+    } catch { }
   };
   const gp = (p) => { if (p < 1 || p > totalPages) return; up({ page: String(p) }); };
   const goToPage = gp;
 
-  const statusColors = { scheduled: '#f59e0b', confirmed: '#3b82f6', completed: '#22c55e', cancelled: '#ef4444', 'checked-in': '#3b82f6' };
+  const statusColors = { scheduled: '#f59e0b', confirmed: '#3b82f6', completed: '#22c55e', cancelled: '#ef4444', 'checked-in': '#3b82f6', 'no-show': '#8b5cf6' };
   const events = (eventsData?.events || []).map(e => ({ ...e, start: e.start, end: e.end, backgroundColor: statusColors[e.extendedProps?.status] || statusColors[e.status] || '#3b82f6', borderColor: statusColors[e.extendedProps?.status] || statusColors[e.status] || '#3b82f6' }));
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todayCount = appointments.filter(a => a.date?.startsWith(todayStr)).length;
+  const todayAppts = appointments.filter(a => a.date?.startsWith(todayStr)).length;
   const scheduledCount = appointments.filter(a => a.status === 'scheduled').length;
   const completedCount = appointments.filter(a => a.status === 'completed').length;
   const cancelledCount = appointments.filter(a => a.status === 'cancelled').length;
+  const missedCount = appointments.filter(a => a.status === 'no-show').length;
 
   if (listError) return <div className="flex justify-center py-12"><p className="text-destructive font-medium">Failed to load</p></div>;
   if (listLoading) return <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
@@ -174,13 +198,13 @@ export function AppointmentsPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant={view === 'calendar' ? 'default' : 'outline'} size="sm" onClick={() => setView('calendar')}><Calendar className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Calendar</span></Button>
-          <Button variant={view === 'list' ? 'default' : 'outline'} size="sm" onClick={() => setView('list')}><span className="hidden sm:inline">List</span></Button>
+          <Button variant={view === 'list' ? 'default' : 'outline'} size="sm" onClick={() => setView('list')}><List className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">List</span></Button>
           <Button onClick={() => setShowBook(true)}><Plus className="h-4 w-4 sm:mr-2" /><Calendar className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">Book</span></Button>
         </div>
       </div>
 
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Today's Appointments" value={todayCount} icon={Calendar} color="#3b82f6" bg="bg-blue-50 dark:bg-blue-950/30" changeText={`of ${total} total`} isIncrease />
+        <StatCard label="Today's Appointments" value={todayAppts} icon={Calendar} color="#3b82f6" bg="bg-blue-50 dark:bg-blue-950/30" changeText={`of ${total} total`} isIncrease />
         <StatCard label="Scheduled" value={scheduledCount} icon={Clock} color="#f59e0b" bg="bg-amber-50 dark:bg-amber-950/30" changeText="Awaiting" isIncrease />
         <StatCard label="Completed" value={completedCount} icon={CheckCircle} color="#0d9488" bg="bg-teal-50 dark:bg-teal-950/30" changeText="Done today" isIncrease />
         <StatCard label="Cancelled" value={cancelledCount} icon={CalendarX2} color="#ef4444" bg="bg-red-50 dark:bg-red-950/30" changeText={cancelledCount > 0 ? `${cancelledCount} cancelled` : ''} isIncrease={false} />
@@ -224,7 +248,7 @@ export function AppointmentsPage() {
                 <label className="text-sm font-semibold text-foreground">Doctor</label>
                 <select value={selectedDoctor} onChange={e => setSelectedDoctor(e.target.value)} className="flex h-9 w-full rounded-xl border border-border/20 bg-muted/15 px-3 text-xs outline-none cursor-pointer">
                   <option value="">Select doctor</option>
-                  {doctors.map(d => <option key={d._id} value={d._id}>{d.user?.name} — {d.specialization}</option>)}
+                  {doctors.map(d => <option key={d._id} value={d._id}>{d.user?.name} — {d.specialization} {d.maxPatientsPerHour ? `(${d.maxPatientsPerHour}/hr)` : ''}</option>)}
                 </select>
               </div>
               <div className="space-y-2">
@@ -234,8 +258,16 @@ export function AppointmentsPage() {
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-foreground">Time</label>
                 <select value={selectedSlot} onChange={e => setSelectedSlot(e.target.value)} className="flex h-9 w-full rounded-xl border border-border/20 bg-muted/15 px-3 text-xs outline-none cursor-pointer">
-                  {Array.from({ length: 16 }, (_, i) => `${String(9 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`).map(t => <option key={t} value={t}>{t}</option>)}
+                  {timeSlots.map(t => {
+                    const info = slotAvailability[t];
+                    const isFull = info?.full;
+                    const label = isFull ? `${t} (${info.booked}/${info.max} full)` : t;
+                    return <option key={t} value={t} disabled={isFull} className={isFull ? 'text-muted-foreground/50' : ''}>{label}</option>;
+                  })}
                 </select>
+                {selectedDoctor && maxSlots > 0 && (
+                  <p className="text-[10px] text-muted-foreground mt-1">Max {maxSlots} patients per hour</p>
+                )}
               </div>
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-semibold text-foreground">Reason</label>
@@ -263,37 +295,44 @@ export function AppointmentsPage() {
           )}
           <Card>
             <CardContent className="p-4">
-              <FullCalendar
-                ref={calendarRef}
-                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                initialView="timeGridWeek"
-                headerToolbar={{
-                  left: 'prev,next today',
-                  center: 'title',
-                  right: 'dayGridMonth,timeGridWeek,timeGridDay',
-                }}
-                events={events}
-                datesSet={handleDatesSet}
-                dateClick={handleDateClick}
-                eventClick={handleEventClick}
-                height="auto"
-                slotMinTime="08:00"
-                slotMaxTime="18:00"
-                allDaySlot={false}
-                nowIndicator={true}
-                eventContent={(arg) => ({
-                  html: `<div style="font-size:11px;line-height:1.3;padding:1px 3px;">
-                    <strong>${arg.event.title.split(' - ')[0]}</strong>
-                    <div style="font-size:10px;opacity:0.8">${arg.timeText} · ${arg.event.extendedProps?.status}</div>
-                  </div>`,
-                })}
-              />
-              <div className="flex items-center gap-4 mt-3 pt-3 border-t text-xs text-muted-foreground">
-                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full inline-block" style={{background:'#f59e0b'}} />Scheduled</span>
-                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full inline-block" style={{background:'#3b82f6'}} />Confirmed</span>
-                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full inline-block" style={{background:'#22c55e'}} />Completed</span>
-                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full inline-block" style={{background:'#ef4444'}} />Cancelled</span>
-              </div>
+              {eventsLoading ? (
+                <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+              ) : (
+                <>
+                  <FullCalendar
+                    ref={calendarRef}
+                    plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                    initialView="timeGridWeek"
+                    headerToolbar={{
+                      left: 'prev,next today',
+                      center: 'title',
+                      right: 'dayGridMonth,timeGridWeek,timeGridDay',
+                    }}
+                    events={events}
+                    datesSet={handleDatesSet}
+                    dateClick={handleDateClick}
+                    eventClick={handleEventClick}
+                    height="auto"
+                    slotMinTime="08:00"
+                    slotMaxTime="18:00"
+                    allDaySlot={false}
+                    nowIndicator={true}
+                    eventContent={(arg) => ({
+                      html: `<div style="font-size:11px;line-height:1.3;padding:1px 3px;">
+                        <strong>${arg.event.title.split(' - ')[0]}</strong>
+                        <div style="font-size:10px;opacity:0.8">${arg.timeText} · ${arg.event.extendedProps?.status}</div>
+                      </div>`,
+                    })}
+                  />
+                  <div className="flex items-center gap-4 mt-3 pt-3 border-t text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full inline-block" style={{background:'#f59e0b'}} />Scheduled</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full inline-block" style={{background:'#3b82f6'}} />Confirmed</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full inline-block" style={{background:'#22c55e'}} />Completed</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full inline-block" style={{background:'#ef4444'}} />Cancelled</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full inline-block" style={{background:'#8b5cf6'}} />Missed</span>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -307,13 +346,13 @@ export function AppointmentsPage() {
                 <div className="space-y-2 text-sm">
                   <p><span className="text-muted-foreground">Patient:</span> <span className="font-medium">{selectedEvent.patient?.firstName} {selectedEvent.patient?.lastName}</span></p>
                   <p><span className="text-muted-foreground">Doctor:</span> <span className="font-medium">{selectedEvent.doctor?.user?.name}</span></p>
-                  <p><span className="text-muted-foreground">Status:</span> <Badge variant={statusVariant[selectedEvent.status] || 'default'} className="capitalize">{selectedEvent.status}</Badge></p>
+                  <p><span className="text-muted-foreground">Status:</span> <Badge variant={statusVariant[selectedEvent.status] || 'default'} className="capitalize">{selectedEvent.status === 'no-show' ? 'Missed' : selectedEvent.status}</Badge></p>
                 </div>
                 <div className="flex gap-2">
                   {selectedEvent.status === 'scheduled' && (
                     <Button size="sm" onClick={() => { confirmAppointment.mutate(selectedEvent._id); setSelectedEvent(null); }} disabled={confirmAppointment.isPending} className="flex-1">Accept</Button>
                   )}
-                  {selectedEvent.status !== 'cancelled' && selectedEvent.status !== 'completed' && (
+                  {selectedEvent.status !== 'cancelled' && selectedEvent.status !== 'completed' && selectedEvent.status !== 'no-show' && (
                     <Button variant="destructive" size="sm" onClick={() => { cancelAppointment.mutate(selectedEvent._id); setSelectedEvent(null); }} disabled={cancelAppointment.isPending} className="flex-1">Cancel</Button>
                   )}
                 </div>
@@ -340,7 +379,7 @@ export function AppointmentsPage() {
             {isFilterOpen && (
               <div className="p-4 bg-card rounded-xl border border-border/40 animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><span className="text-[10px] font-bold text-muted-foreground block mb-2 uppercase tracking-wider">Status</span><div className="flex flex-wrap gap-2">{['', 'scheduled', 'confirmed', 'checked-in', 'completed', 'cancelled'].map(s => <button key={s} onClick={() => up({ status: s, page: '1' })} className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer select-none", (statusFilter === s) ? "bg-primary text-primary-foreground border-primary" : "bg-muted/10 hover:bg-muted/20 border-border/10 text-muted-foreground hover:text-foreground")}>{s ? s.charAt(0).toUpperCase() + s.slice(1).replace('-', ' ') : 'All'}</button>)}</div></div>
+                  <div><span className="text-[10px] font-bold text-muted-foreground block mb-2 uppercase tracking-wider">Status</span><div className="flex flex-wrap gap-2">{['', 'scheduled', 'confirmed', 'checked-in', 'completed', 'cancelled', 'no-show'].map(s => <button key={s} onClick={() => up({ status: s, page: '1' })} className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer select-none", (statusFilter === s) ? "bg-primary text-primary-foreground border-primary" : "bg-muted/10 hover:bg-muted/20 border-border/10 text-muted-foreground hover:text-foreground")}>{s ? (s === 'no-show' ? 'Missed' : s.charAt(0).toUpperCase() + s.slice(1).replace('-', ' ')) : 'All'}</button>)}</div></div>
                   {user?.role !== 'doctor' && (
                     <div><span className="text-[10px] font-bold text-muted-foreground block mb-2 uppercase tracking-wider">Doctor</span>
                       <select value={doctorFilter} onChange={e => { setDoctorFilter(e.target.value); up({ page: '1' }); }}
@@ -395,12 +434,12 @@ export function AppointmentsPage() {
                             <td className="py-3.5 hidden md:table-cell"><span className="text-sm font-medium">{a.doctor?.user?.name || <span className="text-muted-foreground">—</span>}</span><span className="block text-[10px] text-muted-foreground">{a.doctor?.specialization}</span></td>
                             <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium hidden md:table-cell">{a.date ? new Date(a.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
                             <td className="py-3.5 text-sm font-medium">{a.timeSlot?.start}–{a.timeSlot?.end}</td>
-                            <td className="py-3.5"><Badge variant={statusVariant[a.status] || 'default'} className="capitalize">{a.status}</Badge></td>
+                            <td className="py-3.5"><Badge variant={statusVariant[a.status] || 'default'} className="capitalize">{a.status === 'no-show' ? 'Missed' : a.status}</Badge></td>
                             <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium hidden lg:table-cell">{new Date(a.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                             <td className="py-3.5 text-right pr-4">
                               <div className="flex items-center justify-end gap-2">
                                 <button onClick={() => navigate(`/patients/${a.patient?._id}`)} className="w-9 h-9 rounded-full border border-border dark:border-zinc-800/80 flex items-center justify-center bg-background dark:bg-[#18181b] hover:bg-muted dark:hover:bg-[#27272a] text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-zinc-100 shadow-sm transition-all duration-200 cursor-pointer" title="View"><Eye className="h-[18px] w-[18px]" /></button>
-                                {a.status !== 'cancelled' && a.status !== 'completed' && (
+                                {a.status !== 'cancelled' && a.status !== 'completed' && a.status !== 'no-show' && (
                                   <button onClick={() => cancelAppointment.mutate(a._id)} className="w-9 h-9 rounded-full border border-red-200 dark:border-red-950/60 flex items-center justify-center bg-red-50/50 hover:bg-red-100 dark:bg-[#2a1415] dark:hover:bg-[#3f1a1c] text-red-600 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 shadow-sm transition-all duration-200 cursor-pointer" title="Cancel"><X className="h-4 w-4" /></button>
                                 )}
                               </div>

@@ -25,6 +25,7 @@ const doctorSchema = new mongoose.Schema({
     slotDuration:  { type: Number, default: 15 },
     isAvailable:   { type: Boolean, default: true },
   }],
+  maxPatientsPerHour: { type: Number, default: 2, min: 1, max: 10 },
   isAvailable:     { type: Boolean, default: true },
 }, { timestamps: true });
 

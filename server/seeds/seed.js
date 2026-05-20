@@ -674,7 +674,7 @@ async function seed() {
         timeSlot: { start: startTime, end: endTime },
         reason: pickRandom(CHIEF_COMPLAINTS),
         status: pickRandom(['scheduled', 'scheduled', 'scheduled', 'confirmed']),
-        bookedBy: receptionistUser._id,
+        createdBy: receptionistUser._id,
       });
     }
     console.log('Created 15 upcoming appointments');

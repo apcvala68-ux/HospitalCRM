@@ -60,7 +60,7 @@ export const getMyProfile = async (req, res, next) => {
 
 export const create = async (req, res, next) => {
   try {
-    const { name, email, password, phone, specialization, licenseNo, department, consultationFee, qualifications, yearsOfExperience, gender, dateOfBirth, address, bio, languages, emergencyContact, schedule, isAvailable } = req.body;
+    const { name, email, password, phone, specialization, licenseNo, department, consultationFee, qualifications, yearsOfExperience, gender, dateOfBirth, address, bio, languages, emergencyContact, schedule, isAvailable, maxPatientsPerHour } = req.body;
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: 'Email already in use' });
     const existingLicense = await Doctor.findOne({ licenseNo });
@@ -68,7 +68,7 @@ export const create = async (req, res, next) => {
     const user = await User.create({ name, email, password, phone, role: 'doctor', isActive: true });
     const doctor = await Doctor.create({
       user: user._id, specialization, licenseNo, department, consultationFee, qualifications,
-      yearsOfExperience, gender, dateOfBirth, address, bio, languages, emergencyContact, schedule, isAvailable,
+      yearsOfExperience, gender, dateOfBirth, address, bio, languages, emergencyContact, schedule, isAvailable, maxPatientsPerHour,
     });
     const populated = await Doctor.findById(doctor._id)
       .populate('user', 'name email phone avatar')
@@ -79,7 +79,7 @@ export const create = async (req, res, next) => {
 
 export const update = async (req, res, next) => {
   try {
-    const { name, email, phone, specialization, licenseNo, department, consultationFee, qualifications, yearsOfExperience, gender, dateOfBirth, address, bio, languages, emergencyContact, schedule, isAvailable } = req.body;
+    const { name, email, phone, specialization, licenseNo, department, consultationFee, qualifications, yearsOfExperience, gender, dateOfBirth, address, bio, languages, emergencyContact, schedule, isAvailable, maxPatientsPerHour } = req.body;
     const doctor = await Doctor.findById(req.params.id);
     if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
     if (licenseNo && licenseNo !== doctor.licenseNo) {
@@ -108,6 +108,7 @@ export const update = async (req, res, next) => {
     if (emergencyContact !== undefined) updates.emergencyContact = emergencyContact;
     if (schedule !== undefined) updates.schedule = schedule;
     if (isAvailable !== undefined) updates.isAvailable = isAvailable;
+    if (maxPatientsPerHour !== undefined) updates.maxPatientsPerHour = maxPatientsPerHour;
     const updated = await Doctor.findByIdAndUpdate(req.params.id, updates, { new: true })
       .populate('user', 'name email phone avatar')
       .populate('department', 'name');
@@ -139,12 +140,14 @@ export const getMyAppointments = async (req, res, next) => {
       next.setDate(next.getDate() + 1);
       query.date = { $gte: d, $lt: next };
     }
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
     const total = await Appointment.countDocuments(query);
     const appointments = await Appointment.find(query)
       .populate('patient', 'firstName lastName uhid phone gender bloodGroup')
       .sort({ date: -1 })
-      .skip((page - 1) * limit)
-      .limit(Number(limit));
-    res.json({ appointments, total, page: Number(page), totalPages: Math.ceil(total / limit) });
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum);
+    res.json({ appointments, total, page: pageNum, totalPages: Math.ceil(total / limitNum) });
   } catch (error) { next(error); }
 };

@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const appointmentSchema = new mongoose.Schema({
   patient: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
   doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor', required: true },
+  department: { type: mongoose.Schema.Types.ObjectId, ref: 'Department' },
   date: { type: Date, required: true },
   timeSlot: {
     start: { type: String, required: true },
@@ -17,7 +18,6 @@ const appointmentSchema = new mongoose.Schema({
   reason: { type: String, trim: true },
   notes: { type: String },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  billing: { type: mongoose.Schema.Types.ObjectId, ref: 'Billing' },
 }, { timestamps: true });
 
 appointmentSchema.index({ doctor: 1, date: 1 });

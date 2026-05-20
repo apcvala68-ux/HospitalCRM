@@ -68,6 +68,7 @@ export function DoctorDetailPage() {
             {doctor.dateOfBirth && <div><span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Date of Birth</span><div className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-sm">{new Date(doctor.dateOfBirth).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span></div></div>}
             {doctor.address && <div><span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Address</span><div className="flex items-start gap-2"><MapPin className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" /><span className="text-sm text-muted-foreground">{doctor.address}</span></div></div>}
             {doctor.languages?.length > 0 && <div><span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Languages</span><div className="flex items-center gap-2 flex-wrap"><Languages className="h-3.5 w-3.5 text-muted-foreground" />{doctor.languages.map((l, i) => <Badge key={i} variant="outline" className="text-[11px] bg-muted/20 border-border/10">{l}</Badge>)}</div></div>}
+            {doctor.maxPatientsPerHour && <div><span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Max Patients / Hour</span><span className="text-sm font-semibold">{doctor.maxPatientsPerHour}</span></div>}
           </CardContent>
         </Card>
       </div>
