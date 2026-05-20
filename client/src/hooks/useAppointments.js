@@ -29,6 +29,16 @@ export function useCreateAppointment() {
   });
 }
 
+export function useConfirmAppointment() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: (id) => api.put(`/appointments/${id}`, { status: 'confirmed' }),
+    onSuccess: () => { toast.success('Appointment confirmed'); qc.invalidateQueries({ queryKey: ['appointments'] }); },
+    onError: (err) => toast.error(err.message),
+  });
+}
+
 export function useCancelAppointment() {
   const qc = useQueryClient();
   const toast = useToast();

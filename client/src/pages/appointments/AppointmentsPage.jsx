@@ -3,7 +3,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { useCalendarEvents, useAppointments, useCancelAppointment, useCreateAppointment } from '../../hooks/useAppointments';
+import { useCalendarEvents, useAppointments, useCancelAppointment, useCreateAppointment, useConfirmAppointment } from '../../hooks/useAppointments';
 import { useDoctors, useMyDoctorProfile } from '../../hooks/useDoctor';
 import { usePatientSearch } from '../../hooks/usePatients';
 import { useAuth } from '../../context/AuthContext';
@@ -115,6 +115,7 @@ export function AppointmentsPage() {
   const { data: doctorsData } = useDoctors();
   const { data: searchResults } = usePatientSearch(patientSearch);
   const createAppointment = useCreateAppointment();
+  const confirmAppointment = useConfirmAppointment();
   const cancelAppointment = useCancelAppointment();
   const toast = useToast();
   useEffect(() => {
@@ -139,7 +140,7 @@ export function AppointmentsPage() {
 
   const handleDatesSet = (arg) => { setDateRange({ start: arg.start.toISOString(), end: arg.end.toISOString() }); };
   const handleDateClick = (arg) => { setSelectedDate(arg.dateStr); setShowBook(true); };
-  const handleEventClick = (arg) => { setSelectedEvent(arg.event.extendedProps); };
+  const handleEventClick = (arg) => { setSelectedEvent({ ...arg.event.extendedProps, _id: arg.event.id }); };
   const handleBook = async () => {
     if (!selectedPatient || !selectedDoctor || !selectedDate) { toast.error('Select patient, doctor, and date'); return; }
     const [h, m] = selectedSlot.split(':').map(Number);
@@ -307,6 +308,14 @@ export function AppointmentsPage() {
                   <p><span className="text-muted-foreground">Patient:</span> <span className="font-medium">{selectedEvent.patient?.firstName} {selectedEvent.patient?.lastName}</span></p>
                   <p><span className="text-muted-foreground">Doctor:</span> <span className="font-medium">{selectedEvent.doctor?.user?.name}</span></p>
                   <p><span className="text-muted-foreground">Status:</span> <Badge variant={statusVariant[selectedEvent.status] || 'default'} className="capitalize">{selectedEvent.status}</Badge></p>
+                </div>
+                <div className="flex gap-2">
+                  {selectedEvent.status === 'scheduled' && (
+                    <Button size="sm" onClick={() => { confirmAppointment.mutate(selectedEvent._id); setSelectedEvent(null); }} disabled={confirmAppointment.isPending} className="flex-1">Accept</Button>
+                  )}
+                  {selectedEvent.status !== 'cancelled' && selectedEvent.status !== 'completed' && (
+                    <Button variant="destructive" size="sm" onClick={() => { cancelAppointment.mutate(selectedEvent._id); setSelectedEvent(null); }} disabled={cancelAppointment.isPending} className="flex-1">Cancel</Button>
+                  )}
                 </div>
                 <Button variant="outline" size="sm" onClick={() => { navigate(`/patients/${selectedEvent.patient?._id}`); setSelectedEvent(null); }} className="w-full">View Patient</Button>
               </div>
