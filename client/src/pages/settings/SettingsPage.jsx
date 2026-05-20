@@ -188,7 +188,7 @@ export function SettingsPage() {
               <CardTitle className="text-lg flex items-center gap-2">
                 <User className="h-5 w-5" /> Profile Information
               </CardTitle>
-              <CardDescription>Update your personal details and preferences</CardDescription>
+              <CardDescription className="text-foreground/80">Update your personal details and preferences</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleUpdateProfile} className="space-y-5">
