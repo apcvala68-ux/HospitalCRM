@@ -51,6 +51,8 @@ const statusVariant = { scheduled:'warning', confirmed:'info', completed:'succes
 const calendarCss = `
 .fc { font-family: inherit !important; }
 .fc .fc-toolbar-title { font-size: 1rem !important; font-weight: 700 !important; }
+.fc .fc-button-group { gap: 6px !important; }
+.fc .fc-button-group > .fc-button { border-radius: 0.75rem !important; }
 .fc .fc-button-primary { background: hsl(var(--primary)) !important; border-color: hsl(var(--primary)) !important; border-radius: 0.75rem !important; font-size: 0.75rem !important; font-weight: 600 !important; padding: 0.25rem 0.75rem !important; text-transform: capitalize !important; }
 .fc .fc-button-primary:not(:disabled).fc-button-active { background: color-mix(in srgb, hsl(var(--primary)) 80%, black) !important; }
 .fc .fc-button-primary:hover { opacity: 0.9 !important; }
