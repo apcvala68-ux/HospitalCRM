@@ -64,11 +64,17 @@ const calendarCss = `
 .fc .fc-timegrid-slot-label-cushion { font-size: 0.7rem !important; font-weight: 500 !important; }
 .fc .fc-event { border-radius: 6px !important; border: none !important; padding: 2px 4px !important; font-size: 0.75rem !important; cursor: pointer !important; }
 .fc .fc-event:hover { opacity: 0.85 !important; }
-.fc .fc-day-today { background: hsl(var(--accent)) !important; }
+.fc .fc-day-today { background: rgba(59,130,246,0.08) !important; }
+.fc-day-today.fc-daygrid-day { background: rgba(59,130,246,0.08) !important; box-shadow: inset 3px 3px 0 hsl(var(--primary)), inset -3px -3px 0 hsl(var(--primary)) !important; }
 .fc-day-today.fc-daygrid-day .fc-daygrid-day-frame { position: relative !important; }
-.fc-day-today.fc-daygrid-day .fc-daygrid-day-frame::after { content: '● Today'; position: absolute; top: 2px; right: 2px; font-size: 9px; font-weight: 700; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 1px 6px; border-radius: 4px; line-height: 1.5; letter-spacing: 0.3px; }
+.fc-day-today.fc-daygrid-day .fc-daygrid-day-top { background: hsl(var(--primary)); border-radius: 0.5rem; padding: 0 !important; margin: 4px; width: 32px; display: flex; align-items: center; justify-content: center; }
+.fc-day-today.fc-daygrid-day .fc-daygrid-day-number { color: hsl(var(--primary-foreground)) !important; font-weight: 800 !important; font-size: 0.9rem !important; padding: 2px 0 !important; }
+.fc-day-today.fc-daygrid-day .fc-daygrid-day-frame::after { content: '● Today'; position: absolute; top: 2px; right: 4px; font-size: 10px; font-weight: 700; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 2px 8px; border-radius: 6px; line-height: 1.4; letter-spacing: 0.3px; box-shadow: 0 2px 6px rgba(59,130,246,0.3); }
+.fc-day-today.fc-timegrid-col { background: rgba(59,130,246,0.08) !important; box-shadow: inset 3px 3px 0 hsl(var(--primary)), inset -3px -3px 0 hsl(var(--primary)) !important; }
 .fc-day-today.fc-timegrid-col .fc-timegrid-col-frame { position: relative !important; }
-.fc-day-today.fc-timegrid-col .fc-timegrid-col-frame::after { content: '● Today'; position: absolute; top: 2px; right: 2px; font-size: 9px; font-weight: 700; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 1px 6px; border-radius: 4px; line-height: 1.5; letter-spacing: 0.3px; z-index: 2; }
+.fc-day-today.fc-timegrid-col .fc-timegrid-col-header { background: transparent !important; }
+.fc-day-today.fc-timegrid-col .fc-timegrid-col-header .fc-col-header-cell-cushion { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)) !important; display: inline-block; padding: 4px 10px !important; border-radius: 6px; font-size: 0.8rem !important; }
+.fc-day-today.fc-timegrid-col .fc-timegrid-col-frame::after { content: '● Today'; position: absolute; top: 2px; right: 4px; font-size: 10px; font-weight: 700; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 2px 8px; border-radius: 6px; line-height: 1.4; letter-spacing: 0.3px; box-shadow: 0 2px 6px rgba(59,130,246,0.3); z-index: 2; }
 .fc .fc-highlight { background: hsl(var(--primary)) !important; opacity: 0.1 !important; }
 .fc .fc-timegrid-now-indicator-line { border-color: hsl(var(--destructive)) !important; }
 .fc .fc-timegrid-now-indicator-arrow { border-color: hsl(var(--destructive)) !important; color: hsl(var(--destructive)) !important; }
