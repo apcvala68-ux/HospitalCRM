@@ -118,11 +118,13 @@ const getDeptConfig = (name) => {
 };
 
 const calendarCellCss = `
-[data-slot="cell"] { color: hsl(var(--foreground)) !important; }
-[data-slot="cell"][data-hover] { background: hsl(var(--accent)) !important; }
-[data-slot="cell"][data-selected] { background: hsl(var(--primary)) !important; color: hsl(var(--primary-foreground)) !important; }
-[data-slot="cell"][data-range-selection] { background: hsl(var(--primary) / 0.15) !important; }
-[data-slot="cell-button"] { color: inherit !important; }
+.range-calendar-fix button:not([data-slot="nav-button"]):not([data-slot="year-picker-trigger"]) { color: hsl(var(--foreground)) !important; }
+.range-calendar-fix button:not([data-slot="nav-button"]):not([data-slot="year-picker-trigger"]):where([data-selected],[data-range-selection]) { color: hsl(var(--primary-foreground)) !important; }
+.range-calendar-fix [data-slot="cell"] { color: hsl(var(--foreground)) !important; }
+.range-calendar-fix [data-slot="cell-button"] { color: inherit !important; }
+.range-calendar-fix [data-slot="cell"][data-selected] { background: hsl(var(--primary)) !important; color: hsl(var(--primary-foreground)) !important; }
+.range-calendar-fix [data-slot="cell"][data-range-selection] { background: hsl(var(--primary) / 0.15) !important; }
+.range-calendar-fix [data-slot="cell"][data-hover] { background: hsl(var(--accent)) !important; }
 `;
 
 export function AdminDashboard() {
@@ -307,7 +309,7 @@ export function AdminDashboard() {
                   </span>
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="p-0 border border-border/60 shadow-lg rounded-xl overflow-hidden bg-card">
+              <PopoverContent className="range-calendar-fix p-0 border border-border/60 shadow-lg rounded-xl overflow-hidden bg-card">
                 <RangeCalendar 
                   value={dateRange} 
                   onChange={setDateRange}
