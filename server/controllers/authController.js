@@ -98,10 +98,19 @@ export const getMe = async (req, res) => {
 
 export const updateProfile = async (req, res, next) => {
   try {
-    const { name, phone } = req.body;
+    const { name, phone, shift, gender, dateOfBirth, address, bio, preferences } = req.body;
     const user = await User.findById(req.user._id);
     if (name) user.name = name;
     if (phone !== undefined) user.phone = phone;
+    if (shift !== undefined) user.shift = shift;
+    if (gender !== undefined) user.gender = gender;
+    if (dateOfBirth !== undefined) user.dateOfBirth = dateOfBirth;
+    if (address !== undefined) user.address = address;
+    if (bio !== undefined) user.bio = bio;
+    if (preferences !== undefined) {
+      if (preferences.language !== undefined) user.preferences.language = preferences.language;
+      if (preferences.emailNotifications !== undefined) user.preferences.emailNotifications = preferences.emailNotifications;
+    }
     await user.save();
     res.json({ user, message: 'Profile updated successfully' });
   } catch (error) { next(error); }
@@ -134,6 +143,44 @@ export const getGoogleAuthUrl = (req, res) => {
     prompt: 'consent',
   });
   res.json({ url });
+};
+
+export const connectGoogle = async (req, res, next) => {
+  try {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ message: 'Authorization code is required' });
+
+    const { tokens } = await googleClient.getToken(code);
+    const ticket = await googleClient.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.googleTokens = {
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token,
+      expiryDate: tokens.expiry_date,
+    };
+    await user.save();
+
+    res.json({ user, message: `Google account connected (${payload.email})` });
+  } catch (error) { next(error); }
+};
+
+export const disconnectGoogle = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.googleTokens = undefined;
+    await user.save();
+
+    res.json({ user, message: 'Google account disconnected' });
+  } catch (error) { next(error); }
 };
 
 export const getGmailClient = async (user) => {

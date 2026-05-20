@@ -11,6 +11,14 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
   phone: { type: String, trim: true },
+  gender: { type: String, enum: ['male', 'female', 'other'] },
+  dateOfBirth: { type: Date },
+  address: { type: String },
+  bio: { type: String, trim: true },
+  preferences: {
+    language: { type: String, default: 'en' },
+    emailNotifications: { type: Boolean, default: true },
+  },
   avatar: { type: String },
   googleTokens: {
     accessToken: String,

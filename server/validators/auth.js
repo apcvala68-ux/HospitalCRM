@@ -51,3 +51,15 @@ export const resetPasswordValidation = [
     .notEmpty().withMessage('New password is required')
     .isLength({ min: 6 }).withMessage('New password must be at least 6 characters'),
 ];
+
+export const updateProfileValidation = [
+  body('name').optional().trim(),
+  body('phone').optional().trim(),
+  body('shift').optional().isIn(['morning', 'evening', 'night', 'general']).withMessage('Invalid shift'),
+  body('gender').optional().isIn(['male', 'female', 'other']).withMessage('Invalid gender'),
+  body('dateOfBirth').optional().isISO8601().withMessage('Invalid date format'),
+  body('address').optional().trim(),
+  body('bio').optional().trim(),
+  body('preferences.language').optional().isString(),
+  body('preferences.emailNotifications').optional().isBoolean(),
+];

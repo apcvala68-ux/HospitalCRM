@@ -5,10 +5,12 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
-import { useUpdateProfile, useChangePassword } from '../../hooks/useSettings';
+import { useUpdateProfile, useChangePassword, useConnectGoogle, useDisconnectGoogle } from '../../hooks/useSettings';
+import { Switch } from '../../components/ui/switch';
 import {
   User, Lock, Shield, Calendar, Clock, Save, Loader2, CheckCircle, AlertCircle,
-  Eye, EyeOff, Mail, Phone, Building2, LogOut,
+  Eye, EyeOff, Mail, Phone, Building2, LogOut, Globe, MapPin, BookUser, VenusAndMars,
+  Cake, UserRoundPen,
 } from 'lucide-react';
 import { displayPhone } from '../../lib/utils';
 
@@ -34,10 +36,20 @@ export function SettingsPage() {
   const { user } = useAuth();
   const updateProfile = useUpdateProfile();
   const changePassword = useChangePassword();
+  const connectGoogle = useConnectGoogle();
+  const disconnectGoogle = useDisconnectGoogle();
+
+  const [activeTab, setActiveTab] = useState('profile');
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [activeTab, setActiveTab] = useState('profile');
+  const [shift, setShift] = useState('general');
+  const [gender, setGender] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [address, setAddress] = useState('');
+  const [bio, setBio] = useState('');
+  const [language, setLanguage] = useState('en');
+  const [emailNotifications, setEmailNotifications] = useState(true);
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -47,12 +59,22 @@ export function SettingsPage() {
 
   const [profileMsg, setProfileMsg] = useState(null);
   const [passwordMsg, setPasswordMsg] = useState(null);
+  const [googleMsg, setGoogleMsg] = useState(null);
   const [errors, setErrors] = useState({});
+
+  const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
     if (user) {
       setName(user.name || '');
       setPhone(user.phone || '');
+      setShift(user.shift || 'general');
+      setGender(user.gender || '');
+      setDateOfBirth(user.dateOfBirth ? user.dateOfBirth.split('T')[0] : '');
+      setAddress(user.address || '');
+      setBio(user.bio || '');
+      setLanguage(user.preferences?.language || 'en');
+      setEmailNotifications(user.preferences?.emailNotifications ?? true);
     }
   }, [user]);
 
@@ -65,7 +87,12 @@ export function SettingsPage() {
       return;
     }
     try {
-      await updateProfile.mutateAsync({ name, phone });
+      await updateProfile.mutateAsync({
+        name, phone, shift, gender,
+        dateOfBirth: dateOfBirth || undefined,
+        address, bio,
+        preferences: { language, emailNotifications },
+      });
       setProfileMsg({ type: 'success', text: 'Profile updated successfully' });
     } catch (err) {
       setProfileMsg({ type: 'error', text: err.message || 'Failed to update profile' });
@@ -76,31 +103,60 @@ export function SettingsPage() {
     e.preventDefault();
     setPasswordMsg(null);
     setErrors({});
-    if (!currentPassword) {
-      setErrors({ currentPassword: 'Current password is required' });
-      return;
-    }
-    if (!newPassword) {
-      setErrors({ newPassword: 'New password is required' });
-      return;
-    }
-    if (newPassword.length < 6) {
-      setErrors({ newPassword: 'Password must be at least 6 characters' });
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setErrors({ confirmPassword: 'Passwords do not match' });
-      return;
-    }
+    if (!currentPassword) { setErrors({ currentPassword: 'Current password is required' }); return; }
+    if (!newPassword) { setErrors({ newPassword: 'New password is required' }); return; }
+    if (newPassword.length < 6) { setErrors({ newPassword: 'Password must be at least 6 characters' }); return; }
+    if (newPassword !== confirmPassword) { setErrors({ confirmPassword: 'Passwords do not match' }); return; }
     try {
       await changePassword.mutateAsync({ currentPassword, newPassword });
       setPasswordMsg({ type: 'success', text: 'Password changed successfully' });
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
     } catch (err) {
       setPasswordMsg({ type: 'error', text: err.message || 'Failed to change password' });
     }
+  };
+
+  const handleConnectGoogle = async () => {
+    setConnecting(true);
+    setGoogleMsg(null);
+    try {
+      const resp = await fetch('/api/auth/google-auth-url');
+      const { url } = await resp.json();
+      const popup = window.open(url, 'google-auth', 'width=600,height=700');
+      if (!popup) { setGoogleMsg({ type: 'error', text: 'Pop-up blocked. Allow pop-ups and try again.' }); setConnecting(false); return; }
+      const timer = setInterval(() => {
+        try {
+          if (popup.closed) {
+            clearInterval(timer);
+            setConnecting(false);
+            return;
+          }
+          if (popup.location.origin === window.location.origin) {
+            const params = new URLSearchParams(popup.location.search);
+            const code = params.get('code');
+            if (code) {
+              popup.close();
+              clearInterval(timer);
+              connectGoogle.mutate(code, {
+                onSuccess: () => setGoogleMsg({ type: 'success', text: 'Google account connected' }),
+                onError: (err) => setGoogleMsg({ type: 'error', text: err.message || 'Failed to connect Google' }),
+                onSettled: () => setConnecting(false),
+              });
+            }
+          }
+        } catch { }
+      }, 500);
+    } catch (err) {
+      setGoogleMsg({ type: 'error', text: 'Failed to initiate Google connection' });
+      setConnecting(false);
+    }
+  };
+
+  const handleDisconnectGoogle = () => {
+    disconnectGoogle.mutate(undefined, {
+      onSuccess: () => setGoogleMsg({ type: 'success', text: 'Google account disconnected' }),
+      onError: (err) => setGoogleMsg({ type: 'error', text: err.message || 'Failed to disconnect' }),
+    });
   };
 
   if (!user) return null;
@@ -125,20 +181,20 @@ export function SettingsPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* TAB 1: Profile */}
+        {/* ══════════════ TAB 1: Profile ══════════════ */}
         <TabsContent value="profile">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <User className="h-5 w-5" /> Profile Information
               </CardTitle>
-              <CardDescription>Update your personal details</CardDescription>
+              <CardDescription>Update your personal details and preferences</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleUpdateProfile} className="space-y-5">
-                {/* Avatar Preview */}
+                {/* Avatar */}
                 <div className="flex items-center gap-4">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-bold text-primary-foreground">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-bold text-primary-foreground shrink-0">
                     {user.name?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
                   <div>
@@ -149,14 +205,11 @@ export function SettingsPage() {
                   </div>
                 </div>
 
+                {/* Row 1: Name + Email */}
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Full Name</label>
-                    <Input
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Your full name"
-                    />
+                    <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name" />
                     {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
                   </div>
                   <div className="space-y-2">
@@ -167,27 +220,104 @@ export function SettingsPage() {
                     </div>
                     <p className="text-xs text-muted-foreground">Email cannot be changed</p>
                   </div>
+                </div>
+
+                {/* Row 2: Phone + Gender */}
+                <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Phone</label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="Your phone number"
-                        className="pl-9"
-                      />
+                      <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Your phone number" className="pl-9" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Gender</label>
+                    <div className="relative">
+                      <VenusAndMars className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <select value={gender} onChange={(e) => setGender(e.target.value)} className="flex h-9 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none cursor-pointer">
+                        <option value="">Select gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
                     </div>
                   </div>
                 </div>
 
+                {/* Row 3: DOB + Shift */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Date of Birth</label>
+                    <div className="relative">
+                      <Cake className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className="pl-9" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Shift</label>
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <select value={shift} onChange={(e) => setShift(e.target.value)} className="flex h-9 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none cursor-pointer">
+                        <option value="general">General</option>
+                        <option value="morning">Morning</option>
+                        <option value="evening">Evening</option>
+                        <option value="night">Night</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 4: Address */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Address</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <textarea value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Your address" rows={2} className="flex w-full rounded-lg border border-input bg-background pl-9 pr-3 py-2 text-sm outline-none resize-none" />
+                  </div>
+                </div>
+
+                {/* Row 5: Bio */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Bio / About Me</label>
+                  <div className="relative">
+                    <UserRoundPen className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell us about yourself..." rows={3} className="flex w-full rounded-lg border border-input bg-background pl-9 pr-3 py-2 text-sm outline-none resize-none" />
+                  </div>
+                </div>
+
+                {/* Section: Preferences */}
+                <div className="pt-2 border-t">
+                  <p className="text-sm font-semibold mb-3 flex items-center gap-2"><BookUser className="h-4 w-4" /> Preferences</p>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Language</label>
+                      <div className="relative">
+                        <Globe className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <select value={language} onChange={(e) => setLanguage(e.target.value)} className="flex h-9 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none cursor-pointer">
+                          <option value="en">English</option>
+                          <option value="hi">Hindi</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Email Notifications</label>
+                      <div className="flex items-center gap-3 pt-1.5">
+                        <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
+                        <span className="text-sm text-muted-foreground">{emailNotifications ? 'Enabled' : 'Disabled'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Profile message */}
                 {profileMsg && (
                   <div className={`flex items-center gap-2 rounded-lg p-3 text-sm ${
                     profileMsg.type === 'success'
                       ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300'
                       : 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300'
                   }`}>
-                    {profileMsg.type === 'success' ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                    {profileMsg.type === 'success' ? <CheckCircle className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
                     {profileMsg.text}
                   </div>
                 )}
@@ -204,7 +334,7 @@ export function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* TAB 2: Password */}
+        {/* ══════════════ TAB 2: Password ══════════════ */}
         <TabsContent value="password">
           <Card>
             <CardHeader>
@@ -218,46 +348,28 @@ export function SettingsPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Current Password</label>
                   <div className="relative">
-                    <Input
-                      type={showCurrent ? 'text' : 'password'}
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      placeholder="Enter current password"
-                    />
+                    <Input type={showCurrent ? 'text' : 'password'} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Enter current password" />
                     <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground">
                       {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                   {errors.currentPassword && <p className="text-xs text-red-500">{errors.currentPassword}</p>}
                 </div>
-
                 <div className="space-y-2">
                   <label className="text-sm font-medium">New Password</label>
                   <div className="relative">
-                    <Input
-                      type={showNew ? 'text' : 'password'}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Enter new password"
-                    />
+                    <Input type={showNew ? 'text' : 'password'} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" />
                     <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground">
                       {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                   {errors.newPassword && <p className="text-xs text-red-500">{errors.newPassword}</p>}
                 </div>
-
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Confirm New Password</label>
-                  <Input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm new password"
-                  />
+                  <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password" />
                   {errors.confirmPassword && <p className="text-xs text-red-500">{errors.confirmPassword}</p>}
                 </div>
-
                 {passwordMsg && (
                   <div className={`flex items-center gap-2 rounded-lg p-3 text-sm ${
                     passwordMsg.type === 'success'
@@ -268,7 +380,6 @@ export function SettingsPage() {
                     {passwordMsg.text}
                   </div>
                 )}
-
                 <Button type="submit" disabled={changePassword.isPending}>
                   {changePassword.isPending ? (
                     <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Changing...</>
@@ -281,7 +392,7 @@ export function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* TAB 3: Account */}
+        {/* ══════════════ TAB 3: Account ══════════════ */}
         <TabsContent value="account">
           <Card>
             <CardHeader>
@@ -291,24 +402,20 @@ export function SettingsPage() {
               <CardDescription>Your account details and activity</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Role & Status */}
+              {/* Role & Status grid */}
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="rounded-lg border p-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                     <Shield className="h-4 w-4" /> Role
                   </div>
-                  <Badge className={roleColors[user.role] || ''}>
-                    {roleLabels[user.role] || user.role}
-                  </Badge>
+                  <Badge className={roleColors[user.role] || ''}>{roleLabels[user.role] || user.role}</Badge>
                 </div>
                 <div className="rounded-lg border p-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                     <Calendar className="h-4 w-4" /> Member Since
                   </div>
                   <p className="font-medium">
-                    {user.createdAt
-                      ? new Date(user.createdAt).toLocaleDateString('en', { day: 'numeric', month: 'long', year: 'numeric' })
-                      : 'N/A'}
+                    {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}
                   </p>
                 </div>
                 <div className="rounded-lg border p-4">
@@ -316,14 +423,12 @@ export function SettingsPage() {
                     <Clock className="h-4 w-4" /> Last Login
                   </div>
                   <p className="font-medium">
-                    {user.lastLogin
-                      ? new Date(user.lastLogin).toLocaleDateString('en', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-                      : 'First login'}
+                    {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('en', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'First login'}
                   </p>
                 </div>
               </div>
 
-              {/* Account Details */}
+              {/* Account details list */}
               <div className="rounded-lg border">
                 <div className="divide-y">
                   <div className="flex items-center justify-between p-3">
@@ -335,21 +440,19 @@ export function SettingsPage() {
                     <span className="text-sm font-medium">{displayPhone(user.phone)}</span>
                   </div>
                   <div className="flex items-center justify-between p-3">
-                    <span className="text-sm text-muted-foreground">Account Status</span>
-                    <Badge variant={user.isActive ? 'success' : 'destructive'}>
-                      {user.isActive ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3">
                     <span className="text-sm text-muted-foreground">Shift</span>
                     <span className="text-sm font-medium capitalize">{user.shift || 'General'}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3">
+                    <span className="text-sm text-muted-foreground">Account Status</span>
+                    <Badge variant={user.isActive ? 'success' : 'destructive'}>{user.isActive ? 'Active' : 'Inactive'}</Badge>
                   </div>
                 </div>
               </div>
 
               {/* Connected Accounts */}
-              <div className="rounded-lg border p-4">
-                <p className="text-sm font-medium mb-3">Connected Accounts</p>
+              <div className="rounded-lg border p-4 space-y-3">
+                <p className="text-sm font-medium flex items-center gap-2"><Mail className="h-4 w-4" /> Connected Accounts</p>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
@@ -362,10 +465,26 @@ export function SettingsPage() {
                       </p>
                     </div>
                   </div>
-                  <Badge variant={user.googleTokens?.accessToken ? 'success' : 'outline'}>
-                    {user.googleTokens?.accessToken ? 'Linked' : 'Not Linked'}
-                  </Badge>
+                  {user.googleTokens?.accessToken ? (
+                    <Button variant="destructive" size="sm" onClick={handleDisconnectGoogle} disabled={disconnectGoogle.isPending}>
+                      {disconnectGoogle.isPending ? 'Disconnecting...' : 'Disconnect'}
+                    </Button>
+                  ) : (
+                    <Button variant="outline" size="sm" onClick={handleConnectGoogle} disabled={connecting}>
+                      {connecting ? 'Connecting...' : 'Connect'}
+                    </Button>
+                  )}
                 </div>
+                {googleMsg && (
+                  <div className={`flex items-center gap-2 rounded-lg p-2.5 text-xs ${
+                    googleMsg.type === 'success'
+                      ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300'
+                      : 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300'
+                  }`}>
+                    {googleMsg.type === 'success' ? <CheckCircle className="h-3.5 w-3.5 shrink-0" /> : <AlertCircle className="h-3.5 w-3.5 shrink-0" />}
+                    {googleMsg.text}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
