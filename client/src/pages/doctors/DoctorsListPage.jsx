@@ -61,7 +61,7 @@ export function DoctorsListPage() {
   const { data: deptData } = useDepartments();
   const departments = deptData?.departments || [];
 
-  const { data, isLoading } = useDoctors({ page, limit, search, sortBy, sortOrder, department: deptFilter, isAvailable: availabilityFilter });
+  const { data, isLoading, error } = useDoctors({ page, limit, search, sortBy, sortOrder, department: deptFilter, isAvailable: availabilityFilter });
   const deleteMut = useDeleteDoctor();
 
   const up = useCallback((u) => {
@@ -174,7 +174,9 @@ export function DoctorsListPage() {
 
       <Card>
         <CardContent className="pt-6">
-          {isLoading ? (
+          {error ? (
+            <div className="py-8 text-center"><p className="text-destructive font-medium">Failed to load doctors</p><p className="text-xs text-muted-foreground mt-1">{error.message || 'Check your connection and try again'}</p></div>
+          ) : isLoading ? (
             <div className="flex justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
           ) : doctors.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">{search || deptFilter ? 'No doctors match your filters' : 'No doctors registered yet'}</div>

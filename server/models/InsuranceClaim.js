@@ -33,4 +33,9 @@ insuranceClaimSchema.pre('save', async function(next) {
   next();
 });
 
+insuranceClaimSchema.index({ patient: 1 });
+insuranceClaimSchema.index({ status: 1 });
+insuranceClaimSchema.index({ tpaName: 1 });
+insuranceClaimSchema.index({ submissionDate: -1 });
+
 export default mongoose.model('InsuranceClaim', insuranceClaimSchema);

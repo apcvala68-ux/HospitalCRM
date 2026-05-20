@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../services/api';
+import { useToast } from '../../hooks/useToast';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -12,6 +13,7 @@ import {
   MessageSquare, Heart, Activity, Pill, TrendingUp, AlertCircle, ChevronDown, ChevronUp,
   Stethoscope, ClipboardList, ShoppingCart, Cross, Star,
 } from 'lucide-react';
+import { displayPhone } from '../../lib/utils';
 
 function usePatientHistory(id) {
   return useQuery({
@@ -39,7 +41,9 @@ const severityColor = { mild: 'bg-green-500', moderate: 'bg-yellow-500', severe:
 export function PatientDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data, isLoading } = usePatientHistory(id);
+  const { data, isLoading, error } = usePatientHistory(id);
+  const toast = useToast();
+  useEffect(() => { if (error) toast.error(error.message || 'Failed to load'); }, [error]);
   const [expandedRx, setExpandedRx] = useState(null);
   const [expandedLab, setExpandedLab] = useState(null);
 
@@ -47,6 +51,15 @@ export function PatientDetailPage() {
     return (
       <div className="flex justify-center py-12">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-8 text-center">
+        <p className="text-destructive font-medium">Failed to load</p>
+        <p className="text-xs text-muted-foreground mt-1">{error.message}</p>
       </div>
     );
   }
@@ -73,7 +86,7 @@ export function PatientDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/patients')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="flex-1">
@@ -161,13 +174,13 @@ export function PatientDetailPage() {
         <Card>
           <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2"><Phone className="h-4 w-4" />Contact</CardTitle></CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <div className="flex items-center gap-2"><Phone className="h-3 w-3 text-muted-foreground" />{patient.phone}</div>
+            <div className="flex items-center gap-2"><Phone className="h-3 w-3 text-muted-foreground" />{displayPhone(patient.phone)}</div>
             {patient.email && <div className="flex items-center gap-2"><Mail className="h-3 w-3 text-muted-foreground" />{patient.email}</div>}
             {patient.address?.city && <div className="flex items-center gap-2"><MapPin className="h-3 w-3 text-muted-foreground" />{[patient.address.street, patient.address.city, patient.address.state, patient.address.pincode].filter(Boolean).join(', ')}</div>}
             {patient.emergencyContact?.name && (
               <div className="mt-3 border-t pt-3">
                 <p className="font-medium text-destructive">Emergency Contact</p>
-                <p className="text-muted-foreground">{patient.emergencyContact.name} — {patient.emergencyContact.phone}</p>
+                <p className="text-muted-foreground">{patient.emergencyContact.name} — {displayPhone(patient.emergencyContact.phone)}</p>
                 {patient.emergencyContact.relation && <p className="text-xs text-muted-foreground">{patient.emergencyContact.relation}</p>}
               </div>
             )}

@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { Table, Chip } from '@heroui/react';
 import { usePatientRecords } from '../../hooks/useDashboard';
+import { useToast } from '../../hooks/useToast';
 
 const deptColorMap = {
   Cardiology: 'accent',
@@ -13,9 +15,16 @@ const deptColorMap = {
 };
 
 export function PatientRecordsTable({ dateRange }) {
-  const { data, isLoading } = usePatientRecords(dateRange);
+  const { data, isLoading, error } = usePatientRecords(dateRange);
+  const toast = useToast();
   const records = data?.records || [];
   const items = records.slice(0, 8);
+
+  useEffect(() => {
+    if (error) toast.error(error.message || 'Failed to load');
+  }, [error]);
+
+  if (error) return <div className="text-destructive text-sm p-2">Failed to load</div>;
 
   if (isLoading) {
     return (

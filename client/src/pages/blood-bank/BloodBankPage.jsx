@@ -112,12 +112,13 @@ export function BloodBankPage() {
   const [showForm, setShowForm] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
 
-  const { data, isLoading } = useBloodEntries({ page, search, limit, sortBy, sortOrder, status: statusFilter, type: typeFilter, bloodGroup: bloodGroupFilter });
+  const { data, isLoading, error } = useBloodEntries({ page, search, limit, sortBy, sortOrder, status: statusFilter, type: typeFilter, bloodGroup: bloodGroupFilter });
   const { data: stats } = useBloodStats();
   const deleteMut = useDeleteBloodEntry();
   const toast = useToast();
   const qc = useQueryClient();
   const s = stats || {};
+  useEffect(() => { if (error) toast.error(error.message || 'Failed to load'); }, [error]);
 
   const kpiCards = [
     {
@@ -343,7 +344,7 @@ export function BloodBankPage() {
 
       <Card>
         <CardContent className="pt-6">
-          {isLoading ? (
+          {error ? (<div className="py-8 text-center"><p className="text-destructive font-medium">Failed to load</p><p className="text-xs text-muted-foreground mt-1">{error.message}</p></div>) : isLoading ? (
             <div className="flex justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
           ) : entries.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">{search ? 'No entries match your search' : 'No blood bank entries yet'}</div>

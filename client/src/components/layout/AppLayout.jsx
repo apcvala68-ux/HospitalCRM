@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { OfflineOverlay } from '../common/OfflineOverlay';
 import { useAuth } from '../../context/AuthContext';
 
 export function AppLayout() {
@@ -10,6 +11,7 @@ export function AppLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden">
+      <OfflineOverlay />
       <Sidebar
         user={user}
         mobileOpen={mobileSidebarOpen}

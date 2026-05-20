@@ -51,8 +51,8 @@ export function StaffRosterPage(){
   const [sp,setSp]=useSearchParams();
   const page=Number(sp.get('page'))||1,limit=Number(sp.get('limit'))||15,search=sp.get('search')||'',sortBy=sp.get('sortBy')||'',sortOrder=sp.get('sortOrder')||'',dateFilter=sp.get('date')||new Date().toISOString().split('T')[0],shiftFilter=sp.get('shift')||'',deptFilter=sp.get('department')||'',statusFilter=sp.get('status')||'';
   const [si,setSi]=useState(search);const [fo,setFo]=useState(false);const [sf,setSf]=useState(false);
-  const {data,isLoading}=useRoster({page,search,limit,sortBy,sortOrder,date:dateFilter,shift:shiftFilter,department:deptFilter,status:statusFilter});
-  const {data:stats}=useRosterStats();const toast=useToast();const qc=useQueryClient();const s=stats||{};
+  const {data,isLoading,error}=useRoster({page,search,limit,sortBy,sortOrder,date:dateFilter,shift:shiftFilter,department:deptFilter,status:statusFilter});
+  const {data:stats}=useRosterStats();const toast=useToast();const qc=useQueryClient();const s=stats||{};useEffect(()=>{if(error) toast.error(error.message||'Failed to load');},[error]);
 
   const kpi=[
     {label:'Total Today',value:s.total||0,icon:CalendarDays,color:'#6366f1',bg:'bg-indigo-50 dark:bg-indigo-950/30',changeText:'',isIncrease:false},
@@ -104,7 +104,7 @@ export function StaffRosterPage(){
     </div>
 
     <Card><CardContent className="pt-6">
-      {isLoading?(<div className="flex justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>):items.length===0?(<div className="py-8 text-center text-muted-foreground">{search?'No entries match your search':'No roster entries yet'}</div>):(<>
+      {error?(<div className="py-8 text-center"><p className="text-destructive font-medium">Failed to load</p><p className="text-xs text-muted-foreground mt-1">{error.message}</p></div>):isLoading?(<div className="flex justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>):items.length===0?(<div className="py-8 text-center text-muted-foreground">{search?'No entries match your search':'No roster entries yet'}</div>):(<>
         <div className="overflow-x-auto"><table className="w-full"><thead><tr className="border-b text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           <th className="pb-3 pr-2 w-10 text-center font-semibold">#</th>
           <th className="pb-3 font-semibold">Staff</th>

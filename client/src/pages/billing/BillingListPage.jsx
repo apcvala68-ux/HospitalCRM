@@ -93,7 +93,7 @@ export function BillingListPage() {
   const [searchInput, setSearchInput] = useState(search);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const { data, isLoading } = useBillingList({ page, search, limit, sortBy, sortOrder, status: statusFilter });
+  const { data, isLoading, error } = useBillingList({ page, search, limit, sortBy, sortOrder, status: statusFilter });
 
   const kpiCards = [
     {
@@ -223,7 +223,9 @@ export function BillingListPage() {
 
       <Card>
         <CardContent className="pt-6">
-          {isLoading ? (
+          {error ? (
+            <div className="py-8 text-center"><p className="text-destructive font-medium">Failed to load invoices</p><p className="text-xs text-muted-foreground mt-1">{error.message || 'Check your connection and try again'}</p></div>
+          ) : isLoading ? (
             <div className="flex justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
           ) : bills.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">{search ? 'No invoices match your search' : 'No invoices yet'}</div>

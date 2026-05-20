@@ -31,4 +31,10 @@ bloodBankSchema.pre('save', async function(next) {
   next();
 });
 
+bloodBankSchema.index({ bloodGroup: 1 });
+bloodBankSchema.index({ status: 1 });
+bloodBankSchema.index({ type: 1 });
+bloodBankSchema.index({ patient: 1 });
+bloodBankSchema.index({ expiryDate: 1 });
+
 export default mongoose.model('BloodBank', bloodBankSchema);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../services/api';
 import { useToast } from '../../hooks/useToast';
@@ -25,8 +25,9 @@ export function NursingMARPage() {
   const qc = useQueryClient();
   const toast = useToast();
 
-  const { data, isLoading } = useMARRecords({ status: statusFilter, limit: 50 });
+  const { data, isLoading, error } = useMARRecords({ status: statusFilter, limit: 50 });
   const { data: stats } = useMARStats();
+  useEffect(() => { if (error) toast.error(error.message || 'Failed to load'); }, [error]);
 
   const createMutation = useMutation({
     mutationFn: (d) => api.post('/nursing-mar', d),
@@ -121,7 +122,7 @@ export function NursingMARPage() {
           </select>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {error ? (<div className="py-8 text-center"><p className="text-destructive font-medium">Failed to load</p><p className="text-xs text-muted-foreground mt-1">{error.message}</p></div>) : isLoading ? (
             <div className="flex justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
           ) : (
             <div className="space-y-3">

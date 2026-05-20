@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useCurrentQueue, useCompletePatient } from '../../hooks/useQueue';
 import { usePatient } from '../../hooks/usePatients';
@@ -18,6 +18,7 @@ import {
   ChevronDown, ChevronUp, FileText, Stethoscope, Activity,
   User, Phone, Mail, MapPin, Calendar, Shield, Eye, EyeOff,
 } from 'lucide-react';
+import { displayPhone } from '../../lib/utils';
 
 const abnormalVitals = (type, value) => {
   if (!value) return false;
@@ -63,18 +64,22 @@ export function ConsultationPage() {
   const toast = useToast();
   const printRef = useRef(null);
 
-  const { data: profileData } = useMyDoctorProfile();
+  const { data: profileData, error: profileError } = useMyDoctorProfile();
   const doctorId = profileData?.doctor?._id;
 
-  const { data: queueData } = useCurrentQueue(doctorId);
-  const { data: patientData, isLoading: patientLoading } = usePatient(patientId);
-  const { data: vitalsData } = useTokenVitals(tokenId);
-  const { data: prescriptionsData } = usePatientPrescriptions(patientId);
-  const { data: labTestsData } = usePatientLabTests(patientId);
+  const { data: queueData, error: queueError } = useCurrentQueue(doctorId);
+  const { data: patientData, isLoading: patientLoading, error: patientError } = usePatient(patientId);
+  const { data: vitalsData, error: vitalsError } = useTokenVitals(tokenId);
+  const { data: prescriptionsData, error: prescriptionsError } = usePatientPrescriptions(patientId);
+  const { data: labTestsData, error: labTestsError } = usePatientLabTests(patientId);
+
+  const queryError = profileError || queueError || patientError || vitalsError || prescriptionsError || labTestsError;
 
   const createPrescription = useCreatePrescription();
   const createLabTests = useCreateLabTests();
   const completePatient = useCompletePatient();
+
+  useEffect(() => { if (queryError) toast.error(queryError.message || 'Failed to load'); }, [queryError]);
 
   const [examNotes, setExamNotes] = useState('');
   const [expandedRx, setExpandedRx] = useState(null);
@@ -135,6 +140,15 @@ export function ConsultationPage() {
     );
   }
 
+  if (queryError) {
+    return (
+      <div className="py-8 text-center">
+        <p className="text-destructive font-medium">Failed to load</p>
+        <p className="text-xs text-muted-foreground mt-1">{queryError.message}</p>
+      </div>
+    );
+  }
+
   if (!patient) return <div className="py-12 text-center text-muted-foreground">Patient not found</div>;
 
   const age = getAge(patient.dob);
@@ -189,7 +203,7 @@ export function ConsultationPage() {
             <CardContent className="space-y-2 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Phone className="h-3.5 w-3.5" />
-                <span>{patient.phone}</span>
+                <span>{displayPhone(patient.phone)}</span>
               </div>
               {patient.email && (
                 <div className="flex items-center gap-2 text-muted-foreground">

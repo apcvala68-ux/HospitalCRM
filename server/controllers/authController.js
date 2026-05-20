@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
+import logger from '../config/logger.js';
 
 const googleClient = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
@@ -186,11 +187,7 @@ export const forgotPassword = async (req, res, next) => {
     user.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    // Output code to server console
-    console.log('\n========================================');
-    console.log(`PASSWORD RESET FOR: ${email}`);
-    console.log(`6-DIGIT VERIFICATION CODE: ${resetCode}`);
-    console.log('========================================\n');
+    logger.info('Password reset code generated', { email, resetCode });
 
     const response = {
       message: 'Reset verification code sent to your email.'

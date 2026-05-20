@@ -40,4 +40,8 @@ nursingMARSchema.pre('save', async function(next) {
   next();
 });
 
+nursingMARSchema.index({ patient: 1 });
+nursingMARSchema.index({ status: 1 });
+nursingMARSchema.index({ startDate: -1 });
+
 export default mongoose.model('NursingMAR', nursingMARSchema);

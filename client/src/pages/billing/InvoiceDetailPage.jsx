@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useInvoice, useAddPayment } from '../../hooks/useBilling';
 import { useToast } from '../../hooks/useToast';
@@ -19,7 +19,7 @@ import {
   Coins,
   FileText
 } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn, displayPhone } from '../../lib/utils';
 
 // Hospital Letterhead Details
 const H = {
@@ -114,9 +114,10 @@ const fmtDateTime = (d) => {
 export function InvoiceDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data, isLoading } = useInvoice(id);
+  const { data, isLoading, error } = useInvoice(id);
   const addPayment = useAddPayment();
   const toast = useToast();
+  useEffect(() => { if (error) toast.error(error.message || 'Failed to load'); }, [error]);
   const [payAmount, setPayAmount] = useState('');
   const [payMethod, setPayMethod] = useState('cash');
   const [payRef, setPayRef] = useState('');
@@ -125,6 +126,15 @@ export function InvoiceDetailPage() {
     return (
       <div className="flex justify-center items-center py-24 min-h-[400px]">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-8 text-center">
+        <p className="text-destructive font-medium">Failed to load</p>
+        <p className="text-xs text-muted-foreground mt-1">{error.message}</p>
       </div>
     );
   }
@@ -181,7 +191,17 @@ export function InvoiceDetailPage() {
           font-family: 'Mrs De Haviland', cursive;
         }
 
+        @page {
+          size: A4;
+          margin: 4mm;
+        }
+
         @media print {
+          html, body {
+            height: 100%;
+            overflow: hidden;
+          }
+
           /* Enforce EXACT color adjustments on all elements */
           * {
             -webkit-print-color-adjust: exact !important;
@@ -206,6 +226,7 @@ export function InvoiceDetailPage() {
             top: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
+            min-height: 100vh !important;
             margin: 0 !important;
             padding: 0 !important;
             border: none !important;
@@ -213,6 +234,108 @@ export function InvoiceDetailPage() {
             background-color: white !important;
             color: #1f2937 !important;
             border-radius: 0 !important;
+            font-size: 7px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: flex-start !important;
+          }
+
+          #printable-invoice-paper .invoice-spacer {
+            flex: 1 1 auto !important;
+            min-height: 0.5rem !important;
+          }
+
+          #printable-invoice-paper table {
+            font-size: 7px !important;
+          }
+
+          #printable-invoice-paper .gap-4,
+          #printable-invoice-paper .gap-3 {
+            gap: 0.35rem !important;
+          }
+
+          #printable-invoice-paper .gap-6 {
+            gap: 0.5rem !important;
+          }
+
+          #printable-invoice-paper .space-y-3 {
+            margin-top: 0 !important;
+          }
+
+          #printable-invoice-paper .space-y-3 > * + * {
+            margin-top: 0.25rem !important;
+          }
+
+          #printable-invoice-paper .space-y-1\.5 {
+            margin-top: 0 !important;
+          }
+
+          #printable-invoice-paper .space-y-1\.5 > * + * {
+            margin-top: 0.15rem !important;
+          }
+
+          #printable-invoice-paper .space-y-1 {
+            margin-top: 0 !important;
+          }
+
+          #printable-invoice-paper .space-y-1 > * + * {
+            margin-top: 0.1rem !important;
+          }
+
+          #printable-invoice-paper td,
+          #printable-invoice-paper th {
+            padding-top: 0.1rem !important;
+            padding-bottom: 0.1rem !important;
+          }
+
+          #printable-invoice-paper .mt-2 {
+            margin-top: 0.25rem !important;
+          }
+
+          #printable-invoice-paper .mt-1 {
+            margin-top: 0.15rem !important;
+          }
+
+          #printable-invoice-paper .mt-4 {
+            margin-top: 0.35rem !important;
+          }
+
+          #printable-invoice-paper .mb-2 {
+            margin-bottom: 0.2rem !important;
+          }
+
+          #printable-invoice-paper .mb-1\.5 {
+            margin-bottom: 0.15rem !important;
+          }
+
+          #printable-invoice-paper .border-b {
+            border-bottom-width: 0 !important;
+          }
+
+          #printable-invoice-paper .h-\[1px\] {
+            display: none !important;
+          }
+
+          #printable-invoice-paper .leading-relaxed {
+            line-height: 1.3 !important;
+          }
+
+          #printable-invoice-paper .leading-tight {
+            line-height: 1.1 !important;
+          }
+
+          #printable-invoice-paper .h-2 {
+            height: 0.3rem !important;
+          }
+
+          #printable-invoice-paper .w-11 {
+            width: 1.5rem !important;
+            height: 1.5rem !important;
+          }
+
+          #printable-invoice-paper svg:not(.no-print) {
+            max-width: 1.5rem !important;
+            max-height: 1.5rem !important;
           }
           
           .no-print, .print\\:hidden {
@@ -265,7 +388,7 @@ export function InvoiceDetailPage() {
               {bill.patient?.phone && (
                 <p>
                   <span className="font-semibold text-foreground">Phone: </span>
-                  {bill.patient.phone}
+                  {displayPhone(bill.patient.phone)}
                 </p>
               )}
             </div>
@@ -430,13 +553,13 @@ export function InvoiceDetailPage() {
           ───────────────────────────────────────── */}
           <div
             id="printable-invoice-paper"
-            className="bg-white text-gray-800 rounded-2xl shadow-xl overflow-hidden invoice-font border border-gray-100 max-w-[210mm] mx-auto print:shadow-none print:border-none"
+            className="bg-white text-gray-800 rounded-2xl shadow-xl overflow-hidden invoice-font border border-gray-100 max-w-[210mm] mx-auto print:shadow-none print:border-none print:max-w-full print:w-full"
           >
             {/* Top Color Accent Line */}
             <div className="h-2 bg-gradient-to-r from-blue-900 via-blue-700 to-indigo-800 print:h-2" />
 
             {/* Premium Hospital Letterhead Header */}
-            <div className="px-8 pt-6 pb-4 flex items-start justify-between border-b border-gray-200/60">
+            <div className="px-8 pt-6 pb-4 flex items-start justify-between border-b border-gray-200/60 print:px-5 print:pt-4 print:pb-2">
               <div className="flex items-start gap-4">
                 {/* SVG Shield Cross Logo */}
                 <div className="shrink-0">
@@ -485,7 +608,7 @@ export function InvoiceDetailPage() {
             </div>
 
             {/* Dark Blue Ribbon Meta Bar */}
-            <div className="bg-[#0b2545] text-white px-8 py-3.5 flex justify-between items-center print:bg-[#0b2545] print:text-white">
+            <div className="bg-[#0b2545] text-white px-8 py-3.5 flex justify-between items-center print:bg-[#0b2545] print:text-white print:px-5 print:py-1.5">
               {[
                 ['INVOICE NO.', bill.invoiceNo, 'font-mono font-black text-[9.5px]'],
                 ['INVOICE DATE & TIME', fmtDateTime(bill.createdAt), 'font-bold'],
@@ -500,11 +623,12 @@ export function InvoiceDetailPage() {
               ))}
             </div>
 
+            <div className="invoice-body">
             {/* Grid Boxes for Patient & Clinical details */}
-            <div className="px-8 pt-5 pb-4 grid grid-cols-2 gap-4">
+            <div className="px-8 pt-5 pb-4 grid grid-cols-2 gap-4 print:px-5 print:pt-3 print:pb-2 print:gap-3">
               
               {/* Left Box: Bill To Patient Details */}
-              <div className="border border-gray-200/80 rounded-xl p-4 bg-white shadow-[0_2px_4px_rgba(0,0,0,0.01)] flex flex-col justify-between">
+              <div className="border border-gray-200/80 rounded-xl p-4 bg-white shadow-[0_2px_4px_rgba(0,0,0,0.01)] flex flex-col justify-between print:p-3">
                 <div>
                   <p className="text-[7.5px] font-black text-blue-900 uppercase tracking-widest mb-2 border-b border-gray-100 pb-1.5 flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-900" />
@@ -532,7 +656,7 @@ export function InvoiceDetailPage() {
                   <div className="flex">
                     <span className="w-16 font-bold text-gray-500 shrink-0">Mobile</span>
                     <span className="w-3 text-gray-400 shrink-0">:</span>
-                    <span className="text-gray-800">{bill.patient?.phone || '—'}</span>
+                    <span className="text-gray-800">{displayPhone(bill.patient?.phone)}</span>
                   </div>
                   <div className="flex">
                     <span className="w-16 font-bold text-gray-500 shrink-0">Blood Group</span>
@@ -555,7 +679,7 @@ export function InvoiceDetailPage() {
               </div>
 
               {/* Right Box: Clinical & Admission Details */}
-              <div className="border border-gray-200/80 rounded-xl p-4 bg-white shadow-[0_2px_4px_rgba(0,0,0,0.01)]">
+              <div className="border border-gray-200/80 rounded-xl p-4 bg-white shadow-[0_2px_4px_rgba(0,0,0,0.01)] print:p-3">
                 <p className="text-[7.5px] font-black text-blue-900 uppercase tracking-widest mb-2 border-b border-gray-100 pb-1.5 flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-900" />
                   ⚕️ CLINICAL & ADMISSION DETAILS
@@ -590,7 +714,7 @@ export function InvoiceDetailPage() {
             </div>
 
             {/* Services Particulars Grid Table */}
-            <div className="px-8 pb-1">
+            <div className="px-8 pb-1 print:px-5">
               <div className="border border-gray-200/80 rounded-xl overflow-hidden shadow-[0_2px_4px_rgba(0,0,0,0.01)]">
                 <table className="w-full border-collapse text-[9px]">
                   <thead>
@@ -603,7 +727,7 @@ export function InvoiceDetailPage() {
                         ['RATE (₹)', 'w-24', 'text-right'],
                         ['AMOUNT (₹)', 'w-28', 'text-right'],
                       ].map(([h, w, align]) => (
-                        <th key={h} className={`py-3 px-3 font-extrabold uppercase tracking-wider text-[7.5px] leading-none ${w} ${align}`}>
+                        <th key={h} className={`py-3 px-3 font-extrabold uppercase tracking-wider text-[7.5px] leading-none ${w} ${align} print:py-1.5 print:px-1.5`}>
                           {h}
                         </th>
                       ))}
@@ -612,10 +736,10 @@ export function InvoiceDetailPage() {
                   <tbody className="divide-y divide-gray-100">
                     {bill.items?.map((item, idx) => (
                       <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60 print:bg-gray-50/30'}>
-                        <td className="py-3 px-3 text-gray-400 font-mono text-[8px] font-semibold">
+                        <td className="py-3 px-3 print:py-1.5 print:px-1.5 text-gray-400 font-mono text-[8px] font-semibold">
                           {idx + 1}
                         </td>
-                        <td className="py-3 px-3">
+                        <td className="py-3 px-3 print:py-1.5 print:px-1.5">
                           <p className="text-[9.5px] font-black text-gray-800 leading-tight">
                             {item.description}
                           </p>
@@ -623,47 +747,35 @@ export function InvoiceDetailPage() {
                             {item.category.toUpperCase()}
                           </span>
                         </td>
-                        <td className="py-3 px-3 font-mono text-gray-400 text-[8px] font-semibold">
+                        <td className="py-3 px-3 print:py-1.5 print:px-1.5 font-mono text-gray-400 text-[8px] font-semibold">
                           {SAC[item.category] || '999311'}
                         </td>
-                        <td className="py-3 px-3 text-center font-mono text-gray-700 font-bold">
+                        <td className="py-3 px-3 print:py-1.5 print:px-1.5 text-center font-mono text-gray-700 font-bold">
                           {item.quantity}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-gray-700 font-bold">
+                        <td className="py-3 px-3 print:py-1.5 print:px-1.5 text-right font-mono text-gray-700 font-bold">
                           {fmtDec(item.rate)}
                         </td>
-                        <td className="py-3 px-3 text-right font-black font-mono text-[#0b2545]">
+                        <td className="py-3 px-3 print:py-1.5 print:px-1.5 text-right font-black font-mono text-[#0b2545]">
                           {fmtDec(item.amount)}
                         </td>
                       </tr>
                     ))}
-                    {/* Minimum rows table formatting padding */}
-                    {bill.items?.length < 6 && Array.from({ length: 6 - bill.items.length }).map((_, i) => {
-                      const rowIdx = bill.items.length + i;
-                      return (
-                        <tr key={`pad-${i}`} className={rowIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30 print:bg-gray-50/30'}>
-                          <td className="py-3 px-3 text-gray-300 font-mono text-[8px]">
-                            {rowIdx + 1}
-                          </td>
-                          <td className="py-3 px-3 text-gray-300/80 text-[8.5px] italic font-light">—</td>
-                          <td className="py-3 px-3 text-gray-300/80 text-[8.5px] font-mono">—</td>
-                          <td className="py-3 px-3 text-gray-300/80 text-[8.5px] text-center font-mono">—</td>
-                          <td className="py-3 px-3 text-gray-300/80 text-[8.5px] text-right font-mono">—</td>
-                          <td className="py-3 px-3 text-gray-300/80 text-[8.5px] text-right font-mono">—</td>
-                        </tr>
-                      );
-                    })}
+                    {/* No padding rows — let content flow naturally */}
                   </tbody>
                 </table>
-                <div className="bg-gray-50 border-t border-gray-150/80 px-4 py-2 flex justify-between text-[7px] text-gray-400 font-bold uppercase tracking-wider">
+                <div className="bg-gray-50 border-t border-gray-150/80 px-4 py-2 flex justify-between text-[7px] text-gray-400 font-bold uppercase tracking-wider print:px-3 print:py-1">
                   <span>SAC 999311 - Hospital Services</span>
                   <span>Services provided are taxable unless specifically exempted under GST law.</span>
                 </div>
               </div>
             </div>
+            </div>
+
+            <div className="invoice-spacer" />
 
             {/* Calculations and Payment Logs Grid */}
-            <div className="px-8 pt-3 pb-5 flex justify-between items-start gap-4">
+            <div className="px-8 pt-3 pb-5 flex justify-between items-start gap-4 print:px-5 print:pt-2 print:pb-3 print:gap-3">
               
               {/* Billing notes & Declarations / Payment Details */}
               <div className="space-y-3 flex-1 max-w-[340px]">
@@ -678,7 +790,7 @@ export function InvoiceDetailPage() {
                 </div>
 
                 {/* Styled Payment Details Container */}
-                <div className="border border-gray-200/80 rounded-xl p-3 bg-gray-50/50 flex justify-between items-center shadow-[0_2px_4px_rgba(0,0,0,0.01)]">
+                <div className="border border-gray-200/80 rounded-xl p-3 bg-gray-50/50 flex justify-between items-center shadow-[0_2px_4px_rgba(0,0,0,0.01)] print:p-2">
                   <div className="space-y-1 text-[8px] text-gray-500 font-semibold">
                     <p className="text-blue-900 font-extrabold tracking-wider uppercase mb-1.5 text-[8.5px]">💳 PAYMENT DETAILS</p>
                     <div className="flex">
@@ -778,7 +890,7 @@ export function InvoiceDetailPage() {
             </div>
 
             {/* Terms confirmation and signatures line */}
-            <div className="px-8 pb-5 flex justify-between items-center gap-6 mt-2 border-t border-gray-150 pt-4">
+            <div className="px-8 pb-5 flex justify-between items-center gap-6 mt-2 border-t border-gray-150 pt-4 print:px-5 print:pb-3 print:pt-2 print:gap-3">
               <div className="border border-gray-200/80 rounded-xl px-3 py-2.5 bg-gray-50/30 flex items-center gap-2 max-w-[380px] shrink">
                 <svg className="w-6 h-6 text-blue-900 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -788,14 +900,14 @@ export function InvoiceDetailPage() {
                 </p>
               </div>
               <div className="text-right shrink-0">
-                <div className="h-8" /> {/* Clean whitespace for physical stamp / physical signature */}
+                <div className="h-8 print:h-4" /> {/* Clean whitespace for physical stamp / physical signature */}
                 <div className="w-36 border-b border-gray-300/80 mt-1 mb-1 ml-auto" />
                 <p className="text-[7.5px] text-[#0b2545] font-extrabold uppercase tracking-widest">Authorised Signatory</p>
               </div>
             </div>
 
             {/* Premium 4-Block Info Grid Footer */}
-            <div className="border-t border-gray-200/60 bg-gray-50/50 px-8 py-5 grid grid-cols-4 gap-4 text-[7.5px] text-gray-500 font-bold uppercase tracking-wider">
+            <div className="border-t border-gray-200/60 bg-gray-50/50 px-8 py-5 grid grid-cols-4 gap-4 text-[7.5px] text-gray-500 font-bold uppercase tracking-wider print:px-5 print:py-3 print:gap-2">
               <div className="space-y-1">
                 <p className="text-[#0b2545] font-black text-[8px] flex items-center gap-1">🕒 WE ARE OPEN</p>
                 <p className="text-gray-400 font-medium normal-case">24x7 Emergency Services</p>
@@ -814,7 +926,7 @@ export function InvoiceDetailPage() {
             </div>
 
             {/* Bottom indigo tagline band */}
-            <div className="bg-[#0b2545] text-white py-2.5 text-center text-[7.5px] font-bold tracking-widest uppercase print:bg-[#0b2545] print:text-white">
+            <div className="bg-[#0b2545] text-white py-2.5 text-center text-[7.5px] font-bold tracking-widest uppercase print:bg-[#0b2545] print:text-white print:py-1.5">
               Thank you for trusting Royale Multispeciality Hospital with your health and recovery.
             </div>
 

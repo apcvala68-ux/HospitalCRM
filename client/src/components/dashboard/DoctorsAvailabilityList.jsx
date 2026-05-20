@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { Chip } from '@heroui/react';
 import { useDoctorsAvailability } from '../../hooks/useDashboard';
+import { useToast } from '../../hooks/useToast';
 
 function Avatar({ name }) {
   const initials = name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'D';
@@ -11,9 +13,16 @@ function Avatar({ name }) {
 }
 
 export function DoctorsAvailabilityList({ dateRange }) {
-  const { data, isLoading } = useDoctorsAvailability(dateRange);
+  const { data, isLoading, error } = useDoctorsAvailability(dateRange);
+  const toast = useToast();
   const doctors = data?.doctors || [];
   const items = doctors.slice(0, 5);
+
+  useEffect(() => {
+    if (error) toast.error(error.message || 'Failed to load');
+  }, [error]);
+
+  if (error) return <div className="text-destructive text-sm p-2">Failed to load</div>;
 
   if (isLoading) {
     return (

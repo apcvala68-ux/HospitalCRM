@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWards, useWardBeds, useActiveAdmissions, useAdmission, useAdmitPatient, useDischarge, useAddVitals, useAddNote, useMarkBedClean } from '../../hooks/useIPD';
 import { usePatientSearch } from '../../hooks/usePatients';
 import { useDoctors } from '../../hooks/useDoctor';
@@ -21,12 +21,18 @@ export function IPDPage() {
   const [noteInput, setNoteInput] = useState('');
   const [dischargeSummary, setDischargeSummary] = useState('');
 
-  const { data: wardsData } = useWards();
-  const { data: bedsData } = useWardBeds(selectedWard);
-  const { data: activeData } = useActiveAdmissions();
-  const { data: admissionData } = useAdmission(selectedAdmission);
-  const { data: searchResults } = usePatientSearch(patientSearch);
-  const { data: doctorsData } = useDoctors();
+  const { data: wardsData, isLoading: wardsLoading, error: wardsError } = useWards();
+  const { data: bedsData, isLoading: bedsLoading, error: bedsError } = useWardBeds(selectedWard);
+  const { data: activeData, isLoading: activeLoading, error: activeError } = useActiveAdmissions();
+  const { data: admissionData, isLoading: admissionLoading, error: admissionError } = useAdmission(selectedAdmission);
+  const { data: searchResults, isLoading: searchLoading, error: searchError } = usePatientSearch(patientSearch);
+  const { data: doctorsData, isLoading: doctorsLoading, error: doctorsError } = useDoctors();
+
+  const error = wardsError || bedsError || activeError || admissionError || searchError || doctorsError;
+  const isLoading = wardsLoading || bedsLoading || activeLoading || admissionLoading || searchLoading || doctorsLoading;
+  useEffect(() => {
+    if (error) toast.error(error.message || 'Failed to load data');
+  }, [error]);
 
   const admitPatient = useAdmitPatient();
   const discharge = useDischarge();
@@ -78,6 +84,9 @@ export function IPDPage() {
   };
 
   const statusColor = { available: 'bg-green-500', occupied: 'bg-blue-500', dirty: 'bg-yellow-500', maintenance: 'bg-red-500' };
+
+  if (error) return <div className="flex justify-center py-12"><p className="text-destructive font-medium">Failed to load</p></div>;
+  if (isLoading) return <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
 
   return (
     <div className="space-y-6">

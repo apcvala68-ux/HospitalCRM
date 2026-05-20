@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { Table, Chip } from '@heroui/react';
 import { useLatestAppointments } from '../../hooks/useDashboard';
+import { useToast } from '../../hooks/useToast';
 
 const statusColorMap = {
   scheduled: 'warning',
@@ -11,9 +13,16 @@ const statusColorMap = {
 };
 
 export function LatestAppointmentsTable({ dateRange }) {
-  const { data, isLoading } = useLatestAppointments(dateRange);
+  const { data, isLoading, error } = useLatestAppointments(dateRange);
+  const toast = useToast();
   const appointments = data?.appointments || [];
   const items = appointments.slice(0, 5);
+
+  useEffect(() => {
+    if (error) toast.error(error.message || 'Failed to load');
+  }, [error]);
+
+  if (error) return <div className="text-destructive text-sm p-2">Failed to load</div>;
 
   if (isLoading) {
     return (

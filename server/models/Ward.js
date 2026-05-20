@@ -13,4 +13,6 @@ const wardSchema = new mongoose.Schema({
   description: { type: String },
 }, { timestamps: true });
 
+wardSchema.index({ type: 1 });
+
 export default mongoose.model('Ward', wardSchema);

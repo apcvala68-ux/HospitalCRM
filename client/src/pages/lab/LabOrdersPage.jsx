@@ -1,4 +1,4 @@
-import { useState, useCallback, Fragment } from 'react';
+import { useState, useCallback, Fragment, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../services/api';
 import { useToast } from '../../hooks/useToast';
@@ -14,7 +14,7 @@ import {
   Beaker, Syringe, Microscope, Droplets, Activity,
   Copy, Check,
 } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn, displayPhone } from '../../lib/utils';
 
 const AVAILABLE_TESTS = [
   { name: 'CBC (Complete Blood Count)', category: 'hematology' },
@@ -256,7 +256,7 @@ function OrderDetail({ order, onClose }) {
             <div>
               <span className="text-xs text-muted-foreground">Patient</span>
               <p className="font-medium">{order.patient?.firstName} {order.patient?.lastName}</p>
-              <p className="text-xs text-muted-foreground font-mono">{order.patient?.uhid} · {order.patient?.phone}</p>
+              <p className="text-xs text-muted-foreground font-mono">{order.patient?.uhid} · {displayPhone(order.patient?.phone)}</p>
             </div>
             <div>
               <span className="text-xs text-muted-foreground">Doctor</span>
@@ -418,7 +418,7 @@ function CreateOrderForm({ onClose }) {
                       <User className="h-4 w-4 text-muted-foreground shrink-0" />
                       <div className="min-w-0">
                         <p className="text-sm font-medium">{p.firstName} {p.lastName}</p>
-                        <p className="text-xs text-muted-foreground font-mono">{p.uhid} · {p.phone}</p>
+                        <p className="text-xs text-muted-foreground font-mono">{p.uhid} · {displayPhone(p.phone)}</p>
                       </div>
                     </button>
                   ))
@@ -437,7 +437,7 @@ function CreateOrderForm({ onClose }) {
                 </div>
                 <div>
                   <p className="text-sm font-medium">{selectedPatient.firstName} {selectedPatient.lastName}</p>
-                  <p className="text-xs text-muted-foreground font-mono">{selectedPatient.uhid} · {selectedPatient.phone} · {selectedPatient.gender}</p>
+                  <p className="text-xs text-muted-foreground font-mono">{selectedPatient.uhid} · {displayPhone(selectedPatient.phone)} · {selectedPatient.gender}</p>
                 </div>
               </div>
               <Button size="sm" variant="ghost" onClick={() => { setSelectedPatient(null); setPatientQuery(''); }}>
@@ -583,9 +583,11 @@ export function LabOrdersPage() {
   const [expandedId, setExpandedId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
 
-  const { data, isLoading } = useLabOrders({ status: activeTab || undefined, search: search || undefined, limit: 100 });
+  const { data, isLoading, error } = useLabOrders({ status: activeTab || undefined, search: search || undefined, limit: 100 });
   const { data: stats } = useLabStats();
   const orders = data?.orders || [];
+  const toast = useToast();
+  useEffect(() => { if (error) toast.error(error.message || 'Failed to load'); }, [error]);
 
   const statusCounts = {};
   orders.forEach((o) => {
@@ -709,7 +711,7 @@ export function LabOrdersPage() {
       {/* Orders Table Card */}
       <Card>
         <CardContent className="pt-6">
-          {isLoading ? (
+          {error ? (<div className="py-8 text-center"><p className="text-destructive font-medium">Failed to load</p><p className="text-xs text-muted-foreground mt-1">{error.message}</p></div>) : isLoading ? (
             <div className="flex justify-center py-8">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
             </div>

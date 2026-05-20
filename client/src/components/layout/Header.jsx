@@ -5,11 +5,14 @@ import { useTheme } from '../../context/ThemeContext';
 import { Bell, Search, Moon, Sun, LogOut, User, Settings, ChevronDown, Plus, X, Menu, ArrowLeft } from 'lucide-react';
 import { Input } from '../ui/input';
 import { usePatientSearch } from '../../hooks/usePatients';
+import { useToast } from '../../hooks/useToast';
+import { displayPhone } from '../../lib/utils';
 
 export function Header({ onMenuToggle }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const toast = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -20,7 +23,11 @@ export function Header({ onMenuToggle }) {
   const [showDropdown, setShowDropdown] = useState(false);
 
   // Search patients query hook
-  const { data: searchResultsData, isLoading: isSearching } = usePatientSearch(searchQuery);
+  const { data: searchResultsData, isLoading: isSearching, error: searchError } = usePatientSearch(searchQuery);
+
+  useEffect(() => {
+    if (searchError) toast.error(searchError.message || 'Failed to search');
+  }, [searchError]);
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -112,6 +119,10 @@ export function Header({ onMenuToggle }) {
                 <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 Searching...
               </div>
+            ) : searchError ? (
+              <div className="flex items-center justify-center py-6 text-xs text-destructive">
+                Failed to search
+              </div>
             ) : patientsList.length > 0 ? (
               <>
                 <div className="px-2.5 py-1 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase">
@@ -130,7 +141,7 @@ export function Header({ onMenuToggle }) {
                     <div className="flex flex-col gap-0.5">
                       <span className="font-medium text-foreground">{patient.firstName} {patient.lastName}</span>
                       <span className="text-[10px] text-muted-foreground">
-                        {patient.gender} • {patient.age} yrs • {patient.phone}
+                        {patient.gender} • {patient.age} yrs • {displayPhone(patient.phone)}
                       </span>
                     </div>
                     <span className="font-mono text-[10px] text-muted-foreground bg-muted/40 dark:bg-zinc-900 px-2 py-0.5 rounded border border-border/60 dark:border-zinc-800/80">
@@ -268,6 +279,10 @@ export function Header({ onMenuToggle }) {
                     <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                     Searching...
                   </div>
+                ) : searchError ? (
+                  <div className="flex items-center justify-center py-6 text-xs text-destructive">
+                    Failed to search
+                  </div>
                 ) : patientsList.length > 0 ? (
                   <>
                     <div className="px-2.5 py-1 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase">
@@ -287,7 +302,7 @@ export function Header({ onMenuToggle }) {
                         <div className="flex flex-col gap-0.5">
                           <span className="font-medium text-foreground">{patient.firstName} {patient.lastName}</span>
                           <span className="text-[10px] text-muted-foreground">
-                            {patient.gender} • {patient.age} yrs • {patient.phone}
+                            {patient.gender} • {patient.age} yrs • {displayPhone(patient.phone)}
                           </span>
                         </div>
                         <span className="font-mono text-[10px] text-muted-foreground bg-muted/40 dark:bg-zinc-900 px-2 py-0.5 rounded border border-border/60 dark:border-zinc-800/80">

@@ -7,6 +7,7 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { useToast } from '../../hooks/useToast';
 import { Search, UserPlus, Phone, Clock, CheckCircle, SkipForward, History } from 'lucide-react';
+import { displayPhone } from '../../lib/utils';
 
 const DOCTORS = [
   { _id: null, label: 'Select a doctor...' },
@@ -21,9 +22,9 @@ export function QueuePage() {
   const [showHistory, setShowHistory] = useState(false);
   const toast = useToast();
 
-  const { data: queueData, isLoading: queueLoading } = useCurrentQueue(selectedDoctor);
-  const { data: historyData } = useQueueHistory(selectedDoctor);
-  const { data: searchResults } = usePatientSearch(patientSearch);
+  const { data: queueData, isLoading: queueLoading, error: queueError } = useCurrentQueue(selectedDoctor);
+  const { data: historyData, error: historyError } = useQueueHistory(selectedDoctor);
+  const { data: searchResults, error: searchError } = usePatientSearch(patientSearch);
   const generateToken = useGenerateToken();
   const callPatient = useCallPatient();
   const completePatient = useCompletePatient();
@@ -44,6 +45,16 @@ export function QueuePage() {
       // handled by hook
     }
   };
+
+  const error = queueError || historyError || searchError;
+
+  useEffect(() => {
+    if (error) toast.error(error.message || 'Failed to load queue data');
+  }, [error]);
+
+  if (queueLoading) {
+    return <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -98,7 +109,7 @@ export function QueuePage() {
                       }`}
                     >
                       {p.firstName} {p.lastName} — {p.uhid}
-                      <span className="ml-2 text-muted-foreground">{p.phone}</span>
+                      <span className="ml-2 text-muted-foreground">{displayPhone(p.phone)}</span>
                     </button>
                   ))}
                 </div>
@@ -189,7 +200,7 @@ export function QueuePage() {
                           <p className="text-sm font-medium">
                             {t.patient?.firstName} {t.patient?.lastName}
                           </p>
-                          <p className="text-xs text-muted-foreground">{t.patient?.uhid} · {t.patient?.phone}</p>
+                          <p className="text-xs text-muted-foreground">{t.patient?.uhid} · {displayPhone(t.patient?.phone)}</p>
                         </div>
                       </div>
                       <div className="flex gap-2">

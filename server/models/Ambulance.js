@@ -41,4 +41,9 @@ ambulanceSchema.pre('save', async function(next) {
   next();
 });
 
+ambulanceSchema.index({ status: 1 });
+ambulanceSchema.index({ emergencyType: 1 });
+ambulanceSchema.index({ patient: 1 });
+ambulanceSchema.index({ dispatchedAt: -1 });
+
 export default mongoose.model('Ambulance', ambulanceSchema);

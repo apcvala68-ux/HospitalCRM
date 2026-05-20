@@ -1,23 +1,38 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMyDoctorProfile } from '../../hooks/useDoctor';
 import { useCurrentQueue, useStartConsultation } from '../../hooks/useQueue';
+import { useToast } from '../../hooks/useToast';
 import { DashboardCard, DashboardCardHeader, DashboardCardTitle, DashboardCardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Activity, Users, CheckCircle, Clock, ArrowRight, Loader2, AlertTriangle, Heart, Stethoscope, Calendar, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
+import { displayPhone } from '../../lib/utils';
 
 export function DoctorDashboard() {
   const navigate = useNavigate();
-  const { data: profileData, isLoading: profileLoading } = useMyDoctorProfile();
+  const toast = useToast();
+  const { data: profileData, isLoading: profileLoading, error: profileError } = useMyDoctorProfile();
   const doctorId = profileData?.doctor?._id;
-  const { data: queueData, isLoading: queueLoading } = useCurrentQueue(doctorId);
+  const { data: queueData, isLoading: queueLoading, error: queueError } = useCurrentQueue(doctorId);
   const startConsultation = useStartConsultation();
+  const queryError = profileError || queueError;
+  useEffect(() => { if (queryError) toast.error(queryError.message || 'Failed to load'); }, [queryError]);
 
   if (profileLoading || queueLoading) {
     return (
       <div className="flex justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (queryError) {
+    return (
+      <div className="py-8 text-center">
+        <p className="text-destructive font-medium">Failed to load</p>
+        <p className="text-xs text-muted-foreground mt-1">{queryError.message}</p>
       </div>
     );
   }
@@ -135,7 +150,7 @@ export function DoctorDashboard() {
                   <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
                     <span>{nextPatient.patient?.uhid}</span>
                     <span>{getAge(nextPatient.patient?.dob)}y · {nextPatient.patient?.gender}</span>
-                    <span>{nextPatient.patient?.phone}</span>
+                    <span>{displayPhone(nextPatient.patient?.phone)}</span>
                   </div>
                   {nextPatient.patient?.allergies?.length > 0 && (
                     <div className="flex items-center gap-1 flex-wrap">

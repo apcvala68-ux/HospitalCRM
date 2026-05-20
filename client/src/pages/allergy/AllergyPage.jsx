@@ -4,12 +4,13 @@ import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../services/api';
 import { useToast } from '../../hooks/useToast';
+import { usePatientSearch } from '../../hooks/usePatients';
 import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
-import { Search, Plus, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Eye, Pill, AlertTriangle, Stethoscope, Activity, Pencil, Trash2, SlidersHorizontal, X } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { Search, Plus, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Eye, Pill, AlertTriangle, Stethoscope, Activity, Pencil, Trash2, SlidersHorizontal, X, Loader2, User, Calendar, FileText } from 'lucide-react';
+import { cn, displayPhone } from '../../lib/utils';
 
 const PAGE_SIZE_OPTIONS = [10, 15, 20, 50];
 function SortIcon({ active, direction }) { if(!active) return <ArrowUpDown className="h-3 w-3 opacity-30 shrink-0" />; return direction==='asc' ? <ArrowUp className="h-3 w-3 shrink-0" /> : <ArrowDown className="h-3 w-3 shrink-0" />; }
@@ -40,13 +41,15 @@ const severityVariant = { mild:'default', moderate:'warning', severe:'destructiv
 function useAllergies(params={}){const qs=new URLSearchParams();Object.entries(params).forEach(([k,v])=>{if(v)qs.set(k,v);});return useQuery({queryKey:['allergies',params],queryFn:()=>api.get(`/allergies?${qs.toString()}`)});}
 function useAllergyStats(){return useQuery({queryKey:['allergy-stats'],queryFn:()=>api.get('/allergies/stats')});}
 function useDeleteAllergy(){const qc=useQueryClient();const t=useToast();return useMutation({mutationFn:(id)=>api.delete(`/allergies/${id}`),onSuccess:()=>{t.success('Allergy deleted');qc.invalidateQueries({queryKey:['allergies']});qc.invalidateQueries({queryKey:['allergy-stats']});},onError:(e)=>t.error(e.message)});}
+function useCreateAllergy(){const qc=useQueryClient();const t=useToast();return useMutation({mutationFn:(data)=>api.post('/allergies',data),onSuccess:()=>{t.success('Allergy recorded');qc.invalidateQueries({queryKey:['allergies']});qc.invalidateQueries({queryKey:['allergy-stats']});},onError:(e)=>t.error(e.message)});}
+function useUpdateAllergy(){const qc=useQueryClient();const t=useToast();return useMutation({mutationFn:({id,data})=>api.put(`/allergies/${id}`,data),onSuccess:()=>{t.success('Allergy updated');qc.invalidateQueries({queryKey:['allergies']});qc.invalidateQueries({queryKey:['allergy-stats']});},onError:(e)=>t.error(e.message)});}
 
 export function AllergyPage(){
   const [sp,setSp]=useSearchParams();
   const page=Number(sp.get('page'))||1,limit=Number(sp.get('limit'))||15,search=sp.get('search')||'',sortBy=sp.get('sortBy')||'',sortOrder=sp.get('sortOrder')||'',typeFilter=sp.get('type')||'',severityFilter=sp.get('severity')||'';
   const [si,setSi]=useState(search);const [fo,setFo]=useState(false);
-  const {data,isLoading}=useAllergies({page,search,limit,sortBy,sortOrder,type:typeFilter,severity:severityFilter});
-  const {data:stats}=useAllergyStats();const del=useDeleteAllergy();const s=stats||{};
+  const {data,isLoading,error}=useAllergies({page,search,limit,sortBy,sortOrder,type:typeFilter,severity:severityFilter});
+  const {data:stats}=useAllergyStats();const del=useDeleteAllergy();const s=stats||{};const toast=useToast();useEffect(()=>{if(error) toast.error(error.message||'Failed to load');},[error]);
   const kpi=[
     {label:'Total Allergies',value:(s.total||0).toLocaleString(),icon:Pill,color:'#f43f5e',bg:'bg-rose-50 dark:bg-rose-950/30',changeText:'+3.1% from last month',isIncrease:true},
     {label:'Drug Allergies',value:s.drug||0,icon:AlertTriangle,color:'#ef4444',bg:'bg-red-50 dark:bg-red-950/30',changeText:`${s.severe||0} severe cases`,isIncrease:false},
@@ -63,11 +66,95 @@ export function AllergyPage(){
   const [delTarget,setDelTarget]=useState(null);
   const hd=(id)=>setDelTarget(id);
 
+  const [showForm,setShowForm]=useState(false);
+  const [editingId,setEditingId]=useState(null);
+  const [viewTarget,setViewTarget]=useState(null);
+  const [form,setForm]=useState({patient:'',substance:'',type:'drug',severity:'mild',reaction:'',onsetDate:'',notes:''});
+  const [patientQuery,setPatientQuery]=useState('');
+  const {data:patientResults}=usePatientSearch(patientQuery.length>=2?patientQuery:null);
+  const patients=patientResults?.patients||[];
+  const create=useCreateAllergy();
+  const update=useUpdateAllergy();
+  const fc=(k,v)=>setForm(p=>({...p,[k]:v}));
+
+  const openCreate=()=>{setEditingId(null);setForm({patient:'',substance:'',type:'drug',severity:'mild',reaction:'',onsetDate:'',notes:''});setPatientQuery('');setShowForm(true);};
+  const openEdit=(r)=>{setEditingId(r._id);setForm({patient:r.patient?._id||'',substance:r.substance||'',type:r.type||'drug',severity:r.severity||'mild',reaction:r.reaction||'',onsetDate:r.onsetDate?r.onsetDate.split('T')[0]:'',notes:r.notes||''});setPatientQuery(r.patient?`${r.patient.firstName||''} ${r.patient.lastName||''}`:'');setShowForm(true);};
+  const closeForm=()=>{setShowForm(false);setEditingId(null);};
+
+  const fs=(e)=>{e.preventDefault();if(!form.patient||!form.substance.trim()){toast.error('Patient and substance are required');return;}const payload=Object.fromEntries(Object.entries(form).filter(([,v])=>v!==''));if(editingId){update.mutate({id:editingId,data:payload},{onSuccess:()=>closeForm()});}else{create.mutate(payload,{onSuccess:()=>closeForm()});}};
+
   return(<div className="space-y-6">
     <div className="flex items-center justify-between">
       <div><h1 className="text-2xl font-bold tracking-tight text-foreground">Allergies</h1><p className="text-sm text-muted-foreground mt-0.5">Track patient allergies and adverse reactions.</p></div>
-      <Button><Plus className="h-4 w-4 sm:mr-2" /><AlertTriangle className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">Record Allergy</span></Button>
+      <Button onClick={openCreate}><Plus className="h-4 w-4 sm:mr-2" /><AlertTriangle className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">Record Allergy</span></Button>
     </div>
+
+    {showForm&&<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={closeForm}>
+      <div className="w-full max-w-lg rounded-2xl bg-card border shadow-2xl p-6 space-y-5" onClick={e=>e.stopPropagation()}>
+        <div className="flex items-center justify-between"><h2 className="text-lg font-bold text-foreground">{editingId?'Edit Allergy':'Record Allergy'}</h2><button onClick={closeForm} className="p-1 hover:bg-muted rounded-lg transition-colors cursor-pointer"><X className="h-5 w-5 text-muted-foreground" /></button></div>
+        <form onSubmit={fs} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-muted-foreground">Patient <span className="text-destructive">*</span></label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input value={patientQuery} onChange={e=>{setPatientQuery(e.target.value);fc('patient',e.target.value);}} placeholder="Search patient..." className="pl-9 text-sm" />
+            </div>
+            {patientQuery.length>=2&&patients.length>0&&<div className="max-h-32 overflow-y-auto rounded-lg border divide-y bg-background">{patients.map(p=><button key={p._id} type="button" onClick={()=>{setPatientQuery(`${p.firstName} ${p.lastName}`);fc('patient',p._id);}} className="w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors flex items-center gap-2 cursor-pointer"><User className="h-3.5 w-3.5 text-muted-foreground shrink-0" /><span className="font-medium">{p.firstName} {p.lastName}</span><span className="text-xs text-muted-foreground font-mono ml-auto">{displayPhone(p.phone)}</span></button>)}</div>}
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-muted-foreground">Substance <span className="text-destructive">*</span></label>
+            <Input value={form.substance} onChange={e=>fc('substance',e.target.value)} placeholder="e.g. Penicillin, Peanuts" className="text-sm" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground">Type</label>
+              <select value={form.type} onChange={e=>fc('type',e.target.value)} className="w-full h-10 rounded-xl border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary cursor-pointer">{['drug','food','environmental','latex','contrast','other'].map(t=><option key={t} value={t} className="bg-background">{t.charAt(0).toUpperCase()+t.slice(1)}</option>)}</select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground">Severity</label>
+              <select value={form.severity} onChange={e=>fc('severity',e.target.value)} className="w-full h-10 rounded-xl border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary cursor-pointer">{['mild','moderate','severe','life-threatening'].map(s=><option key={s} value={s} className="bg-background">{s.charAt(0).toUpperCase()+s.slice(1).replace('-',' ')}</option>)}</select>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-muted-foreground">Reaction</label>
+            <Input value={form.reaction} onChange={e=>fc('reaction',e.target.value)} placeholder="e.g. Rash, Anaphylaxis" className="text-sm" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground">Onset Date</label>
+              <Input type="date" value={form.onsetDate} onChange={e=>fc('onsetDate',e.target.value)} className="text-sm" />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-muted-foreground">Notes</label>
+            <textarea value={form.notes} onChange={e=>fc('notes',e.target.value)} rows={3} className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary resize-none" placeholder="Optional notes..." />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button type="button" variant="outline" onClick={closeForm}>Cancel</Button>
+            <Button type="submit" disabled={create.isPending||update.isPending}>{(create.isPending||update.isPending)?<Loader2 className="h-4 w-4 animate-spin" />:null}{create.isPending?'Saving...':update.isPending?'Updating...':editingId?'Update Allergy':'Save Allergy'}</Button>
+          </div>
+        </form>
+      </div>
+    </div>}
+
+    {viewTarget&&<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={()=>setViewTarget(null)}>
+      <div className="w-full max-w-md rounded-2xl bg-card border shadow-2xl p-6 space-y-4" onClick={e=>e.stopPropagation()}>
+        <div className="flex items-center justify-between"><h2 className="text-lg font-bold text-foreground">Allergy Details</h2><button onClick={()=>setViewTarget(null)} className="p-1 hover:bg-muted rounded-lg transition-colors cursor-pointer"><X className="h-5 w-5 text-muted-foreground" /></button></div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30"><User className="h-4 w-4 text-muted-foreground shrink-0" /><div><p className="text-sm font-medium">{viewTarget.patient?.firstName?`${viewTarget.patient.firstName} ${viewTarget.patient.lastName}`:'—'}</p><p className="text-xs text-muted-foreground">Patient</p></div></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-3 rounded-xl bg-muted/30"><p className="text-xs text-muted-foreground">Substance</p><p className="text-sm font-medium mt-0.5">{viewTarget.substance}</p></div>
+            <div className="p-3 rounded-xl bg-muted/30"><p className="text-xs text-muted-foreground">Type</p><p className="text-sm font-medium mt-0.5 capitalize">{viewTarget.type}</p></div>
+            <div className="p-3 rounded-xl bg-muted/30"><p className="text-xs text-muted-foreground">Severity</p><div className="mt-0.5"><Badge variant={severityVariant[viewTarget.severity]||'default'}>{viewTarget.severity}</Badge></div></div>
+            <div className="p-3 rounded-xl bg-muted/30"><p className="text-xs text-muted-foreground">Reaction</p><p className="text-sm font-medium mt-0.5">{viewTarget.reaction||'—'}</p></div>
+          </div>
+          {viewTarget.onsetDate&&<div className="flex items-center gap-2 p-3 rounded-xl bg-muted/30"><Calendar className="h-4 w-4 text-muted-foreground" /><div><p className="text-xs text-muted-foreground">Onset Date</p><p className="text-sm font-medium">{new Date(viewTarget.onsetDate).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</p></div></div>}
+          {viewTarget.notes&&<div className="flex items-start gap-2 p-3 rounded-xl bg-muted/30"><FileText className="h-4 w-4 text-muted-foreground mt-0.5" /><div><p className="text-xs text-muted-foreground">Notes</p><p className="text-sm text-muted-foreground mt-0.5">{viewTarget.notes}</p></div></div>}
+        </div>
+        <div className="flex justify-end"><Button variant="outline" onClick={()=>setViewTarget(null)}>Close</Button></div>
+      </div>
+    </div>}
+
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">{kpi.map(c=><StatCard key={c.label} {...c}/>)}</div>
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3 w-full bg-card p-3 rounded-xl border border-border/50 shadow-sm">
@@ -81,7 +168,7 @@ export function AllergyPage(){
       </div>}
     </div>
     <Card><CardContent className="pt-6">
-      {isLoading?(<div className="flex justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>):items.length===0?(<div className="py-8 text-center text-muted-foreground">{search?'No allergies match your search':'No allergy records yet'}</div>):(<>
+      {error?(<div className="py-8 text-center"><p className="text-destructive font-medium">Failed to load</p><p className="text-xs text-muted-foreground mt-1">{error.message}</p></div>):isLoading?(<div className="flex justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>):items.length===0?(<div className="py-8 text-center text-muted-foreground">{search?'No allergies match your search':'No allergy records yet'}</div>):(<>
         <div className="overflow-x-auto"><table className="w-full"><thead><tr className="border-b text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           <th className="pb-3 pr-2 w-10 text-center font-semibold">#</th>
           <th className="pb-3 font-semibold">Patient</th>
@@ -99,10 +186,10 @@ export function AllergyPage(){
             <td className="py-3.5 text-sm capitalize">{r.type}</td>
             <td className="py-3.5 text-sm text-muted-foreground">{r.reaction||<span>—</span>}</td>
             <td className="py-3.5"><Badge variant={severityVariant[r.severity]||'default'}>{r.severity}</Badge></td>
-            <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium">{new Date(r.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</td>
+            <td className="py-3.5 text-xs text-muted-foreground whitespace-nowrap font-medium">{r.onsetDate?new Date(r.onsetDate).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):new Date(r.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</td>
             <td className="py-3.5 text-right pr-4"><div className="flex items-center justify-end gap-2">
-              <button className="w-9 h-9 rounded-full border border-border dark:border-zinc-800/80 flex items-center justify-center bg-background dark:bg-[#18181b] hover:bg-muted dark:hover:bg-[#27272a] text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-zinc-100 shadow-sm transition-all duration-200 cursor-pointer" title="View"><Eye className="h-[18px] w-[18px]" /></button>
-              <button className="w-9 h-9 rounded-full border border-border dark:border-zinc-800/80 flex items-center justify-center bg-background dark:bg-[#18181b] hover:bg-muted dark:hover:bg-[#27272a] text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-zinc-100 shadow-sm transition-all duration-200 cursor-pointer" title="Edit"><Pencil className="h-4 w-4" /></button>
+              <button onClick={()=>setViewTarget(r)} className="w-9 h-9 rounded-full border border-border dark:border-zinc-800/80 flex items-center justify-center bg-background dark:bg-[#18181b] hover:bg-muted dark:hover:bg-[#27272a] text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-zinc-100 shadow-sm transition-all duration-200 cursor-pointer" title="View"><Eye className="h-[18px] w-[18px]" /></button>
+              <button onClick={()=>openEdit(r)} className="w-9 h-9 rounded-full border border-border dark:border-zinc-800/80 flex items-center justify-center bg-background dark:bg-[#18181b] hover:bg-muted dark:hover:bg-[#27272a] text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-zinc-100 shadow-sm transition-all duration-200 cursor-pointer" title="Edit"><Pencil className="h-4 w-4" /></button>
               <button onClick={()=>hd(r._id)} className="w-9 h-9 rounded-full border border-red-200 dark:border-red-950/60 flex items-center justify-center bg-red-50/50 hover:bg-red-100 dark:bg-[#2a1415] dark:hover:bg-[#3f1a1c] text-red-600 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400 shadow-sm transition-all duration-200 cursor-pointer" title="Delete"><Trash2 className="h-4 w-4" /></button>
             </div></td>
           </tr>)}

@@ -6,7 +6,8 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
-import { Plus, X, Stethoscope, Pill, Beaker, Search, Clock, Calendar } from 'lucide-react';
+import { Plus, X, Stethoscope, Pill, Beaker, Search, Clock, Calendar, Loader2 } from 'lucide-react';
+import { useToast } from '../../hooks/useToast';
 
 function useMedicineSearch(q) {
   return useQuery({
@@ -34,9 +35,14 @@ export function PrescriptionForm({ onSubmit, isSubmitting, examNotes }) {
   const [showLabDropdown, setShowLabDropdown] = useState(false);
   const [labInput, setLabInput] = useState('');
 
-  const { data: medResults } = useMedicineSearch(medSearch);
+  const { data: medResults, isLoading: isMedLoading, error: medError } = useMedicineSearch(medSearch);
+  const toast = useToast();
   const dropdownRef = useRef(null);
   const labDropdownRef = useRef(null);
+
+  useEffect(() => {
+    if (medError) toast.error(medError.message || 'Failed to load medicines');
+  }, [medError]);
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -123,24 +129,35 @@ export function PrescriptionForm({ onSubmit, isSubmitting, examNotes }) {
                 className="pl-10"
               />
             </div>
-            {showMedDropdown && medResults?.medicines?.length > 0 && (
+            {showMedDropdown && medSearch.length >= 2 && (
               <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-lg border bg-popover shadow-lg z-50">
-                {medResults.medicines.map((m) => (
-                  <button
-                    key={m._id}
-                    type="button"
-                    onClick={() => {
-                      setMedForm({ ...medForm, name: m.name, dosage: m.dosage || '' });
-                      setMedSearch(m.name);
-                      setShowMedDropdown(false);
-                    }}
-                    className="w-full px-3 py-2 text-left text-sm hover:bg-accent flex items-center justify-between"
-                  >
-                    <span className="font-medium">{m.name}</span>
-                    <span className="text-xs text-muted-foreground">{m.genericName || m.category || ''}</span>
-                  </button>
-                ))}
-              </div>
+                {isMedLoading ? (
+                  <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Searching...
+                  </div>
+                ) : medError ? (
+                  <div className="p-4 text-sm text-destructive">Failed to load medicines</div>
+                ) : medResults?.medicines?.length > 0 ? (
+                  medResults.medicines.map((m) => {
+                    return (
+                    <button
+                      key={m._id}
+                      type="button"
+                      onClick={() => {
+                        setMedForm({ ...medForm, name: m.name, dosage: m.dosage || '' });
+                        setMedSearch(m.name);
+                        setShowMedDropdown(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm hover:bg-accent flex items-center justify-between"
+                    >
+                      <span className="font-medium">{m.name}</span>
+                      <span className="text-xs text-muted-foreground">{m.genericName || m.category || ''}</span>
+                    </button>
+                    );
+                  })
+                ) : null}
+                </div>
             )}
           </div>
 

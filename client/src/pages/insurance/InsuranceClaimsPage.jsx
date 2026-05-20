@@ -45,8 +45,8 @@ export function InsuranceClaimsPage(){
   const [sp,setSp]=useSearchParams();
   const page=Number(sp.get('page'))||1,limit=Number(sp.get('limit'))||15,search=sp.get('search')||'',sortBy=sp.get('sortBy')||'',sortOrder=sp.get('sortOrder')||'',statusFilter=sp.get('status')||'';
   const [si,setSi]=useState(search);const [fo,setFo]=useState(false);
-  const {data,isLoading}=useClaims({page,search,limit,sortBy,sortOrder,status:statusFilter});
-  const {data:stats}=useICStats();const del=useDeleteClaim();const s=stats||{};
+  const {data,isLoading,error}=useClaims({page,search,limit,sortBy,sortOrder,status:statusFilter});
+  const {data:stats}=useICStats();const del=useDeleteClaim();const s=stats||{};const toast=useToast();useEffect(()=>{if(error) toast.error(error.message||'Failed to load');},[error]);
   const kpi=[
     {label:'Total Claims',value:(s.total||0).toLocaleString(),icon:Shield,color:'#f43f5e',bg:'bg-rose-50 dark:bg-rose-950/30',changeText:'+7.2% from last month',isIncrease:true},
     {label:'Pending',value:s.pending||0,icon:Clock,color:'#f59e0b',bg:'bg-amber-50 dark:bg-amber-950/30',changeText:'under process',isIncrease:false},
@@ -78,7 +78,7 @@ export function InsuranceClaimsPage(){
       {fo&&<div className="p-4 bg-card rounded-xl border border-border/40 animate-in fade-in slide-in-from-top-2 duration-200"><span className="text-[10px] font-bold text-muted-foreground block mb-2 uppercase tracking-wider">Status</span><div className="flex flex-wrap gap-2">{['','pre-auth','submitted','under-review','approved','rejected','settled','cancelled'].map(s=><button key={s} onClick={()=>up({status:s,page:'1'})} className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer select-none",(statusFilter===s)?"bg-primary text-primary-foreground border-primary":"bg-muted/10 hover:bg-muted/20 border-border/10 text-muted-foreground hover:text-foreground")}>{s?s.replace('-',' ').replace(/\b\w/g,c=>c.toUpperCase()):'All Status'}</button>)}</div></div>}
     </div>
     <Card><CardContent className="pt-6">
-      {isLoading?(<div className="flex justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>):items.length===0?(<div className="py-8 text-center text-muted-foreground">{search?'No claims match your search':'No insurance claims yet'}</div>):(<>
+      {error?(<div className="py-8 text-center"><p className="text-destructive font-medium">Failed to load</p><p className="text-xs text-muted-foreground mt-1">{error.message}</p></div>):isLoading?(<div className="flex justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>):items.length===0?(<div className="py-8 text-center text-muted-foreground">{search?'No claims match your search':'No insurance claims yet'}</div>):(<>
         <div className="overflow-x-auto"><table className="w-full"><thead><tr className="border-b text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           <th className="pb-3 pr-2 w-10 text-center font-semibold">#</th>
           <th className="pb-3 font-semibold cursor-pointer select-none" onClick={()=>hs('claimNo')}><span className="inline-flex items-center gap-1">Claim No <SortIcon active={sortBy==='claimNo'} direction={sortOrder} /></span></th>

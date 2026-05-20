@@ -57,7 +57,7 @@ export function LoginPage() {
           {/* Google Login */}
           <Button
             variant="outline"
-            className="w-full mb-4 h-11"
+            className="w-full mb-4 h-11 rounded-full"
             onClick={handleGoogleLogin}
             disabled={googleLoginMutation.isPending}
           >
@@ -83,29 +83,24 @@ export function LoginPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Email address</label>
               <Input
                 type="email"
-                placeholder="you@hospital.com"
+                placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="h-11"
+                className="h-11 !rounded-full px-5"
               />
             </div>
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Password</label>
-                <button type="button" className="text-xs text-primary hover:underline">Forgot password?</button>
-              </div>
               <div className="relative">
                 <Input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="min 8 chars"
+                  placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="h-11 pr-10"
+                  className="h-11 pr-10 !rounded-full px-5"
                 />
                 <button
                   type="button"
@@ -115,9 +110,12 @@ export function LoginPage() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              <div className="flex justify-end -mt-1">
+                <button type="button" className="text-xs text-primary hover:underline">Forgot password?</button>
+              </div>
             </div>
 
-            <Button type="submit" className="w-full h-11" disabled={loginMutation.isPending}>
+            <Button type="submit" className="w-full h-11 rounded-full" disabled={loginMutation.isPending}>
               {loginMutation.isPending ? 'Signing in...' : 'Login'}
             </Button>
           </form>

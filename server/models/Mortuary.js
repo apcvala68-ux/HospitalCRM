@@ -35,4 +35,8 @@ mortuarySchema.pre('save', async function(next) {
   next();
 });
 
+mortuarySchema.index({ patient: 1 });
+mortuarySchema.index({ declaredBy: 1 });
+mortuarySchema.index({ declaredAt: -1 });
+
 export default mongoose.model('Mortuary', mortuarySchema);

@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { Chip } from '@heroui/react';
 import { useRecentLabResults } from '../../hooks/useDashboard';
+import { useToast } from '../../hooks/useToast';
 
 const statusColorMap = {
   completed: 'success',
@@ -19,9 +21,16 @@ const categoryIcons = {
 };
 
 export function PatientReportsList({ dateRange }) {
-  const { data, isLoading } = useRecentLabResults(dateRange);
+  const { data, isLoading, error } = useRecentLabResults(dateRange);
+  const toast = useToast();
   const results = data?.labResults || [];
   const items = results.slice(0, 5);
+
+  useEffect(() => {
+    if (error) toast.error(error.message || 'Failed to load');
+  }, [error]);
+
+  if (error) return <div className="text-destructive text-sm p-2">Failed to load</div>;
 
   if (isLoading) {
     return (

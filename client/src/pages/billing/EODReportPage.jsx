@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useEODReport } from '../../hooks/useBilling';
+import { useToast } from '../../hooks/useToast';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 
 export function EODReportPage() {
   const today = new Date().toISOString().split('T')[0];
   const [date, setDate] = useState(today);
-  const { data, isLoading } = useEODReport(date);
+  const { data, isLoading, error } = useEODReport(date);
+  const toast = useToast();
+  useEffect(() => { if (error) toast.error(error.message || 'Failed to load'); }, [error]);
 
   const report = data;
 
@@ -25,7 +28,7 @@ export function EODReportPage() {
         />
       </div>
 
-      {isLoading ? (
+      {error ? (<div className="py-8 text-center"><p className="text-destructive font-medium">Failed to load</p><p className="text-xs text-muted-foreground mt-1">{error.message}</p></div>) : isLoading ? (
         <div className="flex justify-center py-12">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>

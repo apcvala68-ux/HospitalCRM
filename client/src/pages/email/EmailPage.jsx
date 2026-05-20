@@ -96,7 +96,7 @@ export function EmailPage() {
   const [replyTo, setReplyTo] = useState(null);
 
   const { data: profileData, isLoading: profileLoading, error: profileError } = useEmailProfile();
-  const { data: emailsData, isLoading: emailsLoading, refetch: refetchEmails } = useEmails(selectedLabel);
+  const { data: emailsData, isLoading: emailsLoading, error: emailsError, refetch: refetchEmails } = useEmails(selectedLabel);
   const { data: emailData, isLoading: emailLoading } = useEmail(selectedEmailId);
   const { data: labelsData } = useLabels();
   const markAsRead = useMarkAsRead();
@@ -130,6 +130,10 @@ export function EmailPage() {
     refetchEmails();
     setSelectedEmailId(null);
   };
+
+  useEffect(() => {
+    if (emailsError) toast.error(emailsError.message || 'Failed to load emails');
+  }, [emailsError]);
 
   // Check if Google is connected
   if (profileError) {
@@ -219,7 +223,9 @@ export function EmailPage() {
 
         {/* Email List */}
         <div className="flex-1 overflow-y-auto">
-          {emailsLoading ? (
+          {emailsError ? (
+            <div className="flex justify-center py-8"><p className="text-destructive font-medium">Failed to load emails</p></div>
+          ) : emailsLoading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>

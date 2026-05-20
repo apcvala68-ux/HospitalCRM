@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import { useToast } from '../../hooks/useToast';
 import {
   Clock, LogIn, LogOut, Users, Calendar,
   ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Eye, Search,
@@ -55,8 +56,10 @@ export function AttendancePage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const { user } = useAuth();
-  const { data: todayData } = useTodayAttendance();
-  const { data: historyData, isLoading } = useAttendanceList({ date: dateFilter, status: statusFilter, page, limit, search, sortBy, sortOrder });
+  const { data: todayData, error: todayError } = useTodayAttendance();
+  const { data: historyData, isLoading, error: historyError } = useAttendanceList({ date: dateFilter, status: statusFilter, page, limit, search, sortBy, sortOrder });
+  const toast = useToast();
+  const error = todayError || historyError;
   const checkIn = useCheckIn();
   const checkOut = useCheckOut();
 
@@ -73,6 +76,12 @@ export function AttendancePage() {
   const gp = (p) => { if (p < 1 || p > (historyData?.totalPages || 1)) return; up({ page: String(p) }); };
   const history = historyData?.records || []; const total = historyData?.total || 0; const tp = historyData?.totalPages || 1;
   const from = total === 0 ? 0 : (page - 1) * limit + 1; const to = Math.min(page * limit, total);
+  useEffect(() => {
+    if (error) toast.error(error.message || 'Failed to load data');
+  }, [error]);
+
+  if (error) return <div className="flex justify-center py-12"><p className="text-destructive font-medium">Failed to load</p></div>;
+  if (isLoading) return <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
 
   return (
     <div className="space-y-6">

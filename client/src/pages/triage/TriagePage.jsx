@@ -9,15 +9,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { Activity, Check, AlertTriangle, Heart, Thermometer, Weight, Wind, Droplets } from 'lucide-react';
-
-function useWaitingPatients(doctorId) {
-  return useQuery({
-    queryKey: ['queue', 'waiting', doctorId],
-    queryFn: () => api.get(`/queue/current/${doctorId}`),
-    enabled: !!doctorId,
-    refetchInterval: 10000,
-  });
-}
+import { displayPhone } from '../../lib/utils';
 
 export function TriagePage() {
   const { data: profileData } = useMyDoctorProfile();
@@ -130,7 +122,7 @@ export function TriagePage() {
                         </span>
                         <div>
                           <p className="text-sm font-medium">{t.patient?.firstName} {t.patient?.lastName}</p>
-                          <p className="text-xs text-muted-foreground">{t.patient?.uhid} · {t.patient?.gender} · {t.patient?.phone}</p>
+                          <p className="text-xs text-muted-foreground">{t.patient?.uhid} · {t.patient?.gender} · {displayPhone(t.patient?.phone)}</p>
                         </div>
                       </div>
                       <Badge variant={isReady ? 'success' : isInTriage ? 'info' : 'warning'}>{t.status}</Badge>

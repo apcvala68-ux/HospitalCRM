@@ -12,7 +12,7 @@ import {
   Building2, Stethoscope, Users,
   Pencil, Trash2, SlidersHorizontal, X, DollarSign,
 } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn, displayPhone } from '../../lib/utils';
 
 const PAGE_SIZE_OPTIONS = [10, 15, 20, 50];
 const GRADIENTS = ['linear-gradient(135deg, #a78bfa 0%, #ec4899 100%)','linear-gradient(135deg, #f472b6 0%, #f43f5e 100%)','linear-gradient(135deg, #38bdf8 0%, #3b82f6 100%)','linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%)','linear-gradient(135deg, #fb923c 0%, #f97316 100%)','linear-gradient(135deg, #a78bfa 0%, #6366f1 100%)','linear-gradient(135deg, #f472b6 0%, #a855f7 100%)','linear-gradient(135deg, #34d399 0%, #059669 100%)'];
@@ -53,7 +53,7 @@ export function DepartmentListPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [delTarget, setDelTarget] = useState(null);
 
-  const { data, isLoading } = useDepartments({ page, search, limit, sortBy, sortOrder });
+  const { data, isLoading, error } = useDepartments({ page, search, limit, sortBy, sortOrder });
   const deleteMut = useDeleteDepartment();
   const departments = data?.departments || [];
   const total = data?.total || 0;
@@ -96,7 +96,9 @@ export function DepartmentListPage() {
             </div>
           </div>
 
-          {isLoading ? (
+          {error ? (
+            <div className="py-12 text-center"><p className="text-destructive font-medium">Failed to load departments</p><p className="text-xs text-muted-foreground mt-1">{error.message || 'Check your connection and try again'}</p></div>
+          ) : isLoading ? (
             <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
           ) : departments.length === 0 ? (
             <div className="text-center py-12"><Building2 className="mx-auto h-12 w-12 text-muted-foreground/40 mb-3" /><p className="text-muted-foreground font-medium">No departments found</p><p className="text-xs text-muted-foreground/60 mt-1">Try adjusting your search or filters</p></div>
@@ -128,7 +130,7 @@ export function DepartmentListPage() {
                         </td>
                         <td className="py-3.5"><Badge variant="outline" className="font-medium text-[11px] bg-muted/20 text-muted-foreground border-border/10">{d.doctorCount || 0}</Badge></td>
                         <td className="py-3.5 text-sm text-muted-foreground">{d.headDoctor?.user?.name || <span className="text-muted-foreground/50">—</span>}</td>
-                        <td className="py-3.5 text-sm text-muted-foreground">{d.phone || <span className="text-muted-foreground/50">—</span>}</td>
+                        <td className="py-3.5 text-sm text-muted-foreground">{displayPhone(d.phone)}</td>
                         <td className="py-3.5 text-sm font-semibold">₹{(d.revenue || 0).toLocaleString('en-IN')}</td>
                         <td className="py-3.5"><Badge variant={d.isActive !== false ? 'success' : 'secondary'}>{d.isActive !== false ? 'Active' : 'Inactive'}</Badge></td>
                         <td className="py-3.5 text-right pr-4">

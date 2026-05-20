@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { useCreatePatient, usePatient, useUpdatePatient } from '../../hooks/usePatients';
 import { useToast } from '../../hooks/useToast';
-import { Card, CardContent } from '../../components/ui/card';
+import { saveForm, clearForm } from '../../store/slices/patientFormSlice';
+import { patientSchema } from '../../lib/validations/patientSchema';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
@@ -42,8 +44,10 @@ export function PatientFormPage() {
   const isEdit = !!id;
   const createPatient = useCreatePatient();
   const updatePatient = useUpdatePatient();
-  const { data: patientData, isLoading: patientLoading } = usePatient(id);
+  const { data: patientData, isLoading: patientLoading, error: patientError } = usePatient(id);
   const toast = useToast();
+  const dispatch = useDispatch();
+  const persistedForm = useSelector((state) => state.patientForm?.formData || null);
 
   const blankForm = {
     firstName: '', lastName: '', dob: '', gender: 'male',
@@ -57,6 +61,13 @@ export function PatientFormPage() {
   };
 
   const [form, setForm] = useState(blankForm);
+
+  useEffect(() => {
+    if (!isEdit && persistedForm) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setForm(persistedForm);
+    }
+  }, []);
 
   useEffect(() => {
     if (patientData?.patient) {
@@ -106,6 +117,22 @@ export function PatientFormPage() {
     }
   }, [patientData]);
 
+  useEffect(() => {
+    if (!isEdit) {
+      const isEmpty = !form.firstName && !form.lastName && !form.phone;
+      if (!isEmpty) {
+        const timer = setTimeout(() => {
+          dispatch(saveForm(form));
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [form, isEdit, dispatch]);
+
+  useEffect(() => {
+    if (patientError) toast.error(patientError.message || 'Failed to load patient');
+  }, [patientError]);
+
   const [allergyInput, setAllergyInput] = useState('');
   const [conditionInput, setConditionInput] = useState('');
   const [surgeryInput, setSurgeryInput] = useState('');
@@ -148,33 +175,17 @@ export function PatientFormPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // 1. Required fields check
-    if (!form.firstName.trim()) {
-      toast.error('First name is required');
-      return;
-    }
-    if (!form.lastName.trim()) {
-      toast.error('Last name is required');
-      return;
-    }
-    if (!form.dob) {
-      toast.error('Date of birth is required');
-      return;
-    }
-    if (!form.phone.trim()) {
-      toast.error('Phone number is required');
+
+    const result = patientSchema.safeParse(form);
+    if (!result.success) {
+      const firstError = result.error.errors[0];
+      const fieldLabel = firstError.path.length > 0
+        ? firstError.path.join(' ').replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase())
+        : 'Validation';
+      toast.error(`${fieldLabel}: ${firstError.message}`);
       return;
     }
 
-    // 2. Date of Birth cannot be in the future
-    const dobDate = new Date(form.dob);
-    if (dobDate > new Date()) {
-      toast.error('Date of birth cannot be in the future');
-      return;
-    }
-
-    // 3. Phone number validation (Country prefix + exactly 10 digits)
     let rawPhone = form.phone.trim();
     if (/^\d{10}$/.test(rawPhone)) {
       rawPhone = '+91' + rawPhone;
@@ -192,7 +203,6 @@ export function PatientFormPage() {
       return;
     }
 
-    // 4. Email format validation (if provided)
     if (form.email && form.email.trim()) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(form.email.trim())) {
@@ -201,7 +211,6 @@ export function PatientFormPage() {
       }
     }
 
-    // 5. Emergency Contact Phone number validation (if provided)
     if (form.emergencyContact.phone && form.emergencyContact.phone.trim()) {
       let ecPhone = form.emergencyContact.phone.trim();
       if (/^\d{10}$/.test(ecPhone)) {
@@ -219,7 +228,6 @@ export function PatientFormPage() {
       }
     }
 
-    // 6. Aadhaar Number validation (12 digits, if provided)
     if (form.aadhaar && form.aadhaar.trim()) {
       const aadhaarClean = form.aadhaar.replace(/[^0-9]/g, '');
       if (aadhaarClean.length !== 12) {
@@ -228,7 +236,6 @@ export function PatientFormPage() {
       }
     }
 
-    // 7. Pincode validation (6 digits, if provided)
     if (form.address.pincode && form.address.pincode.trim()) {
       const pinClean = form.address.pincode.replace(/[^0-9]/g, '');
       if (pinClean.length !== 6) {
@@ -240,10 +247,12 @@ export function PatientFormPage() {
     try {
       if (isEdit) {
         await updatePatient.mutateAsync({ id, data: form });
+        dispatch(clearForm());
         toast.success('Patient updated');
         navigate(`/patients/${id}`);
       } else {
         const res = await createPatient.mutateAsync(form);
+        dispatch(clearForm());
         toast.success(`Patient registered: ${res.patient.uhid}`);
         navigate(`/patients/${res.patient._id}`);
       }
@@ -253,6 +262,10 @@ export function PatientFormPage() {
       }
     }
   };
+
+  if (isEdit && patientError) {
+    return <div className="flex justify-center py-12"><p className="text-destructive font-medium">Failed to load patient</p></div>;
+  }
 
   if (isEdit && patientLoading) {
     return (
@@ -266,7 +279,10 @@ export function PatientFormPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(isEdit ? `/patients/${id}` : '/patients')}>
+          <Button variant="ghost" size="icon" onClick={() => {
+            if (!isEdit) dispatch(clearForm());
+            navigate(isEdit ? `/patients/${id}` : '/patients');
+          }}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -275,7 +291,10 @@ export function PatientFormPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={() => navigate(isEdit ? `/patients/${id}` : '/patients')}>Cancel</Button>
+          <Button type="button" variant="outline" onClick={() => {
+            if (!isEdit) dispatch(clearForm());
+            navigate(isEdit ? `/patients/${id}` : '/patients');
+          }}>Cancel</Button>
           <Button type="submit" form="patient-form" disabled={isPending}>
             <UserPlus className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">{isPending ? 'Saving...' : isEdit ? 'Save Changes' : 'Register Patient'}</span>

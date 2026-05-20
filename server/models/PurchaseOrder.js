@@ -53,4 +53,8 @@ purchaseOrderSchema.pre('save', async function(next) {
   next();
 });
 
+purchaseOrderSchema.index({ status: 1 });
+purchaseOrderSchema.index({ orderDate: -1 });
+purchaseOrderSchema.index({ 'vendor.name': 1 });
+
 export default mongoose.model('PurchaseOrder', purchaseOrderSchema);

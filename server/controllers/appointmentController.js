@@ -77,11 +77,12 @@ export const cancel = async (req, res, next) => {
 
 export const calendarEvents = async (req, res, next) => {
   try {
-    const { start, end } = req.query;
+    const { start, end, doctor } = req.query;
     const query = {};
     if (start && end) {
       query.date = { $gte: new Date(start), $lte: new Date(end) };
     }
+    if (doctor) query.doctor = doctor;
     const appointments = await Appointment.find(query)
       .populate('patient', 'firstName lastName uhid')
       .populate({ path: 'doctor', populate: { path: 'user', select: 'name' }, select: 'specialization' })

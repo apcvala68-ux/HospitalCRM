@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { ArrowLeft, MapPin, Stethoscope, Users, Calendar, Pencil, Trash2, Mail, Phone, DollarSign, Activity, Plus, X, MoreHorizontal, Eye, Crown } from 'lucide-react';
+import { displayPhone } from '../../lib/utils';
 
 export function DepartmentDetailPage() {
   const { id } = useParams();
@@ -66,7 +67,7 @@ export function DepartmentDetailPage() {
                 <div><p className="text-xs text-muted-foreground font-semibold">Name</p><p className="text-sm font-medium mt-0.5">{department.name}</p></div>
                 <div><p className="text-xs text-muted-foreground font-semibold">Location</p><p className="text-sm font-medium mt-0.5 flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" /> {department.location || <span className="text-muted-foreground/50">Not set</span>}</p></div>
                 <div><p className="text-xs text-muted-foreground font-semibold">Head Doctor</p><p className="text-sm font-medium mt-0.5 flex items-center gap-1.5"><Stethoscope className="h-3.5 w-3.5 text-muted-foreground shrink-0" /> {department.headDoctor?.user?.name || <span className="text-muted-foreground/50">Not assigned</span>}</p></div>
-                <div><p className="text-xs text-muted-foreground font-semibold">Phone</p><p className="text-sm font-medium mt-0.5 flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" /> {department.phone || <span className="text-muted-foreground/50">Not set</span>}</p></div>
+                <div><p className="text-xs text-muted-foreground font-semibold">Phone</p><p className="text-sm font-medium mt-0.5 flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" /> {displayPhone(department.phone)}</p></div>
                 <div><p className="text-xs text-muted-foreground font-semibold">Email</p><p className="text-sm font-medium mt-0.5 flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-muted-foreground shrink-0" /> {department.email || <span className="text-muted-foreground/50">Not set</span>}</p></div>
                 <div><p className="text-xs text-muted-foreground font-semibold">Revenue</p><p className="text-sm font-semibold mt-0.5 flex items-center gap-1.5"><DollarSign className="h-3.5 w-3.5 text-muted-foreground shrink-0" /> ₹{(department.revenue || 0).toLocaleString('en-IN')}</p></div>
                 <div><p className="text-xs text-muted-foreground font-semibold">Status</p><p className="text-sm font-medium mt-0.5 flex items-center gap-1.5"><Activity className="h-3.5 w-3.5 text-muted-foreground shrink-0" /> {department.isActive !== false ? 'Active' : 'Inactive'}</p></div>

@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDepartments } from '../../hooks/useDepartments';
+import { useToast } from '../../hooks/useToast';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Building2, Stethoscope, MapPin, Users } from 'lucide-react';
 
 export function DepartmentsPage() {
   const [selectedDept, setSelectedDept] = useState(null);
-  const { data, isLoading } = useDepartments();
+  const { data, isLoading, error } = useDepartments();
+  const toast = useToast();
+  useEffect(() => { if (error) toast.error(error.message || 'Failed to load'); }, [error]);
 
   return (
     <div className="space-y-6">
@@ -15,7 +18,7 @@ export function DepartmentsPage() {
         <p className="text-muted-foreground">Hospital departments and specialties</p>
       </div>
 
-      {isLoading ? (
+      {error ? (<div className="py-8 text-center"><p className="text-destructive font-medium">Failed to load</p><p className="text-xs text-muted-foreground mt-1">{error.message}</p></div>) : isLoading ? (
         <div className="flex justify-center py-12">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>

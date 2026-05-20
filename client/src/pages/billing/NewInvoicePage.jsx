@@ -6,7 +6,7 @@ import { useToast } from '../../hooks/useToast';
 import { api } from '../../services/api';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
-import { cn } from '../../lib/utils';
+import { cn, displayPhone } from '../../lib/utils';
 import {
   ArrowLeft, Plus, X, Search, ShoppingBag, Percent,
   Receipt, Stethoscope, FileText, Building2,
@@ -330,7 +330,7 @@ export function NewInvoicePage() {
                       </p>
                       <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
                         UHID: {selectedPatient.uhid}
-                        {selectedPatient.phone && ` · ${selectedPatient.phone}`}
+                        {selectedPatient.phone && ` · ${displayPhone(selectedPatient.phone)}`}
                         {selectedPatient.dob && ` · ${calcAge(selectedPatient.dob)} yrs`}
                         {selectedPatient.gender && ` · ${selectedPatient.gender.charAt(0).toUpperCase()}`}
                       </p>
@@ -374,7 +374,7 @@ export function NewInvoicePage() {
                             </div>
                           </div>
                           <span className="text-[10px] text-muted-foreground font-mono bg-muted/60 px-2 py-0.5 rounded shrink-0">
-                            {p.phone}
+                            {displayPhone(p.phone)}
                           </span>
                         </button>
                       ))}
@@ -704,7 +704,7 @@ export function NewInvoicePage() {
                           ['Age', selectedPatient.dob ? `${calcAge(selectedPatient.dob)} Yrs` : null],
                           ['Sex', selectedPatient.gender ? selectedPatient.gender.charAt(0).toUpperCase() : null],
                           ['Blood', selectedPatient.bloodGroup || null],
-                          ['Phone', selectedPatient.phone || null],
+                          ['Phone', displayPhone(selectedPatient.phone)],
                         ].filter(([, v]) => v).map(([k, v]) => (
                           <p key={k} className="text-[7.5px] text-gray-600">
                             <span className="font-bold">{k}: </span>{v}

@@ -57,7 +57,7 @@ export function PharmacyPage() {
   const [newMed, setNewMed] = useState({ name: '', genericName: '', category: '', unit: 'tablet', reorderLevel: 10 });
 
   const { data: medicinesData } = useMedicines(tab === 'add' || tab === 'new' ? '' : search);
-  const { data: inventoryData, isLoading } = useInventory({ page, limit, search, sortBy, sortOrder });
+  const { data: inventoryData, isLoading, error } = useInventory({ page, limit, search, sortBy, sortOrder });
   const { data: alertsData } = useLowStockAlerts();
   const addStock = useAddStock();
   const dispense = useDispense();
@@ -80,6 +80,10 @@ export function PharmacyPage() {
   useEffect(() => { const h = setTimeout(() => { up({ search: searchInput, page: '1' }); }, 350); return () => clearTimeout(h); }, [searchInput, up]);
   const haf = !!search;
   const hcf = () => { setSearchInput(''); up({ search: '', page: '1' }); };
+  useEffect(() => {
+    if (error) toast.error(error.message || 'Failed to load data');
+  }, [error]);
+
   const gp = (p) => { if (p < 1 || p > totalPages) return; up({ page: String(p) }); };
 
   const getStock = (medId) => inventory.filter(i => i.medicine?._id === medId).reduce((s, i) => s + i.quantity, 0);
@@ -111,6 +115,9 @@ export function PharmacyPage() {
   }).length;
 
   const totalValue = inventory.reduce((s, i) => s + (i.quantity * (i.mrp || 0)), 0);
+
+  if (error) return <div className="flex justify-center py-12"><p className="text-destructive font-medium">Failed to load</p></div>;
+  if (isLoading) return <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
 
   return (
     <div className="space-y-6">

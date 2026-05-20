@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Input } from '../ui/input';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, AlertCircle } from 'lucide-react';
+import { useToast } from '../../hooks/useToast';
 
 const ICD_API = 'https://icd10api.com/autocomplete';
 
@@ -8,8 +9,10 @@ export function ICD10Search({ onSelect, selected = [], placeholder = 'Search dia
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const toast = useToast();
 
   useEffect(() => {
     if (!query || query.length < 2) {
@@ -18,13 +21,17 @@ export function ICD10Search({ onSelect, selected = [], placeholder = 'Search dia
     }
     const timer = setTimeout(async () => {
       setLoading(true);
+      setError(null);
       try {
         const res = await fetch(`${ICD_API}?q=${encodeURIComponent(query)}`);
+        if (!res.ok) throw new Error('Failed to fetch ICD-10 codes');
         const data = await res.json();
         setResults(data?.slice?.(0, 10) || []);
         setOpen(true);
-      } catch {
+      } catch (err) {
+        setError(err.message || 'Search failed');
         setResults([]);
+        toast.error(err.message || 'Failed to search ICD-10 codes');
       } finally {
         setLoading(false);
       }
@@ -55,9 +62,15 @@ export function ICD10Search({ onSelect, selected = [], placeholder = 'Search dia
         />
         {loading && <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />}
       </div>
-      {open && results.length > 0 && (
+      {open && (results.length > 0 || error) && (
         <div className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border bg-popover shadow-lg">
-          {results.map((r, i) => (
+          {error ? (
+            <div className="flex items-center gap-2 px-3 py-3 text-sm text-destructive">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>Failed to load ICD-10 codes</span>
+            </div>
+          ) : (
+          results.map((r, i) => (
             <button
               key={i}
               type="button"
@@ -77,7 +90,7 @@ export function ICD10Search({ onSelect, selected = [], placeholder = 'Search dia
                 <span className="text-xs text-muted-foreground">selected</span>
               )}
             </button>
-          ))}
+          )))}
         </div>
       )}
     </div>

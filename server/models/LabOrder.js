@@ -35,4 +35,9 @@ labOrderSchema.pre('save', async function(next) {
   next();
 });
 
+labOrderSchema.index({ patient: 1 });
+labOrderSchema.index({ doctor: 1 });
+labOrderSchema.index({ status: 1 });
+labOrderSchema.index({ createdAt: -1 });
+
 export default mongoose.model('LabOrder', labOrderSchema);

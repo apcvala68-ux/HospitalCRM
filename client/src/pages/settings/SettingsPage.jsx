@@ -10,6 +10,7 @@ import {
   User, Lock, Shield, Calendar, Clock, Save, Loader2, CheckCircle, AlertCircle,
   Eye, EyeOff, Mail, Phone, Building2, LogOut,
 } from 'lucide-react';
+import { displayPhone } from '../../lib/utils';
 
 const roleLabels = {
   admin: 'Administrator',
@@ -331,7 +332,7 @@ export function SettingsPage() {
                   </div>
                   <div className="flex items-center justify-between p-3">
                     <span className="text-sm text-muted-foreground">Phone</span>
-                    <span className="text-sm font-medium">{user.phone || 'Not set'}</span>
+                    <span className="text-sm font-medium">{displayPhone(user.phone)}</span>
                   </div>
                   <div className="flex items-center justify-between p-3">
                     <span className="text-sm text-muted-foreground">Account Status</span>

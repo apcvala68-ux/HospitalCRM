@@ -680,18 +680,7 @@ async function seed() {
     console.log('Created 15 upcoming appointments');
 
     console.log('\n--- Seed Complete ---');
-    console.log('\nLogin Credentials:');
-    console.log('  Admin:        admin@hospital.com / Admin@123');
-    console.log('  Dr. Sharma:   sharma@hospital.com / Doctor@123');
-    console.log('  Dr. Patel:    patel@hospital.com / Doctor@123');
-    console.log('  Dr. Singh:    singh@hospital.com / Doctor@123');
-    console.log('  Dr. Reddy:    reddy@hospital.com / Doctor@123');
-    console.log('  Dr. Nair:     nair@hospital.com / Doctor@123');
-    console.log('  Nurse:        meena@hospital.com / Staff@123');
-    console.log('  Receptionist: tina@hospital.com / Staff@123');
-    console.log('  Cashier:      raj@hospital.com / Staff@123');
-    console.log('  Pharmacist:   kumar@hospital.com / Staff@123');
-    console.log('  Lab Tech:     suresh@hospital.com / Staff@123');
+    console.log('\nAll users created with passwords defined in seed file (server/seeds/seed.js).');
 
     console.log('\n--- Sample Patients ---');
     for (const p of patients) {

@@ -45,8 +45,8 @@ export function HousekeepingPage(){
   const [sp,setSp]=useSearchParams();
   const page=Number(sp.get('page'))||1,limit=Number(sp.get('limit'))||15,search=sp.get('search')||'',sortBy=sp.get('sortBy')||'',sortOrder=sp.get('sortOrder')||'',statusFilter=sp.get('status')||'',typeFilter=sp.get('type')||'',priorityFilter=sp.get('priority')||'';
   const [si,setSi]=useState(search);const [fo,setFo]=useState(false);
-  const {data,isLoading}=useTickets({page,search,limit,sortBy,sortOrder,status:statusFilter,type:typeFilter,priority:priorityFilter});
-  const {data:stats}=useHKStats();const del=useDeleteTicket();const s=stats||{};
+  const {data,isLoading,error}=useTickets({page,search,limit,sortBy,sortOrder,status:statusFilter,type:typeFilter,priority:priorityFilter});
+  const {data:stats}=useHKStats();const del=useDeleteTicket();const s=stats||{};const toast=useToast();useEffect(()=>{if(error) toast.error(error.message||'Failed to load');},[error]);
   const kpi=[
     {label:'Total Tickets',value:(s.total||0).toLocaleString(),icon:ClipboardList,color:'#f43f5e',bg:'bg-rose-50 dark:bg-rose-950/30',changeText:'+4.5% from last month',isIncrease:true},
     {label:'Open',value:s.open||0,icon:AlertTriangle,color:'#f59e0b',bg:'bg-amber-50 dark:bg-amber-950/30',changeText:'needs attention',isIncrease:false},
@@ -82,7 +82,7 @@ export function HousekeepingPage(){
       </div>}
     </div>
     <Card><CardContent className="pt-6">
-      {isLoading?(<div className="flex justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>):items.length===0?(<div className="py-8 text-center text-muted-foreground">{search?'No tickets match your search':'No housekeeping tickets yet'}</div>):(<>
+      {error?(<div className="py-8 text-center"><p className="text-destructive font-medium">Failed to load</p><p className="text-xs text-muted-foreground mt-1">{error.message}</p></div>):isLoading?(<div className="flex justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>):items.length===0?(<div className="py-8 text-center text-muted-foreground">{search?'No tickets match your search':'No housekeeping tickets yet'}</div>):(<>
         <div className="overflow-x-auto"><table className="w-full"><thead><tr className="border-b text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           <th className="pb-3 pr-2 w-10 text-center font-semibold">#</th>
           <th className="pb-3 font-semibold">Location</th>

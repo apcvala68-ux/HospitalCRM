@@ -11,4 +11,6 @@ const departmentSchema = new mongoose.Schema({
   revenue: { type: Number, default: 0 },
 }, { timestamps: true });
 
+departmentSchema.index({ isActive: 1 });
+
 export default mongoose.model('Department', departmentSchema);

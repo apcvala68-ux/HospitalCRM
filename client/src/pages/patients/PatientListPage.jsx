@@ -13,7 +13,7 @@ import {
   Pencil, Trash2, SlidersHorizontal, X,
   Copy, Check,
 } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn, displayPhone } from '../../lib/utils';
 import { useDashboardStats } from '../../hooks/useDashboard';
 
 const PAGE_SIZE_OPTIONS = [10, 15, 20, 50];
@@ -98,7 +98,7 @@ export function PatientListPage() {
   const [copiedId, setCopiedId] = useState(null);
   const [delTarget, setDelTarget] = useState(null);
 
-  const { data, isLoading } = usePatients({ page, search, limit, sortBy, sortOrder, gender, bloodGroup });
+  const { data, isLoading, error } = usePatients({ page, search, limit, sortBy, sortOrder, gender, bloodGroup });
   const { data: statsData } = useDashboardStats();
   const deleteMut = useDeletePatient();
 
@@ -320,7 +320,9 @@ export function PatientListPage() {
 
       <Card>
         <CardContent className="pt-6">
-          {isLoading ? (
+          {error ? (
+            <div className="py-8 text-center"><p className="text-destructive font-medium">Failed to load patients</p><p className="text-xs text-muted-foreground mt-1">{error.message || 'Check your connection and try again'}</p></div>
+          ) : isLoading ? (
             <div className="flex justify-center py-8">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
             </div>
@@ -416,7 +418,7 @@ export function PatientListPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="py-3.5 text-sm font-medium text-foreground hidden md:table-cell">{p.phone}</td>
+                        <td className="py-3.5 text-sm font-medium text-foreground hidden md:table-cell">{displayPhone(p.phone)}</td>
                         <td className="py-3.5 text-sm hidden md:table-cell">
                           <Badge variant="outline" className="capitalize px-2 py-0.5 font-semibold text-[11px] bg-muted/20 text-muted-foreground border-border/10">
                             {p.gender}

@@ -349,9 +349,7 @@ export function AdminDashboard() {
       <div className="grid gap-4 lg:grid-cols-5">
         <div className="lg:col-span-2 flex flex-col h-full">
           <SectionTitle action={
-            <button className="text-[11px] text-primary font-semibold flex items-center gap-0.5 hover:underline">
-              View all <ArrowUpRight className="h-3 w-3" />
-            </button>
+            <button className="text-[11px] text-primary font-semibold flex items-center gap-0.5 hover:underline" onClick={() => navigate('/appointments')}>View all <ArrowUpRight className="h-3 w-3" /></button>
           }>
             Appointment Requests
           </SectionTitle>
@@ -613,9 +611,7 @@ export function AdminDashboard() {
       <div className="grid gap-4 lg:grid-cols-5">
         <div className="lg:col-span-3">
           <SectionTitle action={
-            <button className="text-[11px] text-primary font-semibold flex items-center gap-0.5 hover:underline">
-              View all <ArrowUpRight className="h-3 w-3" />
-            </button>
+            <button className="text-[11px] text-primary font-semibold flex items-center gap-0.5 hover:underline" onClick={() => navigate('/patients')}>View all <ArrowUpRight className="h-3 w-3" /></button>
           }>
             Recent Patient Reports
           </SectionTitle>

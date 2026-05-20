@@ -42,6 +42,13 @@ export const getById = async (req, res, next) => {
 
 export const create = async (req, res, next) => {
   try {
+    const { patient, substance } = req.body;
+    const existing = await Allergy.findOne({ patient, substance, isActive: false });
+    if (existing) {
+      Object.assign(existing, req.body, { isActive: true });
+      await existing.save();
+      return res.status(200).json({ allergy: existing });
+    }
     const allergy = await Allergy.create(req.body);
     res.status(201).json({ allergy });
   } catch (error) {

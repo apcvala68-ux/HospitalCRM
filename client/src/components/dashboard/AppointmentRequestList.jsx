@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { Chip } from '@heroui/react';
 import { Clock, MapPin } from 'lucide-react';
 import { useTodayAppointments } from '../../hooks/useDashboard';
 import { cn } from '../../lib/utils';
+import { useToast } from '../../hooks/useToast';
 
 const statusColorMap = {
   scheduled: 'warning',
@@ -22,7 +24,8 @@ function Avatar({ name }) {
 }
 
 export function AppointmentRequestList({ dateRange, className }) {
-  const { data, isLoading } = useTodayAppointments(dateRange);
+  const { data, isLoading, error } = useTodayAppointments(dateRange);
+  const toast = useToast();
   const appointments = data?.appointments || [];
   const items = appointments.slice(0, 5);
 
@@ -30,6 +33,12 @@ export function AppointmentRequestList({ dateRange, className }) {
   while (paddedItems.length < 5) {
     paddedItems.push({ _id: `empty-${paddedItems.length}`, isEmpty: true });
   }
+
+  useEffect(() => {
+    if (error) toast.error(error.message || 'Failed to load');
+  }, [error]);
+
+  if (error) return <div className={cn("rounded-lg border border-border/60 bg-card p-4 text-sm text-destructive", className)}>Failed to load</div>;
 
   if (isLoading) {
     return (

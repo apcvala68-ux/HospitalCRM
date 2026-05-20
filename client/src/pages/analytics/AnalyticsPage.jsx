@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDashboardStats, useRevenueTrend, useDoctorPerformance, useBedOccupancy } from '../../hooks/useDashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Users, Stethoscope, CalendarCheck, BedDouble, DollarSign, Activity, Clock, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../hooks/useToast';
 
 function Bar({ label, value, max, color = 'bg-primary' }) {
   return (
@@ -21,14 +22,24 @@ function Bar({ label, value, max, color = 'bg-primary' }) {
 
 export function AnalyticsPage() {
   const navigate = useNavigate();
-  const { data: stats } = useDashboardStats();
-  const { data: trendData } = useRevenueTrend(14);
-  const { data: perfData } = useDoctorPerformance();
-  const { data: bedData } = useBedOccupancy();
+  const { data: stats, isLoading: statsLoading, error: statsError } = useDashboardStats();
+  const { data: trendData, isLoading: trendLoading, error: trendError } = useRevenueTrend(14);
+  const { data: perfData, isLoading: perfLoading, error: perfError } = useDoctorPerformance();
+  const { data: bedData, isLoading: bedLoading, error: bedError } = useBedOccupancy();
+  const toast = useToast();
+
+  const error = statsError || trendError || perfError || bedError;
+  const isLoading = statsLoading || trendLoading || perfLoading || bedLoading;
 
   const trend = trendData?.trend || [];
   const performance = perfData?.performance || [];
   const maxPerf = Math.max(...performance.map(p => p.total), 1);
+  useEffect(() => {
+    if (error) toast.error(error.message || 'Failed to load data');
+  }, [error]);
+
+  if (error) return <div className="flex justify-center py-12"><p className="text-destructive font-medium">Failed to load</p></div>;
+  if (isLoading) return <div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
 
   return (
     <div className="space-y-6">

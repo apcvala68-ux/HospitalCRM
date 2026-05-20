@@ -5,7 +5,7 @@ import { ConfirmDelete } from '../../components/ui/ConfirmDelete';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
-import { cn } from '../../lib/utils';
+import { cn, displayPhone } from '../../lib/utils';
 import {
   Phone, Mail, Calendar,
   MapPin, Languages, User,
@@ -63,7 +63,7 @@ export function DoctorDetailPage() {
           <CardHeader><CardTitle className="text-sm font-semibold">Personal Information</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div><span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Email</span><div className="flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-sm">{doctor.user?.email}</span></div></div>
-            <div><span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Phone</span><div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-sm">{doctor.user?.phone || <span className="text-muted-foreground">—</span>}</span></div></div>
+            <div><span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Phone</span><div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-sm">{displayPhone(doctor.user?.phone)}</span></div></div>
             {doctor.gender && <div><span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Gender</span><div className="flex items-center gap-2"><User className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-sm capitalize">{doctor.gender}</span></div></div>}
             {doctor.dateOfBirth && <div><span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Date of Birth</span><div className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-sm">{new Date(doctor.dateOfBirth).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span></div></div>}
             {doctor.address && <div><span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Address</span><div className="flex items-start gap-2"><MapPin className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" /><span className="text-sm text-muted-foreground">{doctor.address}</span></div></div>}
@@ -77,7 +77,7 @@ export function DoctorDetailPage() {
           <CardHeader><CardTitle className="text-sm font-semibold">Emergency Contact</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div><span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Name</span><span className="text-sm font-medium">{doctor.emergencyContact.name}</span></div>
-            <div><span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Phone</span><span className="text-sm">{doctor.emergencyContact.phone}</span></div>
+            <div><span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Phone</span><span className="text-sm">{displayPhone(doctor.emergencyContact.phone)}</span></div>
             <div><span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Relationship</span><span className="text-sm capitalize">{doctor.emergencyContact.relationship}</span></div>
           </CardContent>
         </Card>

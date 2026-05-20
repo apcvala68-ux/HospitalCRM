@@ -11,10 +11,10 @@ export function useAppointments(params = {}) {
   });
 }
 
-export function useCalendarEvents(start, end) {
+export function useCalendarEvents(start, end, doctor) {
   return useQuery({
-    queryKey: ['appointments', 'calendar', start, end],
-    queryFn: () => api.get(`/appointments/calendar?start=${start}&end=${end}`),
+    queryKey: ['appointments', 'calendar', start, end, doctor],
+    queryFn: () => api.get(`/appointments/calendar?start=${start}&end=${end}${doctor ? `&doctor=${doctor}` : ''}`),
     enabled: !!start && !!end,
   });
 }

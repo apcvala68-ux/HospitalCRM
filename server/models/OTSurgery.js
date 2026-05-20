@@ -44,4 +44,9 @@ otSurgerySchema.pre('save', async function(next) {
   next();
 });
 
+otSurgerySchema.index({ patient: 1 });
+otSurgerySchema.index({ surgeon: 1 });
+otSurgerySchema.index({ status: 1 });
+otSurgerySchema.index({ scheduledDate: 1 });
+
 export default mongoose.model('OTSurgery', otSurgerySchema);

@@ -28,4 +28,9 @@ housekeepingSchema.pre('save', async function(next) {
   next();
 });
 
+housekeepingSchema.index({ status: 1 });
+housekeepingSchema.index({ type: 1 });
+housekeepingSchema.index({ assignedTo: 1 });
+housekeepingSchema.index({ createdAt: -1 });
+
 export default mongoose.model('Housekeeping', housekeepingSchema);

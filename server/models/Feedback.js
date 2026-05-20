@@ -28,4 +28,9 @@ feedbackSchema.pre('save', async function(next) {
   next();
 });
 
+feedbackSchema.index({ status: 1 });
+feedbackSchema.index({ type: 1 });
+feedbackSchema.index({ patient: 1 });
+feedbackSchema.index({ createdAt: -1 });
+
 export default mongoose.model('Feedback', feedbackSchema);
