@@ -9,6 +9,7 @@ const ipdAdmissionSchema = new mongoose.Schema({
   dischargeDate: { type: Date },
   diagnosis: { type: String },
   admittingDoctor: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor' },
+  dischargingDoctor: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor' },
   vitals: [{
     recordedAt: { type: Date, default: Date.now },
     bp: String,

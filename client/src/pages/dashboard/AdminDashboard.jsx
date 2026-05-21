@@ -13,7 +13,7 @@ import {
   useDepartmentRevenue, useBedOccupancy,
   useQuickStats,
 } from '../../hooks/useDashboard';
-import { Popover, PopoverTrigger, PopoverContent, RangeCalendar } from "@heroui/react";
+import { Popover, PopoverTrigger, PopoverContent, RangeCalendar, toast } from "@heroui/react";
 import { today, getLocalTimeZone } from "@internationalized/date";
 import { useState } from "react";
 import Chart from 'react-apexcharts';
@@ -27,11 +27,16 @@ import { generateSparkline } from '../../lib/demoData';
 
 const COLORS = ['#2563eb', '#0ea5e9', '#6366f1', '#f59e0b', '#10b981', '#ef4444'];
 
-const pctChange = (curr, prev) => prev === 0 ? 0 : Math.round(((curr - prev) / prev) * 100);
+const pctChange = (curr, prev) => {
+  if (prev === 0 && curr === 0) return 0;
+  if (prev === 0) return 100;
+  return Math.round(((curr - prev) / prev) * 100);
+};
 
 function StatCard({ label, value, icon: Icon, color, bg, change, sparkline = [] }) {
   const up = change >= 0;
-  const chartData = sparkline.length > 0 ? sparkline : generateSparkline();
+  const hasRealData = sparkline.length > 0 && sparkline.some(d => d.value !== 0);
+  const chartData = hasRealData ? sparkline : generateSparkline();
 
   return (
     <Card className="flex-1 min-w-[200px] shadow-[var(--shadow-kpi)] hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col rounded-2xl bg-card border border-border/50 overflow-hidden">
@@ -40,12 +45,16 @@ function StatCard({ label, value, icon: Icon, color, bg, change, sparkline = [] 
           <div className="space-y-2">
             <span className="text-[10px] font-bold tracking-wider text-muted-foreground/70 uppercase block">{label}</span>
             <p className="text-3xl font-extrabold text-foreground tracking-tight leading-none">{value}</p>
-            {change !== 0 && change !== undefined && (
+            {change !== undefined && change !== null && (
               <div className="h-4 flex items-center mt-1">
-                <span className={cn("flex items-center gap-1 text-[10.5px] font-bold", up ? 'text-emerald-500' : 'text-rose-500')}>
-                  {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                  {up ? '+' : ''}{change}%
-                </span>
+                {change === 0 ? (
+                  <span className="text-[10.5px] font-bold text-muted-foreground">— 0%</span>
+                ) : (
+                  <span className={cn("flex items-center gap-1 text-[10.5px] font-bold", up ? 'text-emerald-500' : 'text-rose-500')}>
+                    {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                    {up ? '+' : ''}{change}%
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -61,13 +70,13 @@ function StatCard({ label, value, icon: Icon, color, bg, change, sparkline = [] 
   );
 }
 
-function QuickAction({ label, icon: Icon, route, color, bg, navigate }) {
+function QuickAction({ label, icon: Icon, route, onClick, color, bg, navigate }) {
   return (
     <div
-      onClick={() => navigate(route)}
+      onClick={onClick || (() => navigate(route))}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter') navigate(route); }}
+      onKeyDown={(e) => { if (e.key === 'Enter') (onClick || (() => navigate(route)))(); }}
       className={cn(
         'flex items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3',
         'shadow-[var(--shadow-kpi)] hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5',
@@ -184,7 +193,7 @@ export function AdminDashboard() {
       color: '#6366f1',
       bg: 'bg-violet-50 dark:bg-violet-950',
       change: 0,
-      sparkline: [],
+      sparkline: quickStats?.doctors || [],
     },
     {
       label: "Today's Revenue",
@@ -202,7 +211,7 @@ export function AdminDashboard() {
       color: '#0ea5e9',
       bg: 'bg-sky-50 dark:bg-sky-950',
       change: 0,
-      sparkline: [],
+      sparkline: quickStats?.beds || [],
     },
   ];
 
@@ -210,8 +219,10 @@ export function AdminDashboard() {
     { label: 'All Patients', icon: Users2, route: '/patients', color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950' },
     { label: 'Doctors', icon: Stethoscope, route: '/doctors', color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950' },
     { label: 'Lab Results', icon: FlaskConical, route: '/lab', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950' },
-    { label: 'Prescriptions', icon: FileText, route: '/pharmacy', color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-950' },
-    { label: 'IPD Visits', icon: BedDouble, route: '/ipd', color: 'text-sky-600', bg: 'bg-sky-50 dark:bg-sky-950' },
+    { label: 'Prescriptions', icon: FileText, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-950',
+      onClick: () => toast('🔒 This module is locked. Contact Axiora Digital for full access.') },
+    { label: 'IPD Visits', icon: BedDouble, color: 'text-sky-600', bg: 'bg-sky-50 dark:bg-sky-950',
+      onClick: () => toast('🔒 This module is locked. Contact Axiora Digital for full access.') },
     { label: 'Medical Records', icon: ClipboardList, route: '/patients', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950' },
   ];
 

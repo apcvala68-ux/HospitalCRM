@@ -5,6 +5,7 @@ import Billing from '../models/Billing.js';
 import IPDAdmission from '../models/IPDAdmission.js';
 import QueueToken from '../models/QueueToken.js';
 import PharmacyInventory from '../models/PharmacyInventory.js';
+import Bed from '../models/Bed.js';
 
 const getDateBounds = (query) => {
   const { startDate, endDate } = query;
@@ -522,9 +523,26 @@ export const quickStats = async (req, res, next) => {
         { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, total: { $sum: '$amountPaid' } } },
       ]),
     ]);
+    const totalBeforeRange = await Promise.all([
+      Doctor.countDocuments({ createdAt: { $lt: start } }),
+      Bed.countDocuments({ createdAt: { $lt: start } }),
+    ]);
+    const doctorsBeforeRange = totalBeforeRange[0];
+    const bedsBeforeRange = totalBeforeRange[1];
+
+    const [doctorsPerDay, bedsPerDay] = await Promise.all([
+      Doctor.aggregate([
+        { $match: { createdAt: { $gte: start, $lte: end } } },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 } } },
+      ]),
+      Bed.aggregate([
+        { $match: { createdAt: { $gte: start, $lte: end } } },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 } } },
+      ]),
+    ]);
 
     if (diffDays > 31) {
-      const uniqueDates = [...new Set([...patients.map(p => p._id), ...appointments.map(p => p._id), ...revenue.map(p => p._id)])].sort();
+      const uniqueDates = [...new Set([...patients.map(p => p._id), ...appointments.map(p => p._id), ...revenue.map(p => p._id), ...doctorsPerDay.map(p => p._id), ...bedsPerDay.map(p => p._id)])].sort();
       dayLabels.push(...uniqueDates);
     }
 
@@ -533,10 +551,24 @@ export const quickStats = async (req, res, next) => {
       return { label: new Date(day).toLocaleDateString('en', { weekday: 'short', day: 'numeric', month: diffDays > 31 ? 'short' : undefined }), [key]: found ? (found.count ?? found.total ?? 0) : 0 };
     });
 
+    const fillCumulative = (perDay, totalBeforeRange) => {
+      let runningTotal = totalBeforeRange;
+      return dayLabels.map(day => {
+        const found = perDay.find(d => d._id === day);
+        runningTotal += found?.count || 0;
+        return {
+          label: new Date(day).toLocaleDateString('en', { weekday: 'short', day: 'numeric', month: diffDays > 31 ? 'short' : undefined }),
+          value: runningTotal,
+        };
+      });
+    };
+
     res.json({
       patients: fill(patients, 'value'),
       appointments: fill(appointments, 'value'),
       revenue: fill(revenue, 'value'),
+      doctors: fillCumulative(doctorsPerDay, doctorsBeforeRange),
+      beds: fillCumulative(bedsPerDay, bedsBeforeRange),
     });
   } catch (error) { next(error); }
 };

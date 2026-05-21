@@ -1,6 +1,7 @@
 import IPDAdmission from '../models/IPDAdmission.js';
 import Bed from '../models/Bed.js';
 import Ward from '../models/Ward.js';
+import Doctor from '../models/Doctor.js';
 
 export const listWards = async (req, res, next) => {
   try {
@@ -103,6 +104,8 @@ export const discharge = async (req, res, next) => {
     if (!admission) return res.status(404).json({ message: 'Admission not found' });
     admission.status = 'discharged';
     admission.dischargeDate = new Date();
+    const doctor = await Doctor.findOne({ user: req.user._id });
+    if (doctor) admission.dischargingDoctor = doctor._id;
     if (dischargeSummary) admission.dischargeSummary = dischargeSummary;
     await admission.save();
     const bed = await Bed.findById(admission.bed);
