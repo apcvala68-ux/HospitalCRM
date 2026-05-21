@@ -1,4 +1,4 @@
-import { Select, ListBox, PopoverContent } from '@heroui/react';
+import { useState } from 'react';
 import { Card, CardContent } from '../../../components/ui/card';
 import { Input } from '../../../components/ui/input';
 import { Badge } from '../../../components/ui/badge';
@@ -87,6 +87,14 @@ export function AppointmentsListView({
   cancelAppointment,
   navigate
 }) {
+  const [doctorSearch, setDoctorSearch] = useState('');
+  const [doctorDropdownOpen, setDoctorDropdownOpen] = useState(false);
+
+  const filteredDoctors = doctors.filter(d =>
+    !doctorSearch || d.user?.name?.toLowerCase().includes(doctorSearch.toLowerCase())
+  );
+  const selectedDoctorObj = doctors.find(d => d._id === doctorFilter);
+
   return (
     <>
       <div className="flex flex-col gap-3">
@@ -150,37 +158,92 @@ export function AppointmentsListView({
             {user?.role !== 'doctor' && (
               <div>
                 <span className="text-[10px] font-bold text-muted-foreground block mb-2 uppercase tracking-wider">Doctor</span>
-                <Select
-                  className="w-full max-w-xs"
-                  placeholder="All Doctors"
-                  selectedKey={doctorFilter || 'all'}
-                  onSelectionChange={k => {
-                    const val = k === 'all' ? '' : String(k);
-                    setDoctorFilter(val);
-                    up({ doctor: val, page: '1' });
-                  }}
-                >
-                  <Select.Trigger className="h-9 rounded-xl bg-background border-border/50 text-xs">
-                    <Select.Value />
-                    <Select.Indicator />
-                  </Select.Trigger>
-                  <Select.Popover className="border border-border/60 shadow-lg">
-                    <PopoverContent>
-                      <ListBox>
-                        <ListBox.Item id="all" textValue="All Doctors">
-                          All Doctors
-                          <ListBox.ItemIndicator />
-                        </ListBox.Item>
-                        {doctors.map(d => (
-                          <ListBox.Item key={d._id} id={d._id} textValue={d.user?.name}>
-                            {d.user?.name}
-                            <ListBox.ItemIndicator />
-                          </ListBox.Item>
-                        ))}
-                      </ListBox>
-                    </PopoverContent>
-                  </Select.Popover>
-                </Select>
+                <div className="relative w-full max-w-xs">
+                  {selectedDoctorObj ? (
+                    <div className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/20 px-3 py-1.5 transition-all w-full">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center bg-primary text-white font-bold text-xs shrink-0">
+                          {selectedDoctorObj.user?.name?.charAt(0) || 'D'}
+                        </div>
+                        <div className="truncate">
+                          <p className="text-xs font-semibold text-foreground truncate">{selectedDoctorObj.user?.name}</p>
+                          <p className="text-[9px] text-muted-foreground truncate">{selectedDoctorObj.specialization}</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setDoctorFilter('');
+                          setDoctorSearch('');
+                          up({ doctor: '', page: '1' });
+                        }}
+                        className="h-7 px-2 border-border/50 text-muted-foreground hover:text-foreground shrink-0"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="relative w-full">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          placeholder="All Doctors (search...)"
+                          value={doctorSearch}
+                          onChange={e => setDoctorSearch(e.target.value)}
+                          onFocus={() => setDoctorDropdownOpen(true)}
+                          onBlur={() => setTimeout(() => setDoctorDropdownOpen(false), 200)}
+                          className="pl-9 h-9 rounded-xl bg-background text-xs"
+                        />
+                      </div>
+                      {doctorDropdownOpen && (
+                        <div className="absolute z-50 w-full mt-1.5 max-h-48 overflow-y-auto rounded-xl border border-border/60 bg-card shadow-elevated animate-in fade-in duration-100">
+                          {filteredDoctors.length === 0 ? (
+                            <div className="px-3 py-2 text-xs text-muted-foreground">No doctors found</div>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  setDoctorFilter('');
+                                  setDoctorSearch('');
+                                  setDoctorDropdownOpen(false);
+                                  up({ doctor: '', page: '1' });
+                                }}
+                                className="w-full px-3 py-2 text-left hover:bg-muted/40 border-b border-border/20 flex items-center gap-2 transition-colors cursor-pointer text-xs font-semibold text-foreground/80"
+                              >
+                                All Doctors
+                              </button>
+                              {filteredDoctors.map(d => (
+                                <button
+                                  key={d._id}
+                                  type="button"
+                                  onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    setDoctorFilter(d._id);
+                                    setDoctorSearch('');
+                                    setDoctorDropdownOpen(false);
+                                    up({ doctor: d._id, page: '1' });
+                                  }}
+                                  className="w-full px-3 py-2 text-left hover:bg-muted/40 border-b last:border-0 border-border/20 flex items-center gap-2 transition-colors cursor-pointer"
+                                >
+                                  <div className="w-6 h-6 rounded-full flex items-center justify-center bg-primary/20 text-primary font-bold text-[10px] shrink-0">
+                                    {d.user?.name?.charAt(0) || 'D'}
+                                  </div>
+                                  <div className="overflow-hidden">
+                                    <p className="font-semibold text-xs text-foreground truncate">{d.user?.name}</p>
+                                    <p className="text-[9px] text-muted-foreground truncate">{d.specialization}</p>
+                                  </div>
+                                </button>
+                              ))}
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
