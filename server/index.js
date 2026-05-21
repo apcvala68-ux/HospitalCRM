@@ -70,7 +70,7 @@ app.use(helmet({
 }));
 
 // CORS with whitelist
-const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173').split(',').map(s => s.trim());
+const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173,https://royalecrm.web.app,https://hospitalcrm-production.up.railway.app').split(',').map(s => s.trim());
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (origin && allowedOrigins.includes(origin)) {
